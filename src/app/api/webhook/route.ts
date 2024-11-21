@@ -1,6 +1,7 @@
-import { createBooking, updateHotelRoom } from "@/libs/apis";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+
+import { createBooking, updateHotelRoom } from "@/libs/apis";
 
 const checkout_session_completed = "checkout.session.completed";
 
@@ -23,10 +24,12 @@ export async function POST(req: Request, res: Response) {
   } catch (error: any) {
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 500 });
   }
+
   // load our event
   switch (event.type) {
     case checkout_session_completed:
       const session = event.data.object;
+
       const {
         metadata: {
           adults,
@@ -45,14 +48,15 @@ export async function POST(req: Request, res: Response) {
         adults: Number(adults),
         checkinDate,
         checkoutDate,
-        chidren: Number(children),
+        children: Number(children),
         hotelRoom,
         numberOfDays: Number(numberOfDays),
         discount: Number(discount),
         totalPrice: Number(totalPrice),
         user,
       });
-
+      
+      //   Update hotel Room
       await updateHotelRoom(hotelRoom);
 
       return NextResponse.json("Booking Successful", {

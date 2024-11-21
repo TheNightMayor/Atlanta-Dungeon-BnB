@@ -1,9 +1,9 @@
 import axios from "axios";
 
-import { Room } from "@/models/room";
+import { CreateBookingDto, Room } from "@/app/models/room";
 import sanityClient from "./sanity";
 import * as queries from "./sanityQueries";
-import { CreateBookingDto } from "@/app/models/room";
+
 export async function getFeaturedRoom() {
   const result = await sanityClient.fetch<Room>(
     queries.getFeaturedRoomQuery,
@@ -28,6 +28,7 @@ export async function getRoom(slug: string) {
     { slug },
     { cache: "no-cache" },
   );
+
   return result;
 }
 
@@ -35,7 +36,7 @@ export const createBooking = async ({
   adults,
   checkinDate,
   checkoutDate,
-  chidren,
+  children,
   discount,
   hotelRoom,
   numberOfDays,
@@ -46,16 +47,16 @@ export const createBooking = async ({
     mutations: [
       {
         create: {
-          _type: "booking",
-          user: { _type: "reference", _ref: user },
-          hotelRoom: { _type: "reference", ref: hotelRoom },
+          _type: 'booking',
+          user: { _type: 'reference', _ref: user },
+          hotelRoom: { _type: 'reference', ref: hotelRoom },
           checkinDate,
           checkoutDate,
+          numberOfDays,
           adults,
-          chidren,
+          children,
           totalPrice,
           discount,
-          numberOfDays,
         },
       },
     ],
@@ -66,10 +67,9 @@ export const createBooking = async ({
     mutation,
     {
       headers: {
-        Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}`,
-      },
-    },
-  );
+        Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+       );
+
   return data;
 };
 
@@ -80,20 +80,20 @@ export const updateHotelRoom = async (hotelRoomId: string) => {
       patch: {
         id: hotelRoomId,
         set: {
-          isBooked: true
-        }
-      }
-    }
-    ]
-  }
+          isBooked: true,
+        },
+      },
+    },
+    ],
+  };
+
   const { data } = await axios.post(
     `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
     mutation,
     {
       headers: {
-        Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}`,
-      },
-    },
+        Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
   );
+
   return data;
-}
+};
