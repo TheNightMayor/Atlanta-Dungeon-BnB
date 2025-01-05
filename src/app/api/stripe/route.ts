@@ -90,6 +90,7 @@ export async function POST(req: Request, res: Response) {
       status: 200,
       statusText: 'Payment session created',
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.log('Payment falied', error);
     return new NextResponse(error, { status: 500 });
