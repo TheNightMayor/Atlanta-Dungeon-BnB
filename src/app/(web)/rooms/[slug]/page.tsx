@@ -13,7 +13,7 @@ import HotelPhotoGallery from "@/components/HotelPhotoGallery/HotelPhotoGallery"
 import BookRoomCta from "@/components/BookRoomCta/BookRoomCta";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { getStripe } from "@/libs/libs";
+import { getStripe } from "@/libs/stripe";
 
 const RoomDetails = (props: { params: { slug: string } }) => {
     const {
@@ -78,7 +78,7 @@ const RoomDetails = (props: { params: { slug: string } }) => {
                 }
             }
         } catch (error) {
-            console.log("error: ", error);
+            console.log("Error: ", error);
             toast.error("an error occurred");
         }
     };

@@ -9,7 +9,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-09-30.acacia",
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(req: Request, res: Response) {
   const reqBody = await req.text();
   const sig = req.headers.get("stripe-signature");
@@ -20,26 +19,34 @@ export async function POST(req: Request, res: Response) {
   try {
     if (!sig || !webhookSecret) return;
     event = stripe.webhooks.constructEvent(reqBody, sig, webhookSecret);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 500 });
   }
-
+    
   // load our event
   switch (event.type) {
     case checkout_session_completed:
       const session = event.data.object;
-
+      console.log('session =>', session);
       const {
         metadata: {
+          // @ts-expect-error metadata
           adults,
+          // @ts-expect-error metadata
           checkinDate,
+          // @ts-expect-error metadata
           checkoutDate,
+          // @ts-expect-error metadata
           children,
+          // @ts-expect-error metadata
           hotelRoom,
+          // @ts-expect-error metadata
           numberOfDays,
+          // @ts-expect-error metadata
           user,
+          // @ts-expect-error metadata
           discount,
+          // @ts-expect-error metadata
           totalPrice,
         },
       } = session;

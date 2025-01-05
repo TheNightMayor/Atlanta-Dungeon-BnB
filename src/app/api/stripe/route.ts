@@ -1,12 +1,12 @@
-import Stripe from "stripe";
+import Stripe from 'stripe';
 
-import { getRoom } from "@/libs/apis";
-import { authOptions } from "@/libs/auth";
-import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
+import { authOptions } from '@/libs/auth';
+import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
+import { getRoom } from '@/libs/apis';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-09-30.acacia",
+  apiVersion: '2024-09-30.acacia',
 });
 
 type RequestData = {
@@ -18,7 +18,6 @@ type RequestData = {
   hotelRoomSlug: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(req: Request, res: Response) {
   const {
     checkinDate,
@@ -36,34 +35,34 @@ export async function POST(req: Request, res: Response) {
     !hotelRoomSlug ||
     !numberOfDays
   ) {
-    return new NextResponse("All fields are required", { status: 400 });
+    return new NextResponse('Please all fields are required', { status: 400 });
   }
 
-  const origin = req.headers.get("origin");
+  const origin = req.headers.get('origin');
 
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    return new NextResponse("Authentication required", { status: 400 });
+    return new NextResponse('Authentication required', { status: 400 });
   }
 
   const userId = session.user.id;
-  const formattedCheckoutDate = checkoutDate.split("T")[0];
-  const formattedCheckinDate = checkinDate.split("T")[0];
+  const formattedCheckoutDate = checkoutDate.split('T')[0];
+  const formattedCheckinDate = checkinDate.split('T')[0];
 
   try {
     const room = await getRoom(hotelRoomSlug);
     const discountPrice = room.price - (room.price / 100) * room.discount;
     const totalPrice = discountPrice * numberOfDays;
 
-    // create stripe payment
+    // Create a stripe payment
     const stripeSession = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: 'payment',
       line_items: [
         {
           quantity: 1,
           price_data: {
-            currency: "usd",
+            currency: 'usd',
             product_data: {
               name: room.name,
               images: room.images.map(image => image.url),
@@ -72,7 +71,7 @@ export async function POST(req: Request, res: Response) {
           },
         },
       ],
-      payment_method_types: ["card"],
+      payment_method_types: ['card'],
       success_url: `${origin}/users/${userId}`,
       metadata: {
         adults,
@@ -89,11 +88,10 @@ export async function POST(req: Request, res: Response) {
 
     return NextResponse.json(stripeSession, {
       status: 200,
-      statusText: "Payment session created",
+      statusText: 'Payment session created',
     });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.log("Payment Failed", error);
+    console.log('Payment falied', error);
     return new NextResponse(error, { status: 500 });
   }
 }
