@@ -23,7 +23,7 @@ const Table: FC<Props> = ({ bookingDetails, setRoomId }) => {
                     <th className="px-6 py-3">Discount</th>
                     <th className="px-6 py-3">Days Booked</th>
                     <th className="px-6 py-3">Days Left</th>
-                    <th></th>
+                    <th className="px-6 py-3">{null}</th>
                 </tr>
             </thead>
             <tbody>
