@@ -14,6 +14,7 @@ import BookRoomCta from "@/components/BookRoomCta/BookRoomCta";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { getStripe } from "@/libs/stripe";
+import RoomReview from "@/components/RoomReview/RoomReview";
 
 const RoomDetails = (props: { params: { slug: string } }) => {
     const {
@@ -169,7 +170,7 @@ const RoomDetails = (props: { params: { slug: string } }) => {
                                     </p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Reviews */}
+                                <RoomReview roomId={room._id} />
                                 </div>
                             </div>
                         </div>

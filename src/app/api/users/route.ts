@@ -34,9 +34,8 @@ export async function POST(req: Request, res: Response) {
   }
 
   const { roomId, reviewText, ratingValue } = await req.json();
-  console.log(roomId, reviewText, ratingValue)
+
   if (!roomId || !reviewText || !ratingValue) {
-    console.log(roomId, reviewText, ratingValue)
     return new NextResponse('All fields are required', { status: 400 });
   }
 

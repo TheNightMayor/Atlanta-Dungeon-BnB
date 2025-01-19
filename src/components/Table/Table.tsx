@@ -3,7 +3,7 @@
 import { Dispatch, FC, SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 
-import { Booking } from "@/app/models/booking";
+import { Booking } from "@/models/booking";
 
 type Props = {
     bookingDetails: Booking[];

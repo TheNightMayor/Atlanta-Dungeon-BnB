@@ -16,7 +16,7 @@ import Chart from '@/components/Chart/Chart';
 import RatingModal from '@/components/RatingModal/RatingModal';
 import BackDrop from '@/components/BackDrop/BackDrop';
 import toast from 'react-hot-toast';
-import { User } from '@/app/models/user';
+import { User } from '@/models/user';
 
 const UserDetails = (props: { params: { id: string } }) => {
   const {

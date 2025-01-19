@@ -4,7 +4,7 @@ import { Chart as ChartJS, Tooltip, CategoryScale, LinearScale, BarElement } fro
 import { FC } from "react";
 import { Bar } from 'react-chartjs-2'
 
-import { Booking } from "@/app/models/booking";
+import { Booking } from "@/models/booking";
 
 ChartJS.register(Tooltip, CategoryScale, LinearScale, BarElement)
 
