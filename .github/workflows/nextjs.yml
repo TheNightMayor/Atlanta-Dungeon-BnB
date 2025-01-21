@@ -28,13 +28,20 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    environment: .env 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Detect package manager
         id: detect-package-manager
         run: |
-          if [ -f "${{ github.workspace }}/package.json" ]; then
+          if [ -f "${{ github.workspace }}/yarn.lock" ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+            echo "command=install" >> $GITHUB_OUTPUT
+            echo "runner=yarn" >> $GITHUB_OUTPUT
+            exit 0
+          elif [ -f "${{ github.workspace }}/package.json" ]; then
+
             echo "manager=npm" >> $GITHUB_OUTPUT
             echo "command=ci" >> $GITHUB_OUTPUT
             echo "runner=npx --no-install" >> $GITHUB_OUTPUT
@@ -69,6 +76,17 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
+        env: 
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          SANITY_STUDIO_TOKEN: ${{ secrets.SANITY_STUDIO_TOKEN }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET}}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID}}
+          NEXT_PUBLIC_SANITY_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET }}
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
