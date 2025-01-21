@@ -65,7 +65,24 @@ const booking = {
             type: "number",
             validation: Rule =>Rule.required().min(0),
         }),
-    ]
+    ],
+    preview: {
+        select: {
+            name: 'user.name',
+            room: 'hotelRoom.name',
+            checkinDate: 'checkinDate',
+            checkoutDate: 'checkoutDate',
+            image: 'hotelRoom.coverImage.image'
+        },
+        prepare(selection) {
+            const {name, room, checkinDate, checkoutDate, image} = selection
+            return {
+                title: `${name} ${room}`,
+                subtitle: `${checkinDate} - ${checkoutDate}`,
+                media: image,
+        }
+    }
+    }
 }
 
 export default booking;
