@@ -1,54 +1,57 @@
 import Link from "next/link"
-import { BiMessageDetail } from "react-icons/bi"
-import { BsFillSendFill, BsTelephoneOutbound } from "react-icons/bs"
+import { BiLogoAirbnb, BiMessageDetail } from "react-icons/bi"
+import { BsEnvelope, BsFillSendFill, BsInstagram, BsMailbox, BsTelephoneOutbound, BsTree } from "react-icons/bs"
 
 const Footer = () => {
-  return (
-    <footer className="mt-16">
-        <div className="container mx-auto px-4">
-            <Link href='/' className="font-black text-tertiary-dark">
-            Hotels</Link>
-
-            <h4 className="font-semibold text-[30px] py-6">Contact</h4>
-            <div className="flex flex-wrap gap-16 items-center justify-between">
-                <div className="flex-1">
-                    <p>123 Road</p>
-
+    return (
+        <footer className="mt-16">
+            <div className="container mx-auto px-4">
+                <Link href='/' className="font-black text-tertiary-dark">
+                    Home</Link></div>
+                    <div className="bg-tertiary-light w-full bottom-0 left-0" >
+                <h4 className="justify-self-center font-semibold text-[24px] py-4">Contact Us</h4>
+                <div className="flex md:flex-row flex-wrap items-center justify-evenly">
+                    <div className="flex items-center">
+                        <BsEnvelope />
+                        <Link
+                            href="mailto:Atlantakbnb@yahoo.com"
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            className="ml-2 py-4"
+                        >email</Link>
+                    </div>
                     <div className="flex items-center py-4">
-                        <BsFillSendFill/>
-                        <p className="ml-2">The Night Mayor</p>
+                        <BsInstagram />
+                        <Link
+                            href="https://www.instagram.com/atlkinkbnb/"
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            className="ml-2"
+                        >instagram</Link>
                     </div>
                     <div className="flex items-center">
-                        <BsTelephoneOutbound/>
-                        <p className="ml-2">(000)-000-0000</p>
+                        <BsTree />
+                        <Link
+                            href={"https://linktr.ee/atlantakbnb"}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            className="ml-2 py-4">Linktree</Link>
                     </div>
-                    <div className="flex items-center py-4">
-                        <BiMessageDetail/>
-                        <p className="ml-2">The Night Mayor</p>
+                    <div className="flex items-center">
+                        <BiLogoAirbnb />
+                        <Link
+                            href={"https://www.airbnb.com/rooms/1171823093801738771"}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            className="ml-2 py-4"
+                        >airbnb</Link>
                     </div>
-                </div>
 
-                <div className="flex-1 md:text-right">
-                    <p className="pb-4">Our Story</p>
-                    <p className="pb-4">Get in Touch</p>
-                    <p className="pb-4">Our Privacy Commitment</p>
-                    <p className="pb-4">Terms of Service</p>
-                    <p>Customer Assistance</p>
-                </div>
+                    </div>
 
-                <div className="flex-1 md:text-right">
-                    <p className="pb-4">Dining Experience</p>
-                    <p className="pb-4">Wellness</p>
-                    <p className="pb-4">Fitness</p>
-                    <p className="pb-4">Sports</p>
-                    <p>Events</p>
-                </div>
-            </div>
-        </div>
-
-        <div className="bg-tertiary-light h-10 md:h-[70px] mt-16 w-full bottom-0 left-0"/> 
-         </footer>
-  )
+           </div>
+        </footer>
+    )
 }
 
 export default Footer

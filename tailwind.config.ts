@@ -11,17 +11,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#038c7f",
-        secondary: "#f2c641",
+        primary: "#4338ca",
+        secondary: "#ca8a04",
         tertiary: {
-          dark: '#f27405',
-          light: '#f2c641',
+          dark: '#4338ca',
+          light: '#4338ca',
         },
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        exo: ['var(--font-exo)', ...fontFamily.sans],
+        exo: ['var(--font-exo)', ...fontFamily.sans], orbitron: ['var(--font-orbitron)', ...fontFamily.sans],
       },
     },
   },

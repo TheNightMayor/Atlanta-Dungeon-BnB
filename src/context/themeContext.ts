@@ -6,7 +6,7 @@ type ThemeContextType = {
     setDarkTheme: Dispatch<SetStateAction<boolean>>;
 }
 const ThemeContext = createContext<ThemeContextType>({
-    darkTheme: false,
+    darkTheme: true,
     setDarkTheme: () => null
 });
 
