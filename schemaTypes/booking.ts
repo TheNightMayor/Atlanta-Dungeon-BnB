@@ -65,7 +65,7 @@ const booking = {
             type: "number",
             validation: Rule =>Rule.required().min(0),
         }),
-    ]
+    ],
 }
 
 export default booking;

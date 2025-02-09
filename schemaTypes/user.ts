@@ -50,6 +50,11 @@ const user = {
             description: "a brief description about the user",
         })
     ],
+    preview: {
+        select: {
+            title: 'name',
+        }
+    }
 };
 
 export default user 
