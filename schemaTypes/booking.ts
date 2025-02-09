@@ -74,7 +74,7 @@ const booking = {
             checkoutDate: 'checkoutDate',
             image: 'hotelRoom.coverImage.image'
         },
-        prepare(selection) {
+        prepare(selection: { name: string; room: string; checkinDate: Date; checkoutDate: Date; image: string; }) {
             const {name, room, checkinDate, checkoutDate, image} = selection
             return {
                 title: `${name} ${room}`,
