@@ -23,7 +23,7 @@ const RoomCard: FC<Props> = props => {
                     className="img scale-animation"
                 />
             </div>
-            <div className="p-4 bg-white">
+            <div className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">
                 <div className="flex justify-between text-xl font-semibold">
                     <p>{name}</p>
                     <p>$ {price}</p>
@@ -34,7 +34,7 @@ const RoomCard: FC<Props> = props => {
 
                 <Link 
                     href={`/rooms/${slug.current}`} 
-                    className='bg-primary inline-block text-center w-full py-y rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover: shadow-lg transition-all duration-500'
+                    className='bg-primary gold-leaf inline-block text-center w-full py-y rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover: shadow-lg transition-all duration-500'
                 >
                     {isBooked ? "BOOKED" : "BOOK NOW"}
                  </Link>

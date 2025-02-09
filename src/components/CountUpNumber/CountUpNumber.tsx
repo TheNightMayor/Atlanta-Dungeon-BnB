@@ -30,7 +30,7 @@ const CountUpNumber: FC<Props> = ({ endValue, duration }) => {
         return () => cancelAnimationFrame(animationFrameId)
     }, [endValue, duration]);
 
-  return <p className="md:font-bold font-medium text-lg xl:text-5xl">{Math.round(count)}</p>
+  return <p className="md:font-bold text-3xl font-medium xl:text-5xl">{Math.round(count)}</p>
 
 };
 

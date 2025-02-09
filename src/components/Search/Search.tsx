@@ -42,7 +42,7 @@ const Search: FC<Props> = ({
                         <select
                             value={roomTypeFilter}
                             onChange={handleRoomTypeChange}
-                            className="w-full px-4 py-2 capitalize rounded leading-tight dark:bg-black focus:outline-none"
+                            className="w-full px-4 py-2 rounded leading-tight dark:bg-black focus:outline-none"
                         >
                             <option value='All'>All</option>
                             <option value='Basic'>Basic</option>
@@ -65,7 +65,7 @@ const Search: FC<Props> = ({
                     />
                 </div>
                 <button
-                    className="btn-primary md:w-auto w-full"
+                    className="btn-primary md:w-auto w-full gold-leaf"
                     type="button"
                     onClick={handleFilterClick}
                 >Search
