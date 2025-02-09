@@ -66,21 +66,6 @@ const booking = {
             validation: Rule =>Rule.required().min(0),
         }),
     ],
-    preview: {
-        select: {
-            name: 'user.name',
-            room: 'hotelRoom.name',
-            checkinDate: 'checkinDate',
-            checkoutDate: 'checkoutDate',
-            image: 'hotelRoom.coverImage.image'
-        },
-        prepare(selection: { name: string; room: string; checkinDate: Date; checkoutDate: Date; image: string; }) {
-            const {name, room, checkinDate, checkoutDate, image} = selection
-            return {
-                title: `${name} ${room}`,
-                subtitle: `${checkinDate} - ${checkoutDate}`,
-                media: image,
-        }
     }
     }
 }
