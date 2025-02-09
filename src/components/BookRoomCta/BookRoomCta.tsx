@@ -66,7 +66,7 @@ const BookRoomCta: FC<Props> = props => {
                 )}
             </h3>
 
-            <div className="w-full border-b-2 border-b-secondary my-2" />
+            <div className="w-full border-b-2 border-b-primary my-2" />
             <h4 className="my-8">{specialNote}</h4>
             <div className="flex">
                 <div className="w1/2 pr-2">
@@ -116,7 +116,7 @@ const BookRoomCta: FC<Props> = props => {
                         className="w-full border border-gray-300 rounded-lg p-2.5"
                     />
                 </div>
-                <div className="w-1/2 pl-2">
+                {/* <div className="w-1/2 pl-2">
                     <label
                         htmlFor="children"
                         className="block text-sm font-medium text-gray-900 dark:text-gray-400">
@@ -131,7 +131,7 @@ const BookRoomCta: FC<Props> = props => {
                         max={3}
                         className="w-full border border-gray-300 rounded-lg p-2.5"
                         />
-                </div>
+                </div> */}
             </div>
             {calcNoOfDays() > 0  ? <p className="mt-3">
                 Total Price: $ {calcNoOfDays() * discountPrice}
@@ -139,7 +139,7 @@ const BookRoomCta: FC<Props> = props => {
             <button 
             onClick={handleBookNowClick}
             disabled={isBooked}
-            className="btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
+            className="btn-primary gold-leaf w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
                 {isBooked ? "Booked" : "Book Now"}
             </button>
         </div>

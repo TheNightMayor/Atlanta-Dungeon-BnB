@@ -14,15 +14,16 @@ const exo = Exo({
   weight: ["100","300","500","700","900"],
   style: ["italic","normal"],
 });
+
 const orbitron = Orbitron({
   subsets: ['latin'],
   variable: "--font-orbitron",
-  weight: ["400","500","700","900"],
+  weight: ["500","700","900"],
   style: ["normal"]
 });
 
 export const metadata: Metadata = {
-  title: "Atlanta Dungeon BnB",
+  title: "Dungeon Next Door",
   description: "A stay suited to your particular tastes",
 };
 
@@ -40,7 +41,7 @@ export default function RootLayout({
         crossOrigin="anonymous"
         />
       </head>
-      <body className={`${exo.variable} ${orbitron.variable} antialiased`}>
+      <body className={`${exo.variable} ${orbitron.variable}`}>
         <NextAuthProvider>
         <ThemeProvider>
           <Toast />
