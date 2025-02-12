@@ -25,8 +25,8 @@ const FeaturedRoom: FC<Props> = props => {
             className='img scale-animation'
           />
         </div>
-        <div className='grid grid-cols-2 gap-8 h-48'>
-          {featuredRoom.images.toSpliced(2,1).map(image => (
+        <div className='grid grid-cols-2 gap-6 h-48'>
+          {featuredRoom.images.toSpliced(2,(featuredRoom.images.length - 2)).map(image => (
             <div key={image._key} className='rounded-2xl overflow-hidden'>
               <Image
                 src={image.url}
