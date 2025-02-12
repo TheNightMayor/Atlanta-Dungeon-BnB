@@ -73,7 +73,7 @@ const Header = () => {
           <Link href='/'>Home</Link>
         </li>
         <li className='hover:-translate-y-2 duration-500 transition-all px-4'>
-          <Link href='/rooms'>Stay Options</Link>
+          <Link href='/rooms'>Booking</Link>
         </li>
         <li className='hover:-translate-y-2 duration-500 transition-all px-4'>
           <Link             
