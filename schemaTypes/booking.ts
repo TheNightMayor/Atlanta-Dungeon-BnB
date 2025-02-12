@@ -1,8 +1,10 @@
+import { FaCalendarCheck } from "react-icons/fa";
 import { defineField } from "sanity";
 
 const booking = {
     name: "booking",
     title: "Booking",
+    icon: FaCalendarCheck,
     type: "document",
     fields: [
         defineField({
@@ -66,6 +68,23 @@ const booking = {
             validation: Rule =>Rule.required().min(0),
         }),
     ],
+    preview: {
+        select: {
+            title: 'hotelRoom.name',
+            user: 'user.name',
+            checkinDate: 'checkinDate',
+            checkoutDate: 'checkoutDate',
+            hotelRoom: 'hotelRoom.coverImage.image',
+        },
+        prepare(selection: { title: "string"; checkinDate: "date"; checkoutDate: "date"; hotelRoom: "image", user: "string" }) {
+            const {title, checkinDate, checkoutDate, hotelRoom, user} = selection
+            return {
+                title: `${title} ${user}`,
+                subtitle: `${checkinDate} - ${checkoutDate}`,
+                media: hotelRoom,
+            }
+        }
+    }
 }
 
 export default booking;

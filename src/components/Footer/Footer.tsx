@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { BiLogoAirbnb, BiMessageDetail } from "react-icons/bi"
-import { BsEnvelope, BsFillSendFill, BsInstagram, BsMailbox, BsTelephoneOutbound, BsTree } from "react-icons/bs"
+import { BiLogoAirbnb } from "react-icons/bi"
+import { BsEnvelope, BsInstagram, BsTree } from "react-icons/bs"
 
 const Footer = () => {
     return (
@@ -17,7 +17,7 @@ const Footer = () => {
                             href="mailto:Atlantakbnb@yahoo.com"
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 py-4"
+                            className="ml-2 py-4 font-bold"
                         >email</Link>
                     </div>
                     <div className="flex items-center py-4">
@@ -26,7 +26,7 @@ const Footer = () => {
                             href="https://www.instagram.com/atlkinkbnb/"
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2"
+                            className="ml-2 font-bold"
                         >instagram</Link>
                     </div>
                     <div className="flex items-center">
@@ -35,7 +35,7 @@ const Footer = () => {
                             href={"https://linktr.ee/atlantakbnb"}
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 py-4">Linktree</Link>
+                            className="ml-2 py-4 font-bold">Linktree</Link>
                     </div>
                     <div className="flex items-center">
                         <BiLogoAirbnb />
@@ -43,7 +43,7 @@ const Footer = () => {
                             href={"https://www.airbnb.com/rooms/1171823093801738771"}
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 py-4"
+                            className="ml-2 py-4 font-bold"
                         >airbnb</Link>
                     </div>
 

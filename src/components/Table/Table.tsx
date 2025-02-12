@@ -19,11 +19,12 @@ const Table: FC<Props> = ({ bookingDetails, setRoomId, toggleRatingModal }) => {
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
                     <th className="px-6 py-3">Room Name</th>
-                    <th className="px-6 py-3">Unit Price</th>
+                    {/* <th className="px-6 py-3">Unit Price</th> */}
                     <th className="px-6 py-3">Price</th>
-                    <th className="px-6 py-3">Discount</th>
+                    <th className="px-6 py-3">Check In Date</th>
+                    <th className="px-6 py-3">Check Out Date</th>
                     <th className="px-6 py-3">Days Booked</th>
-                    <th className="px-6 py-3">Days Left</th>
+                    {/* <th className="px-6 py-3">Days Left</th> */}
                     <th className="px-6 py-3">{null}</th>
                 </tr>
             </thead>
@@ -41,10 +42,11 @@ const Table: FC<Props> = ({ bookingDetails, setRoomId, toggleRatingModal }) => {
                     >
                         {booking.hotelRoom.name}
                     </th>
-                    <td className="px-6 py-4">{booking.hotelRoom.price}</td>
+                    {/* <td className="px-6 py-4">{booking.hotelRoom.price}</td> */}
                     <td className="px-6 py-4">{booking.totalPrice}</td>
-                    <td className="px-6 py-4">{booking.discount}</td>
-                    <td className="px-6 py-4">{booking.numberOfDays}</td>
+                    <td className="px-6 py-4">{booking.checkinDate}</td>
+                    <td className="px-6 py-4">{booking.checkoutDate}</td>
+                    {/* <td className="px-6 py-4">{booking.numberOfDays}</td> */}
                     <td className="px-6 py-4">0</td>
                     <td className="px-6 py-4">
                         <button
@@ -54,7 +56,7 @@ const Table: FC<Props> = ({ bookingDetails, setRoomId, toggleRatingModal }) => {
                         }}
                         className="font-medium text-blue-600 hover:underline"
                         >
-                            Rate
+                            Leave Review
                         </button>
                     </td>
                 </tr>

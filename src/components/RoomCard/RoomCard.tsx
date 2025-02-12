@@ -13,7 +13,9 @@ const RoomCard: FC<Props> = props => {
     } = props;
 
     return (
-        <div className='rounded-xl w-72 mb-10 mx-auto md:mx-0 overflow-hidden text-black'>
+        <Link
+        href={`/rooms/${slug.current}`} 
+        className='rounded-xl md:min-w-sm md:max-w-sm mb-10 mx-auto md:mx-2 overflow-hidden text-black'>
             <div className='h-60 overflow-hidden'>
                 <Image
                     src={coverImage.url}
@@ -24,22 +26,21 @@ const RoomCard: FC<Props> = props => {
                 />
             </div>
             <div className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">
-                <div className="flex justify-between text-xl font-semibold">
-                    <p>{name}</p>
-                    <p>$ {price}</p>
+                <div className="flex text-xl font-semibold">
+                    <p>{name} </p>
+                    <p>&nbsp; $ {price}</p>
                 </div>
-                <p className="pt-2 text-xs">{type} Room</p>
+                {/* <p className="pt-2 text-xs">{type} Room</p> */}
 
                 <p className="pt-3 pb-6 text-sm">{description.slice(0,80)}...</p>
 
-                <Link 
-                    href={`/rooms/${slug.current}`} 
-                    className='bg-primary gold-leaf inline-block text-center w-full py-y rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover: shadow-lg transition-all duration-500'
+                <div 
+                    className='bg-primary gold-leaf inline-block text-center w-full py-y rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover:shadow-lg transition-all duration-500'
                 >
-                    {isBooked ? "BOOKED" : "BOOK NOW"}
-                 </Link>
+                    {isBooked ? "More Info" : "Book Now"}
+                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 

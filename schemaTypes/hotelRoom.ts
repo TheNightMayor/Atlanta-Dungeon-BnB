@@ -1,14 +1,50 @@
+import { FaBed } from "react-icons/fa";
 import { defineField } from "sanity";
-
 const roomTypes = [
-  { title: "Basic", value: "basic" },
-  { title: "Luxury", value: "luxury" },
-  { title: "Suite", value: "suite" },
+  { title: "Private", value: "private" },
+  { title: "Content", value: "content" },
+  { title: "Event", value: "event" },
 ];
+
+const amenities = [
+  {title: "Sunshine", value: "sunshine", icon: "GiSunbeams"},
+  {title: "Haunted", value: "haunted"},
+  {title: "Central Air Conditioning", value: "ac"},
+  {title: "Central Heating", value: "heat"},
+  {title: "WiFi", value: "wifi"},
+  {title: "Kitchen", value: "kitchen"},
+  {title: "Refrigerator", value: "fridge"},
+  {title: "Microwave", value: "microwave"},
+  {title: "Cooking Basics", value: "cooking"},
+  {title: "Dishes and Silverware", value: "dishes"},
+  {title: "Dishwasher", value: "dishwasher"},
+  {title: "Stove", value: "stove"},
+  {title: "Oven", value: "oven"},
+  {title: "Keurig", value: "keurig"},
+  {title: "Wine Glasses", value: "glasses"},
+  {title: "Dining Table", value: "table"},
+  {title: "Shared Backyard", value: "yard"},
+  {title: "Fire Pit", value: "fire"},
+  {title: "On-Site Parking", value: "onsiteparking"},
+  {title: "Street Parking", value: "streetparking"},
+  {title: "Self check-in", value: "selfcheckin"},
+  {title: "Keypad", value: "keypad"},
+  {title: "Outdoor Security Cameras", value: "cameras"},
+  {title: "Smoke Alarm", value: "smokealarm"},
+  {title: "Carbon Monoxide Alarm", value: "coalarm"},
+  {title: "Fire Extinguisher", value: "fireextinguisher"},
+  {title: "First Ait Kit", value: "firstaid"},
+  {title: "Bed Linens", value: "linens"},
+  {title: "Blackout Curtains", value: "curtains"},
+  {title: "Hair Dryer", value: "hairdryer"},
+  {title: "Hot Water", value: "hotwater"},
+];
+
 const hotelRoom = {
   name: "hotelRoom",
   title: "Hotel Room",
   type: "document",
+  icon: FaBed,
   fields: [
     defineField({
       name: "name",
@@ -109,9 +145,9 @@ const hotelRoom = {
       of: [
         {
           type: "object",
-          fields: [
-            { name: "icon", title: "Icon", type: "string" },
-            { name: "amenity", title: "Amenity", type: "string" },
+          fields: [ 
+            { name: "amenity", title: "Amenity", type: "string", options: { list: amenities} },
+            { name: "icon", title: "Icon", type: "string"},
           ],
         },
       ],

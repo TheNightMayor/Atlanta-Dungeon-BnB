@@ -41,7 +41,7 @@ const FeaturedRoom: FC<Props> = props => {
       </div>
 
       <div className='md:py-10 md:w-1/2 text-left'>
-        <h3 className='font-heading mb-10'>Featured Room</h3>
+        <h3 className='font-heading mb-10'>Private Space</h3>
 
         <p className='font-normal w-auto'>{featuredRoom.description}</p>
 
@@ -50,15 +50,15 @@ const FeaturedRoom: FC<Props> = props => {
             <div className='flex gap-3 flex-col items-center justify-center mr-4'>
               <p className='text-s lg:text-xl text-center'>Start From</p>
               <p className='md:font-bold flex font-medium text-xl xl:text-5xl'>
-                $ {featuredRoom.price}
+                $ {featuredRoom.price}/Night
               </p>
             </div>
-            <div className='flex gap-3 flex-col items-center justify-center mr-4'>
+            {/* <div className='flex gap-3 flex-col items-center justify-center mr-4'>
               <p className='text-s lg:text-xl text-center'>Discount</p>
               <p className='md:font-bold flex font-medium text-xl xl:text-5xl'>
                 $ {featuredRoom.discount}
               </p>
-            </div>
+            </div> */}
           </div>
 
           <Link

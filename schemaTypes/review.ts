@@ -1,8 +1,10 @@
+import { FaPenNib } from 'react-icons/fa';
 import { defineField } from 'sanity';
 
 const review = {
   name: 'review',
   title: 'Review',
+  icon: FaPenNib,
   type: 'document',
   fields: [
     defineField({
@@ -33,6 +35,21 @@ const review = {
         Rule.required().min(1).max(5).error('Rating must be between 1 and 5'),
     }),
   ],
+  preview: {
+    select: {
+        title: 'hotelRoom.name',
+        user: 'user.name',
+        hotelRoom: 'hotelRoom.coverImage.image',
+    },
+    prepare(selection: { title: "string"; hotelRoom: "image", user: "string" }) {
+        const { hotelRoom, user, title} = selection
+        return {
+            title: `${user}`,
+            subtitle: `${title}`,
+            media: hotelRoom,
+        }
+    }
+}
 };
 
 export default review;

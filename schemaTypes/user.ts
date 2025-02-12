@@ -1,8 +1,10 @@
+import { FaUser } from "react-icons/fa";
 import { defineField } from "sanity"
 
 const user = {
     name: "user",
     title: "user",
+    icon: FaUser,
     type: "document",
     fields: [
         defineField({
@@ -50,11 +52,22 @@ const user = {
             description: "a brief description about the user",
         })
     ],
-    preview: {
-        select: {
-            title: 'name',
-        }
-    }
+    // preview: {
+    //     select: {
+    //         name: 'name',
+    //         image: 'image',
+    //     },
+    //     prepare(selection: { name: 'string', image: 'url'}) {
+    //         const {name, image} = selection
+    //         console.log(selection)
+
+    //         return {
+    //             title: name,
+    //             subtitle: image,
+    //         }
+
+    //     }
+    // }
 };
 
 export default user 

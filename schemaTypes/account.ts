@@ -1,8 +1,10 @@
+import { FaAddressBook } from "react-icons/fa";
 import { defineField } from "sanity";
 
 const account = {
     name: "account",
     title: "Account",
+    icon: FaAddressBook,
     type: "document",
     fields: [
         defineField({

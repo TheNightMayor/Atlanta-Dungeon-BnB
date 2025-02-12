@@ -1,5 +1,5 @@
 'use client'
-
+import Link from "next/link";
 import { Dispatch, FC, SetStateAction } from "react"
 import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css';
@@ -33,8 +33,8 @@ const BookRoomCta: FC<Props> = props => {
         calcMinCheckoutDate,
         adults,
         setAdults,
-        noOfChildren,
-        setNoOfChildren,
+        // noOfChildren,
+        // setNoOfChildren,
         isBooked,
         handleBookNowClick
     } = props;
@@ -42,7 +42,7 @@ const BookRoomCta: FC<Props> = props => {
     const discountPrice = price - (price / 100) * discount;
 
     const calcNoOfDays = () => {
-        if( !checkinDate || !checkoutDate) return 0;
+        if (!checkinDate || !checkoutDate) return 0;
         const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
         const noOfDays = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
         return noOfDays;
@@ -53,7 +53,7 @@ const BookRoomCta: FC<Props> = props => {
             <h3>
                 <span className={`${discount ? "text-gray-400" : ""} font-bold text-xl`}
                 >
-                    $ {price}
+                    $ {price}/night
                 </span>
                 {discount ? (
                     <span className="font-bold text-xl">
@@ -76,6 +76,7 @@ const BookRoomCta: FC<Props> = props => {
                         Check In Date
                     </label>
                     <DatePicker
+                        disabled={isBooked}
                         selected={checkinDate}
                         onChange={date => setCheckinDate(date)}
                         dateFormat={"dd/MM/yyyy"}
@@ -107,13 +108,14 @@ const BookRoomCta: FC<Props> = props => {
                         Adults
                     </label>
                     <input
+                        disabled={isBooked}
                         type="number"
                         id="adults"
                         value={adults}
                         onChange={(e) => setAdults(+e.target.value)}
                         min={1}
                         max={5}
-                        className="w-full border border-gray-300 rounded-lg p-2.5"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-900"
                     />
                 </div>
                 {/* <div className="w-1/2 pl-2">
@@ -133,14 +135,22 @@ const BookRoomCta: FC<Props> = props => {
                         />
                 </div> */}
             </div>
-            {calcNoOfDays() > 0  ? <p className="mt-3">
-                Total Price: $ {calcNoOfDays() * discountPrice}
+            {calcNoOfDays() > 0 ? <p className="mt-3">
+                Total Price: $ {calcNoOfDays() * discountPrice + (adults > 2 ? (adults - 2) * 30 : 0) + 40}
             </p> : <></>}
-            <button 
-            onClick={handleBookNowClick}
-            disabled={isBooked}
-            className="btn-primary gold-leaf w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
-                {isBooked ? "Booked" : "Book Now"}
+            <button
+                onClick={handleBookNowClick}
+                disabled={isBooked}
+                className="btn-primary gold-leaf w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
+                {isBooked
+                    ? <Link
+                        href="mailto:Atlantakbnb@yahoo.com"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        Contact Us
+                    </Link>
+                    : "Book Now"}
             </button>
         </div>
     );
