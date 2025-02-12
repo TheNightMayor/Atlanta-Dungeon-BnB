@@ -27,7 +27,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
         );
     };
 
-    const maximumVisiblePhotos = 2;
+    const maximumVisiblePhotos = 5;
     const totalPhotos = photos.length
     const displayPhotos = photos.slice(1, maximumVisiblePhotos - 1);
     const remainingPhotosCount = totalPhotos - maximumVisiblePhotos;
@@ -103,8 +103,10 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                         </div>
                     )}
                 </div>
-                {showModal && <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-90 z-[55]">
-                    <div className="h-[75vh] w-[320px] md:w-[700px] relative">
+                {showModal && <div
+                 className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-90 z-[55]"
+                 >
+                    <div className="h-[75vh] w-[320px] md:w-[700px] relative z-80">
                         <Image
                             src={photos[currentPhotoIndex].url}
                             alt={`Room Photo ${currentPhotoIndex + 1}`}
