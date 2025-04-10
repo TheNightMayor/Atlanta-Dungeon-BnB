@@ -62,12 +62,12 @@ const Rooms = () => {
 
     return (
     <div className="container mx-auto pt-10">
-        <Search 
+        {/* <Search 
         roomTypeFilter={roomTypeFilter}
         searchQuery={searchQuery}
         setRoomTypeFilter={setRoomTypeFilter}
         setSearchQuery={setSearchQuery}
-        />
+        /> */}
 
         <div className="flex mt-20 justify-evenly flex-wrap">
             {filteredRooms.map(room => (

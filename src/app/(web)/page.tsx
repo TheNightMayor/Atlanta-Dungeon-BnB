@@ -11,10 +11,10 @@ const Home = async () => {
   return (
     <>
    <HeroSection />
-   <PageSearch />
+   {/* <PageSearch /> */}
    <FeaturedRoom featuredRoom={featuredRoom} />
    <Gallery />
-   <NewsLetter />
+   {/* <NewsLetter /> */}
    </>
   )
 };
