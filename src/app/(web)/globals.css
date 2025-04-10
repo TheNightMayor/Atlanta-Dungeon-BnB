@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+p {
+  white-space: pre-line;
+}
+
 .img {
   @apply object-cover w-full h-full;
 }
