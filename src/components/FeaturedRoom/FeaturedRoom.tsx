@@ -41,7 +41,7 @@ const FeaturedRoom: FC<Props> = props => {
       </div>
 
       <div className='md:py-10 md:w-1/2 text-left'>
-        <h3 className='font-heading mb-10'>Private Space</h3>
+        <h3 className='font-heading mb-10'>{featuredRoom.name}</h3>
 
         <p className='font-normal w-auto'>{featuredRoom.description}</p>
 
