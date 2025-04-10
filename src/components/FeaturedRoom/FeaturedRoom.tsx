@@ -45,7 +45,7 @@ const FeaturedRoom: FC<Props> = props => {
 
         <p className='font-normal w-auto'>{featuredRoom.description}</p>
 
-        <div className='flex flex-col md:flex-row md:items-end justify-between mt-5'>
+        <div className='flex flex-col md:flex-row md:items-end justify-between mt-5 border border-tertiary-dark px-5 py-5 rounded-2xl'>
           <div className='flex mb-3 md:mb-0'>
             <div className='flex gap-3 flex-col items-center justify-center mr-4'>
               <p className='text-s lg:text-xl text-center'>Start From</p>
@@ -63,7 +63,7 @@ const FeaturedRoom: FC<Props> = props => {
 
           <Link
             href={`/rooms/${featuredRoom.slug.current}`}
-            className='border h-fit text-center border-tertiary-dark text-tertiary-dark px-3 py-2 lg:py-5 lg:px-7 rounded-2xl font-bold lg:text-xl'
+            className='border h-fit text-center border-tertiary-dark text-tertiary-dark px-5 py-5 lg:py-7 lg:px-7 rounded-2xl font-bold lg:text-xl'
           >
             More Details
           </Link>
