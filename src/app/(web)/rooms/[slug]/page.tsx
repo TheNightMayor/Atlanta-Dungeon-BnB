@@ -100,7 +100,7 @@ const RoomDetails = (props: { params: { slug: string } }) => {
                     <div className="md:col-span-8 md:w-full">
                         <div>
                             <h2 className="font-bold text-left text-lg md:text-2xl">
-                                {room.name} ({room.dimension})
+                                {room.name}
                             </h2>
                             <div className="flex my-11 justify-evenly ">
                                 {room.offeredAmenities.map(amenity => (
