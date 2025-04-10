@@ -35,7 +35,7 @@ const RoomCard: FC<Props> = props => {
                 <p className="pt-3 pb-6 text-sm">{description.slice(0,80)}...</p>
 
                 <div 
-                    className='bg-primary gold-leaf inline-block text-center w-full py-y rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover:shadow-lg transition-all duration-500'
+                    className='bg-primary inline-block text-center w-full py-y rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover:shadow-lg transition-all duration-500'
                 >
                     {isBooked ? "More Info" : "Book Now"}
                  </div>

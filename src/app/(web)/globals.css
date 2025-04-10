@@ -30,7 +30,7 @@ p {
   @apply md:text-base font-exo font-thin;
 }
 
-.gold-leaf {
+/* .gold-leaf {
   background: radial-gradient(
       ellipse farthest-corner at right bottom,
       #fedb37 0%,
@@ -47,7 +47,7 @@ p {
       #5d4a1f 62.5%,
       #5d4a1f 100%
     );
-}
+} */
 @layer utilities {
   .text-balance {
     text-wrap: balance;

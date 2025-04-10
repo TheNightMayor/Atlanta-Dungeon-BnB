@@ -141,7 +141,7 @@ const BookRoomCta: FC<Props> = props => {
             <button
                 onClick={handleBookNowClick}
                 disabled={isBooked}
-                className="btn-primary gold-leaf w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
+                className="btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
                 {isBooked
                     ? <Link
                         href="mailto:Atlantakbnb@yahoo.com"

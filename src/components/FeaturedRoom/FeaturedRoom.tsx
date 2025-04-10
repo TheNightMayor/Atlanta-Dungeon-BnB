@@ -15,8 +15,8 @@ const FeaturedRoom: FC<Props> = props => {
 
   return (
     <section className='flex md:flex-row flex-col px-4 py-10 items-center gap-12 container mx-auto'>
-      <div className='md:grid gap-8 grid-cols-1 md:w-1/2 w-full'>
-        <div className='rounded-2xl overflow-hidden h-48 mb-4 md:mb-0'>
+      <div className='md:grid gap-8 grid-cols-1 md:w-1/4 w-full'>
+        <div className='rounded-2xl overflow-hidden mb-4'>
           <Image
             src={featuredRoom.coverImage.url}
             alt={featuredRoom.name}
@@ -25,9 +25,9 @@ const FeaturedRoom: FC<Props> = props => {
             className='img scale-animation'
           />
         </div>
-        <div className='grid grid-cols-2 gap-6 h-48'>
-          {featuredRoom.images.toSpliced(2,(featuredRoom.images.length - 2)).map(image => (
-            <div key={image._key} className='rounded-2xl overflow-hidden'>
+        {/* <div className='grid grid-cols-2 gap-6 h-48'> */}
+          {featuredRoom.images.toSpliced(2,(featuredRoom.images.length)).map(image => (
+            <div key={image._key} className='rounded-2xl overflow-hidden mb-4'>
               <Image
                 src={image.url}
                 alt={image._key}
@@ -37,7 +37,7 @@ const FeaturedRoom: FC<Props> = props => {
               />
             </div>
           ))}
-        </div>
+        {/* </div> */}
       </div>
 
       <div className='md:py-10 md:w-1/2 text-left'>
