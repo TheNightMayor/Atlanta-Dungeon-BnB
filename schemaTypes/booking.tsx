@@ -1,3 +1,4 @@
+import { Any } from "next-sanity";
 import { FaCalendarCheck } from "react-icons/fa";
 import { defineField } from "sanity";
 import { PreviewProps } from "sanity";
@@ -75,7 +76,7 @@ const booking = {
             checkinDate: 'checkinDate',
             user: 'user.name',
         },
-        prepare(selection) {
+        prepare(selection: Any) {
             const { user, checkinDate } = selection
             return {
                 title: checkinDate,
