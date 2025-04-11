@@ -1,3 +1,4 @@
+import { Any } from 'next-sanity';
 import { FaPenNib } from 'react-icons/fa';
 import { defineField } from 'sanity';
 
@@ -35,21 +36,22 @@ const review = {
         Rule.required().min(1).max(5).error('Rating must be between 1 and 5'),
     }),
   ],
-//   preview: {
-//     select: {
-//         title: 'hotelRoom.name',
-//         user: 'user.name',
-//         hotelRoom: 'hotelRoom.coverImage.image',
-//     },
-//     prepare(selection: { title: "string"; hotelRoom: "image", user: "string" }) {
-//         const { hotelRoom, user, title} = selection
-//         return {
-//             title: `${user}`,
-//             subtitle: `${title}`,
-//             media: hotelRoom,
-//         }
-//     }
-// }
+  preview: {
+    select: {
+        title: 'hotelRoom.type',
+        user: 'user.name',
+        hotelRoom: 'hotelRoom.coverImage.image',
+        rating: 'userRating',
+    },
+    prepare(selection: Any) {
+        const { hotelRoom, user, title, rating} = selection
+        return {
+            title: `${user}`,
+            subtitle: `${title} - ${rating} Stars`,
+            media: hotelRoom,
+        }
+    }
+}
 };
 
 export default review;
