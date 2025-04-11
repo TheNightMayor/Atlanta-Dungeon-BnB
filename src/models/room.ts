@@ -1,3 +1,5 @@
+import { Any } from "next-sanity";
+
 type CoverImage = {
   url: string;
 };
@@ -19,6 +21,7 @@ type Slug = {
 };
 
 export type Room = {
+  bookedDates: Any[];
   _id: string;
   coverImage: CoverImage;
   description: string;

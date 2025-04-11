@@ -40,7 +40,7 @@ const RatingModal: FC<Props> = props => {
           Rate Your Experience
         </h2>
         <div className='mb-4'>
-          <label className='block text-sm font-medium text-gray-700'>
+          <label className='block text-sm font-medium text-gray-700 dark:text-white'>
             Rating
           </label>
           <div className='flex items-center'>

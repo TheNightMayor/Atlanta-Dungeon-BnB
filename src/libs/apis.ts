@@ -212,3 +212,16 @@ export async function getRoomReviews(roomId: string) {
 
   return result;
 }
+
+export async function getRoomBookings(roomId: string) {
+  const result = await sanityClient.fetch<Booking[]>(
+    queries.getRoomBookingsQuery,
+    {
+      roomId,
+    },
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
