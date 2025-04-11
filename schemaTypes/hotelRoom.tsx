@@ -168,7 +168,20 @@ const hotelRoom = {
       name: "reviews",
       title: "Reviews",
       type: "array",
-      of: [{ type: "review" }],
+      of: [
+        {
+          type: "reference",
+          to: [
+            {
+              type: 'review',
+            },
+          ],
+          options: {
+            filter: 'hotelRoom == $hotelRoom',
+            filterParams: {hotelRoom: 'hotelRoom'}
+          }
+         },
+        ],
     }),
   ],
 };
