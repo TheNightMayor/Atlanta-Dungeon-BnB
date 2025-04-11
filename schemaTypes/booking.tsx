@@ -68,23 +68,22 @@ const booking = {
             validation: Rule =>Rule.required().min(0),
         }),
     ],
-    // preview: {
-    //     select: {
-    //         title: 'hotelRoom.name',
-    //         user: 'user.name',
-    //         checkinDate: 'checkinDate',
-    //         checkoutDate: 'checkoutDate',
-    //         hotelRoom: 'hotelRoom.coverImage.image',
-    //     },
-    //     prepare(selection: { title: "string"; checkinDate: "date"; checkoutDate: "date"; hotelRoom: "image", user: "string" }) {
-    //         const {title, checkinDate, checkoutDate, hotelRoom, user} = selection
-    //         return {
-    //             title: `${title} ${user}`,
-    //             subtitle: `${checkinDate} - ${checkoutDate}`,
-    //             media: hotelRoom,
-    //         }
-    //     }
-    // }
+    preview: {
+        select: {
+            user: 'user.name',
+            checkinDate: 'checkinDate',
+            checkoutDate: 'checkoutDate',
+            hotelRoom: 'hotelRoom.coverImage.image',
+        },
+        prepare(selection: {checkinDate: "date"; checkoutDate: "date"; hotelRoom: "image", user: "string" }) {
+            const {checkinDate, checkoutDate, hotelRoom, user} = selection
+            return {
+                title: `${user}`,
+                subtitle: `${checkinDate} - ${checkoutDate}`,
+                media: hotelRoom,
+            }
+        }
+    }
 }
 
 export default booking;
