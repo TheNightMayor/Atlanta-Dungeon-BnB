@@ -75,7 +75,7 @@ const booking = {
             user: 'user.name',
         },
         
-        prepare(selection: {checkinDate: "date"; checkoutDate: "date"; user: "string"}) {
+        prepare(selection: {checkinDate: "string"; checkoutDate: "string"; user: "string"}) {
             const {checkinDate, checkoutDate, user} = selection
             return {
                 title: `${checkinDate} - ${checkoutDate}`,
