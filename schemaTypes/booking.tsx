@@ -70,17 +70,16 @@ const booking = {
     ],
     preview: {
         select: {
-            user: 'user.name',
             checkinDate: 'checkinDate',
             checkoutDate: 'checkoutDate',
-            // hotelRoom: 'hotelRoom.coverImage.image',
+            user: 'user.name',
         },
-        prepare(selection: {checkinDate: "date"; checkoutDate: "date"; user: "string" }) {
+        
+        prepare(selection: {checkinDate: "date"; checkoutDate: "date"; user: "string"}) {
             const {checkinDate, checkoutDate, user} = selection
             return {
-                title: `${user}`,
-                subtitle: `${checkinDate} - ${checkoutDate}`,
-                // media: hotelRoom,
+                title: `${checkinDate} - ${checkoutDate}`,
+                subtitle: `${user ? user : 'unknown'}`,
             }
         }
     }
