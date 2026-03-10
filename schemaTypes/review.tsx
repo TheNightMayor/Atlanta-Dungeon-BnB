@@ -38,7 +38,7 @@ const review = {
   ],
   preview: {
     select: {
-        title: 'hotelRoom.type',
+        title: 'hotelRoom.name',
         user: 'user.name',
         hotelRoom: 'hotelRoom.coverImage.image',
         rating: 'userRating',

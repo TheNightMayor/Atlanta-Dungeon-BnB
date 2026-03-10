@@ -61,7 +61,7 @@ const Rooms = () => {
 
 
     return (
-    <div className="container mx-auto pt-10">
+    <div className="container mx-auto py-8">
         {/* <Search 
         roomTypeFilter={roomTypeFilter}
         searchQuery={searchQuery}
@@ -69,7 +69,7 @@ const Rooms = () => {
         setSearchQuery={setSearchQuery}
         /> */}
 
-        <div className="flex mt-20 justify-evenly flex-wrap">
+        <div className="flex justify-evenly flex-wrap">
             {filteredRooms.map(room => (
                 <RoomCard key={room._id} room={room}/>
             ))}
