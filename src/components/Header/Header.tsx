@@ -58,7 +58,7 @@ const Header = () => {
               <ul className='flex items-center'>
                 <li className='flex items-center'>
                   {session?.user ? (
-                    <Link href={`/users/${session.user.id}`}>
+                    <Link href={`/users/${session.user.name}`}>
                       {session.user.image ? (
                         <div className='w-10 h-10 rounded-full overflow-hidden'>
                           <Image
