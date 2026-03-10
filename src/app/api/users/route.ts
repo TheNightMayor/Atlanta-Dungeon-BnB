@@ -12,11 +12,11 @@ import {
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
 
-  const userId = session.user.id;
+  const userId = session.user.name;
 
   try {
     const data = await getUserData(userId);
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
 
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     return new NextResponse('All fields are required', { status: 400 });
   }
 
-  const userId = session.user.id;
+  const userId = session.user.name;
 
   try {
     const alreadyExists = await checkReviewExists(userId, roomId);
