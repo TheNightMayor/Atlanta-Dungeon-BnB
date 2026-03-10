@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 import { getRoom } from '@/libs/apis';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2025-02-24.acacia',
 });
 
 type RequestData = {
@@ -18,7 +18,7 @@ type RequestData = {
   hotelRoomSlug: string;
 };
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   const {
     checkinDate,
     adults,

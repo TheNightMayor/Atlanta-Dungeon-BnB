@@ -9,8 +9,8 @@ import { signOut } from 'next-auth/react';
 import { getUserBookings } from '@/libs/apis';
 import LoadingSpinner from '../../loading';
 import { useState } from 'react';
+import { use } from 'react';
 import { BsJournalBookmarkFill } from 'react-icons/bs';
-import { GiMoneyStack } from 'react-icons/gi';
 import Table from '@/components/Table/Table';
 import Chart from '@/components/Chart/Chart';
 import RatingModal from '@/components/RatingModal/RatingModal';
@@ -18,10 +18,8 @@ import BackDrop from '@/components/BackDrop/BackDrop';
 import toast from 'react-hot-toast';
 import { User } from '@/models/user';
 
-const UserDetails = (props: { params: { id: string } }) => {
-  const {
-    params: { id: userId },
-  } = props;
+const UserDetails = (props: { params: Promise<{ id: string }> }) => {
+  const { id: userId } = use(props.params);
 
   const [currentNav, setCurrentNav] = useState<
     'bookings' | 'amount' | 'ratings'

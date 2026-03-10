@@ -6,6 +6,7 @@ import { LiaFireExtinguisherSolid } from "react-icons/lia";
 import { AiOutlineMedicineBox } from "react-icons/ai";
 import { GiSmokeBomb } from "react-icons/gi";
 import { useState } from "react";
+import { use } from "react";
 
 import { getRoom } from "@/libs/apis";
 import LoadingSpinner from "../../loading";
@@ -17,10 +18,8 @@ import { getStripe } from "@/libs/stripe";
 import RoomReview from "@/components/RoomReview/RoomReview";
 import RoomBooking from "@/components/RoomBooking/RoomBooking";
 
-const RoomDetails = (props: { params: { slug: string } }) => {
-    const {
-        params: { slug },
-    } = props;
+const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
+    const { slug } = use(props.params);
 
     const [checkinDate, setCheckinDate] = useState<Date | null>(null);
     const [checkoutDate, setCheckoutDate] = useState<Date | null>(null);

@@ -9,7 +9,7 @@ import {
   updateReview,
 } from '@/libs/apis';
 
-export async function GET(req: Request, res: Response) {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -26,7 +26,7 @@ export async function GET(req: Request, res: Response) {
   }
 }
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
