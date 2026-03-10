@@ -45,8 +45,10 @@ export async function POST(req: Request) {
   if (!session) {
     return new NextResponse('Authentication required', { status: 400 });
   }
-
-  const userId = session.user.id;
+  if (!session.user?.name) {
+    return new NextResponse('User information incomplete', { status: 400 });
+  }
+  const userId = session.user.name;
   const formattedCheckoutDate = checkoutDate.split('T')[0];
   const formattedCheckinDate = checkinDate.split('T')[0];
 
