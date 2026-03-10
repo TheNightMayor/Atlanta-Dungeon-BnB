@@ -19,10 +19,10 @@ const Header = () => {
 
 
   return (
-    <header className='font-orbitron fixed top-0 left-0 right-0 bg-white dark:bg-black p-8 md:p-8 container mx-auto text-xl flex flex-wrap md:flex-nowrap items-center justify-between z-20 shadow-lg'>
+    <header className='font-orbitron fixed top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-10% to-white dark:to-black to-80% p-8 md:p-8 mx-auto text-xl flex flex-wrap md:flex-nowrap items-center justify-between z-20 shadow-lg'>
       <div className='container'>
         <div className='flex items-center justify-between w-full p-4 md:w-auto'>
-          <Link href='/' className='font-orbitron text-2xl text-tertiary-dark'>
+          <Link href='/' className='font-orbitron text-2xl text-black dark:text-white'>
             Atlanta Bed and Bondage
           </Link>
 

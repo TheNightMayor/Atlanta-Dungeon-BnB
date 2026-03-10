@@ -7,7 +7,7 @@ import Image from "next/image";
 
 const ClientComponent: FC = _props => {
 
-    return <section className="bg-transparent min-h-96">
+    return <section className="min-h-96">
         <div className="w-full text-center relative z-10 mt-1">
             <video autoPlay muted loop className="fixed -z-20 w-full object-cover h-96">
                 <source src="/images/hero-4.webm" type="video/mp4" />
