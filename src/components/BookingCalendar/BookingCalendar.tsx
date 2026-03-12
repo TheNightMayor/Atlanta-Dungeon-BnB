@@ -169,7 +169,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto', flex: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.text }}>📅 Booking Calendar</h1>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.text }}>Booking Calendar</h1>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             style={{
