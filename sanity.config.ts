@@ -4,6 +4,9 @@ import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 import BookingCalendarView from './src/studio/views/BookingCalendarView'
 
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'ija74i93'
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
+
 const structure = (S: any) =>
   S.list()
     .title('Content')
@@ -20,8 +23,8 @@ export default defineConfig({
   name: 'default',
   title: 'bnb-management',
 
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID as string,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET as string,
+  projectId,
+  dataset,
 
   basePath: "/studio",
 

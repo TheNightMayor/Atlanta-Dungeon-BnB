@@ -1,10 +1,11 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { sanityClient } from '@/lib/sanityClient';
-import { type Booking } from '@/models/booking';
+import { type Booking } from '../../models/booking';
 
-export function BookingCalendar() {
+interface BookingCalendarProps {
+  client?: any;
+}
+
+export function BookingCalendar({ client }: BookingCalendarProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -21,6 +22,8 @@ export function BookingCalendar() {
   }, [isDarkMode]);
 
   useEffect(() => {
+    if (!client) return;
+
     async function fetchBookings() {
       try {
         const query = `*[_type == "booking"] | order(checkinDate asc) {
@@ -45,7 +48,7 @@ export function BookingCalendar() {
           }
         }`;
 
-        const result = await sanityClient.fetch(query);
+        const result = await client.fetch(query);
         setBookings(result);
       } catch (error) {
         console.error('Failed to fetch bookings:', error);
@@ -55,7 +58,7 @@ export function BookingCalendar() {
     }
 
     fetchBookings();
-  }, []);
+  }, [client]);
 
   const getBookingsForDate = (date: Date): Booking[] => {
     const dateStr = date.toISOString().split('T')[0];
@@ -96,6 +99,12 @@ export function BookingCalendar() {
 
   const handleNextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  };
+
+  const handleBookingClick = (booking: Booking) => {
+    const bookingDate = new Date(booking.checkinDate);
+    setSelectedDate(booking.checkinDate);
+    setCurrentMonth(new Date(bookingDate.getFullYear(), bookingDate.getMonth()));
   };
 
   // Theme colors
@@ -140,13 +149,16 @@ export function BookingCalendar() {
   const calendarDays = generateCalendarDays();
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  if (loading) {
+  if (loading || !client) {
     return <div style={{ padding: '20px', color: colors.text }}>Loading bookings...</div>;
   }
 
   return (
-    <div style={{ width: '100%', padding: '20px', background: colors.bg, minHeight: '100vh' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div
+      style={{ width: '100%', padding: '20px', background: colors.bg, minHeight: '100vh' }}
+      onClick={() => setSelectedDate(null)}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.text }}>📅 Booking Calendar</h1>
           <button
@@ -169,7 +181,64 @@ export function BookingCalendar() {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px' }} onClick={(e) => e.stopPropagation()}>
+          {/* Sidebar */}
+          <div style={{ background: colors.surface, borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '16px', height: 'fit-content' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: colors.text }}>
+              {selectedDate ? `${selectedDate}` : '📋 Upcoming'}
+            </h3>
+
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {(selectedDate
+                ? getBookingsForDate(new Date(selectedDate))
+                : bookings.slice(0, 10)
+              ).length === 0 ? (
+                <p style={{ fontSize: '14px', color: colors.textSecondary }}>No bookings</p>
+              ) : (
+                (selectedDate
+                  ? getBookingsForDate(new Date(selectedDate))
+                  : bookings.slice(0, 10)
+                ).map(booking => (
+                  <div
+                    key={booking._id}
+                    onClick={() => handleBookingClick(booking)}
+                    style={{
+                      padding: '10px',
+                      background: isDarkMode ? '#3d3d3d' : '#f8f9fa',
+                      borderRadius: '4px',
+                      marginBottom: '8px',
+                      border: `1px solid ${colors.border}`,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = isDarkMode ? '#4d4d4d' : '#e9ecef';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = isDarkMode ? '#3d3d3d' : '#f8f9fa';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{ fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
+                      {booking.hotelRoom?.name}
+                    </div>
+                    <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
+                      {booking.checkinDate} → {booking.checkoutDate}
+                    </div>
+                    <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '4px' }}>
+                      {booking.adults} adults {booking.children > 0 ? `+ ${booking.children} children` : ''}
+                    </div>
+                    <div style={{ fontWeight: '600', color: isDarkMode ? '#4ade80' : '#28a745', fontSize: '13px' }}>
+                      ${booking.totalPrice}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
           {/* Calendar */}
           <div style={{ background: colors.surface, borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '20px' }}>
             {/* Header */}
@@ -302,42 +371,6 @@ export function BookingCalendar() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div style={{ background: colors.surface, borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '16px', height: 'fit-content' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: colors.text }}>
-              {selectedDate ? `📌 ${selectedDate}` : '📋 Upcoming'}
-            </h3>
-
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {(selectedDate
-                ? getBookingsForDate(new Date(selectedDate))
-                : bookings.slice(0, 10)
-              ).length === 0 ? (
-                <p style={{ fontSize: '14px', color: colors.textSecondary }}>No bookings</p>
-              ) : (
-                (selectedDate
-                  ? getBookingsForDate(new Date(selectedDate))
-                  : bookings.slice(0, 10)
-                ).map(booking => (
-                  <div key={booking._id} style={{ padding: '10px', background: isDarkMode ? '#3d3d3d' : '#f8f9fa', borderRadius: '4px', marginBottom: '8px', border: `1px solid ${colors.border}`, fontSize: '12px' }}>
-                    <div style={{ fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
-                      {booking.hotelRoom?.name}
-                    </div>
-                    <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
-                      {booking.checkinDate} → {booking.checkoutDate}
-                    </div>
-                    <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '4px' }}>
-                      {booking.adults} adults {booking.children > 0 ? `+ ${booking.children} children` : ''}
-                    </div>
-                    <div style={{ fontWeight: '600', color: isDarkMode ? '#4ade80' : '#28a745', fontSize: '13px' }}>
-                      ${booking.totalPrice}
-                    </div>
-                  </div>
-                ))
-              )}
             </div>
           </div>
         </div>

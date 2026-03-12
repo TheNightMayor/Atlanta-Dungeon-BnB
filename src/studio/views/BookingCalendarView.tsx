@@ -1,12 +1,13 @@
-'use client'
-
 import React from 'react'
-import { BookingCalendar } from '@/components/BookingCalendar'
+import { useClient } from 'sanity'
+import { BookingCalendar } from '../../components/BookingCalendar'
 
 export default function BookingCalendarView() {
+  const client = useClient()
+
   return (
-    <div className="h-full w-full overflow-auto">
-      <BookingCalendar />
+    <div style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+      <BookingCalendar client={client} />
     </div>
   )
 }
