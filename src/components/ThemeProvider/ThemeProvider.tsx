@@ -28,7 +28,7 @@ const ThemeProvider = ({ children }: { children:React.ReactNode }) => {
     return(
     <ThemeContext.Provider value={{darkTheme, setDarkTheme}}>
         <div className={`${darkTheme ? 'dark' : ''} h-screen`}>
-            <div className='dark:text-white dark:bg-black text-[#1e1e1e] h-max pt-8'>
+            <div className='dark:text-white dark:bg-black text-[#1e1e1e] bg-white min-h-screen transition-colors duration-200 pt-14'>
                 {children}
             </div>
         </div>

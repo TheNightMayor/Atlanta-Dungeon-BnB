@@ -73,7 +73,7 @@ const BookRoomCta: FC<Props> = props => {
                     <label
                         htmlFor="check-in-date"
                         className="block text-sm font-medium text-gray-900 dark:text-gray-400">
-                        Check In Date
+                        Check In
                     </label>
                     <DatePicker
                         disabled={isBooked}
@@ -88,7 +88,7 @@ const BookRoomCta: FC<Props> = props => {
                     <label
                         htmlFor="check-out-date"
                         className="block text-sm font-medium text-gray-900 dark:text-gray-400">
-                        Check Out Date
+                        Check Out
                     </label>
                     <DatePicker
                         selected={checkoutDate}
@@ -141,7 +141,7 @@ const BookRoomCta: FC<Props> = props => {
             <button
                 onClick={handleBookNowClick}
                 disabled={isBooked}
-                className="btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none">
+                className="flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none justify-center">
                 {isBooked
                     ? <Link
                         href="mailto:Atlantakbnb@yahoo.com"

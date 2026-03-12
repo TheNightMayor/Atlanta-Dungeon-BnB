@@ -7,7 +7,7 @@ import useSWR from "swr";
 
 import { getRooms } from "@/libs/apis";
 import { Room } from "@/models/room";
-import Search from '@/components/Search/Search';
+// import Search from '@/components/Search/Search';
 import RoomCard from "@/components/RoomCard/RoomCard";
 
 const Rooms = () => {

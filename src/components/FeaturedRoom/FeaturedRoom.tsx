@@ -1,12 +1,13 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import Image from 'next/image';
 
 import { PortableText } from 'next-sanity';
 
 import { Room } from '@/models/room';
 import Link from 'next/link';
+import { MdCancel } from 'react-icons/md';
 
 type Props = {
   featuredRoom: Room;
@@ -14,12 +15,15 @@ type Props = {
 
 const FeaturedRoom: FC<Props> = props => {
   const { featuredRoom } = props;
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  const allImages = [featuredRoom.coverImage, ...featuredRoom.images.toSpliced(2, featuredRoom.images.length)];
 
   return (
     <section className='z-10 bg-white dark:bg-black flex py-10 w-full mx-auto justify-center relative'>
       <div className='container flex flex-col-reverse justify-center gap-5 md:flex-row m-6'>
         <div className='md:grid gap-10 grid-cols-1 md:w-1/5 w-full'>
-          <div className='rounded-2xl overflow-hidden mb-4 mt-4 h-72'>
+          <div className='rounded-2xl overflow-hidden mb-4 mt-4 h-72 cursor-pointer' onClick={() => setSelectedImageIndex(0)}>
             <Image
               src={featuredRoom.coverImage.url}
               alt={featuredRoom.name}
@@ -29,8 +33,8 @@ const FeaturedRoom: FC<Props> = props => {
             />
           </div>
           {/* <div className='grid grid-cols-2 gap-6 h-48'> */}
-          {featuredRoom.images.toSpliced(2, (featuredRoom.images.length)).map(image => (
-            <div key={image._key} className='rounded-2xl overflow-hidden mb-4 h-72'>
+          {featuredRoom.images.toSpliced(2, (featuredRoom.images.length)).map((image, index) => (
+            <div key={image._key} className='rounded-2xl overflow-hidden mb-4 h-72 cursor-pointer' onClick={() => setSelectedImageIndex(index + 1)}>
               <Image
                 src={image.url}
                 alt={image._key}
@@ -73,6 +77,28 @@ const FeaturedRoom: FC<Props> = props => {
           </div>
         </div>
       </div>
+
+      {selectedImageIndex !== null && (
+        <div
+          className='fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-90 z-[55]'
+          onClick={() => setSelectedImageIndex(null)}
+        >
+          <div className='relative w-[90vw] h-[90vh]'>
+            <Image
+              src={allImages[selectedImageIndex].url}
+              alt='Featured room image'
+              fill
+              className='object-contain'
+            />
+            <button
+              className='absolute top-4 right-4 text-white z-10'
+              onClick={() => setSelectedImageIndex(null)}
+            >
+              <MdCancel className='text-3xl' />
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

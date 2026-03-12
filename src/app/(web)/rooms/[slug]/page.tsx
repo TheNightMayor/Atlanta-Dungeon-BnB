@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { getStripe } from "@/libs/stripe";
 import RoomReview from "@/components/RoomReview/RoomReview";
-import RoomBooking from "@/components/RoomBooking/RoomBooking";
+// import RoomBooking from "@/components/RoomBooking/RoomBooking";
 
 const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     const { slug } = use(props.params);
@@ -46,10 +46,10 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     };
 
     const handleBookNowClick = async () => {
-        if(!checkinDate || !checkoutDate) 
+        if (!checkinDate || !checkoutDate)
             return toast.error("Please provide checkin / checkout dates");
 
-        if(checkinDate > checkoutDate)
+        if (checkinDate > checkoutDate)
             return toast.error("Please choose a valid checkin period");
 
         const numberOfDays = calcNumDays();
@@ -59,7 +59,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
         const stripe = await getStripe();
 
         try {
-            const {data: stripeSession } = await axios.post('/api/stripe', {
+            const { data: stripeSession } = await axios.post('/api/stripe', {
                 checkinDate,
                 checkoutDate,
                 adults,
@@ -85,17 +85,17 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     };
 
     const calcNumDays = () => {
-        if( !checkinDate || !checkoutDate) return;
+        if (!checkinDate || !checkoutDate) return;
         const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
         const noOfDays = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
         return noOfDays;
     }
 
     return (
-        <div>
-            <HotelPhotoGallery photos={room.images} />
+        <div className="flex flex-col items-center">
 
-            <div className="container mx-auto mt-20">
+
+            <div className="p-10 container mx-auto mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center">
                 <div className="md:grid md:grid-cols-12 gap-10 px-3">
                     <div className="md:col-span-8 md:w-full">
                         <div>
@@ -145,35 +145,26 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                     Safety and Hygiene
                                 </h2>
                                 <div className="grid grid-cols-2">
-                                <div className="flex items-center my-1 md:my-0">
-                                    <MdOutlineCleaningServices />
-                                    <p className="ml-2 md:text-base text-xs">Daily Cleaning</p>
-                                </div>
-                                <div className="flex items-center my-1 md:my-0">
-                                    <LiaFireExtinguisherSolid />
-                                    <p className="ml-2 md:text-base text-xs">Fire Extinguisher</p>
-                                </div>
-                                <div className="flex items-center my-1 md:my-0">
-                                    <AiOutlineMedicineBox />
-                                    <p className="ml-2 md:text-base text-xs">First Aid Kit</p>
-                                </div>
-                                <div className="flex items-center my-1 md:my-0">
-                                    <GiSmokeBomb />
-                                    <p className="ml-2 md:text-base text-xs">Disinfection and Sterilization</p>
-                                </div>
-                                </div>
-                            </div>
-                            <div className="shadow dark:shadow-white rounded-lg p-6">
-                                <div className="items-center mb-4">
-                                    <p className="md:text-lg font-semibold">
-                                        Customer Reviews
-                                    </p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <RoomReview roomId={room._id} />
+                                    <div className="flex items-center my-1 md:my-0">
+                                        <MdOutlineCleaningServices />
+                                        <p className="ml-2 md:text-base text-xs">Daily Cleaning</p>
+                                    </div>
+                                    <div className="flex items-center my-1 md:my-0">
+                                        <LiaFireExtinguisherSolid />
+                                        <p className="ml-2 md:text-base text-xs">Fire Extinguisher</p>
+                                    </div>
+                                    <div className="flex items-center my-1 md:my-0">
+                                        <AiOutlineMedicineBox />
+                                        <p className="ml-2 md:text-base text-xs">First Aid Kit</p>
+                                    </div>
+                                    <div className="flex items-center my-1 md:my-0">
+                                        <GiSmokeBomb />
+                                        <p className="ml-2 md:text-base text-xs">Disinfection and Sterilization</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="shadow dark:shadow-white rounded-lg p-6">
+
+                            {/* <div className="shadow dark:shadow-white rounded-lg p-6">
                                 <div className="items-center mb-4">
                                     <p className="md:text-lg font-semibold">
                                         Bookings
@@ -182,10 +173,10 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <RoomBooking roomId={room._id} />
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
-                    <div className="md:col-span-4 rounded-xl shadow-lg dark:shadow dark:shadow-white sticky top-10 h-fit overflow-visible">
+                    <div className="md:col-span-4 rounded-xl border-2 border-tertiary-dark sticky top-36 h-fit overflow-visible">
                         <BookRoomCta
                             discount={room.discount}
                             price={room.price}
@@ -203,8 +194,21 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                             handleBookNowClick={handleBookNowClick}
                         />
                     </div>
+
+                </div>
+                <HotelPhotoGallery photos={room.images} />
+                <div className="border-2 border-tertiary-dark rounded-lg p-6 w-1/2">
+                    <div className="items-center mb-4">
+                        <p className="md:text-lg font-semibold">
+                            Customer Reviews
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <RoomReview roomId={room._id} />
+                    </div>
                 </div>
             </div>
+
         </div>
     );
 };

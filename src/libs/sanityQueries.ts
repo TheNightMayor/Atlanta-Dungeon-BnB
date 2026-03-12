@@ -17,6 +17,7 @@ export const getRoomsQuery = groq`*[_type == "hotelRoom"] {
     coverImage,
     description,
     dimension,
+    images,
     isBooked,
     isFeatured,
     name,

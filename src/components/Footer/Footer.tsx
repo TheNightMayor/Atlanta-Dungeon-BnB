@@ -4,7 +4,7 @@ import { BsEnvelope, BsInstagram, BsTree } from "react-icons/bs"
 
 const Footer = () => {
     return (
-        <footer className="mt-16 font-orbitron">
+        <footer className="font-orbitron">
 
             <div className="bg-gradient-to-t  from-tertiary-light to-white dark:to-black  w-full bottom-0 left-0" >
                 <h4 className="justify-self-center font-semibold text-[24px] py-4">Contact Us</h4>
