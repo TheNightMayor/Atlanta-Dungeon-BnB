@@ -4,11 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { sanityClient } from '@/lib/sanityClient';
 import { type Booking } from '@/models/booking';
 
-interface BookingEvent {
-  date: string;
-  bookings: Booking[];
-}
-
 export function BookingCalendar() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,12 +69,10 @@ export function BookingCalendar() {
     const totalDays = daysInMonth(currentMonth);
     const firstDay = firstDayOfMonth(currentMonth);
 
-    // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
 
-    // Days of the month
     for (let i = 1; i <= totalDays; i++) {
       days.push(i);
     }
@@ -107,7 +100,6 @@ export function BookingCalendar() {
       <h1 className="text-2xl font-bold mb-6">Booking Calendar</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
             <button
@@ -125,7 +117,6 @@ export function BookingCalendar() {
             </button>
           </div>
 
-          {/* Day headers */}
           <div className="grid grid-cols-7 gap-2 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="text-center font-semibold text-gray-600 py-2">
@@ -134,7 +125,6 @@ export function BookingCalendar() {
             ))}
           </div>
 
-          {/* Calendar grid */}
           <div className="grid grid-cols-7 gap-2">
             {calendarDays.map((day, idx) => {
               if (day === null) {
@@ -179,7 +169,6 @@ export function BookingCalendar() {
           </div>
         </div>
 
-        {/* Sidebar - Bookings for selected date or upcoming */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-4">
             {selectedDate ? `Bookings for ${selectedDate}` : 'Upcoming Bookings'}
@@ -198,9 +187,6 @@ export function BookingCalendar() {
               ).map(booking => (
                 <div key={booking._id} className="p-3 bg-gray-50 rounded border border-gray-200">
                   <div className="font-semibold text-sm text-gray-800">
-                    {booking.hotelRoom?.name}
-                  </div>
-                  <div className="text-xs text-gray-600 mt-1">
                     {booking.hotelRoom?.name}
                   </div>
                   <div className="text-xs text-gray-600">
