@@ -9,7 +9,7 @@ const structure = (S: any) =>
     .title('Content')
     .items([
       S.listItem()
-        .title('📅 Booking Calendar')
+        .title('Booking Calendar')
         .child(S.component(BookingCalendarView).title('Booking Calendar')),
       ...S.documentTypeListItems().filter(
         (item: any) => item.getId() !== 'booking'
