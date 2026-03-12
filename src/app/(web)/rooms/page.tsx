@@ -61,7 +61,7 @@ const Rooms = () => {
 
 
     return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-12">
         {/* <Search 
         roomTypeFilter={roomTypeFilter}
         searchQuery={searchQuery}

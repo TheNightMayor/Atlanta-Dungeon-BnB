@@ -45,11 +45,13 @@ export default function RootLayout({
         <NextAuthProvider>
           <ThemeProvider>
             <Toast />
-            <Header />
-            <main className="font-normal pt-24">
-              {children}
-            </main>
-            <Footer />
+            <div className="flex flex-col flex-1">
+              <Header />
+              <main className="font-normal pt-24 flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
           </ThemeProvider>
         </NextAuthProvider>
       </body>

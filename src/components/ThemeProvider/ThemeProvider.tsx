@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import ThemeContext from "@/context/themeContext"; 
 
 const ThemeProvider = ({ children }: { children:React.ReactNode }) => {
-    const [darkTheme, setDarkTheme] = useState<boolean>(false);
+    const [darkTheme, setDarkTheme] = useState<boolean>(true);
     const [renderComponent, setRenderComponent] = useState(false);
 
     useEffect(() => {
@@ -27,8 +27,8 @@ const ThemeProvider = ({ children }: { children:React.ReactNode }) => {
 
     return(
     <ThemeContext.Provider value={{darkTheme, setDarkTheme}}>
-        <div className={`${darkTheme ? 'dark' : ''} h-screen`}>
-            <div className='dark:text-white dark:bg-black text-[#1e1e1e] bg-white min-h-screen transition-colors duration-200 pt-14'>
+        <div className={`${darkTheme ? 'dark' : ''} min-h-screen flex flex-col`}>
+            <div className='dark:text-white dark:bg-black text-[#1e1e1e] bg-white flex flex-col flex-1 transition-colors duration-200'>
                 {children}
             </div>
         </div>
