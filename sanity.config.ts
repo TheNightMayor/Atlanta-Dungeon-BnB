@@ -2,6 +2,19 @@ import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
+import BookingCalendarView from './src/studio/views/BookingCalendarView'
+
+const structure = (S: any) =>
+  S.list()
+    .title('Content')
+    .items([
+      S.listItem()
+        .title('📅 Booking Calendar')
+        .child(S.component(BookingCalendarView).title('Booking Calendar')),
+      ...S.documentTypeListItems().filter(
+        (item: any) => item.getId() !== 'booking'
+      ),
+    ])
 
 export default defineConfig({
   name: 'default',
@@ -12,7 +25,12 @@ export default defineConfig({
 
   basePath: "/studio",
 
-  plugins: [structureTool(), visionTool()],
+  plugins: [
+    structureTool({
+      structure,
+    }),
+    visionTool(),
+  ],
 
   schema: {
     types: schemaTypes,
