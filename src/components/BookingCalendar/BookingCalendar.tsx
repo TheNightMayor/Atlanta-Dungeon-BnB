@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { sanityClient } from '@/lib/sanityClient';
 import { type Booking } from '@/models/booking';
+import styles from './BookingCalendar.module.css';
 
 export function BookingCalendar() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -92,115 +93,180 @@ export function BookingCalendar() {
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   if (loading) {
-    return <div className="p-4">Loading bookings...</div>;
+    return <div style={{ padding: '20px' }}>Loading bookings...</div>;
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Booking Calendar</h1>
+    <div style={{ width: '100%', padding: '20px', background: '#f8f9fa', minHeight: '100vh' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px', color: '#333' }}>📅 Booking Calendar</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <button
-              onClick={handlePrevMonth}
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              ← Previous
-            </button>
-            <h2 className="text-xl font-semibold">{monthName}</h2>
-            <button
-              onClick={handleNextMonth}
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Next →
-            </button>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
+          {/* Calendar */}
+          <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '20px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <button
+                onClick={handlePrevMonth}
+                style={{
+                  padding: '8px 16px',
+                  background: '#e9ecef',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = '#dee2e6')}
+                onMouseOut={(e) => (e.currentTarget.style.background = '#e9ecef')}
+              >
+                ← Previous
+              </button>
+              <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#333' }}>{monthName}</h2>
+              <button
+                onClick={handleNextMonth}
+                style={{
+                  padding: '8px 16px',
+                  background: '#e9ecef',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = '#dee2e6')}
+                onMouseOut={(e) => (e.currentTarget.style.background = '#e9ecef')}
+              >
+                Next →
+              </button>
+            </div>
 
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center font-semibold text-gray-600 py-2">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-2">
-            {calendarDays.map((day, idx) => {
-              if (day === null) {
-                return <div key={`empty-${idx}`} className="h-24 bg-gray-50 rounded" />;
-              }
-
-              const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-              const dayBookings = getBookingsForDate(date);
-              const isToday = new Date().toDateString() === date.toDateString();
-
-              return (
+            {/* Day headers */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: '#dee2e6', marginBottom: '1px' }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div
                   key={day}
-                  onClick={() => setSelectedDate(date.toISOString().split('T')[0])}
-                  className={`h-24 p-2 rounded border-2 cursor-pointer transition ${
-                    isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                  } ${
-                    selectedDate === date.toISOString().split('T')[0]
-                      ? 'bg-blue-100'
-                      : 'hover:bg-gray-50'
-                  }`}
+                  style={{
+                    textAlign: 'center',
+                    fontWeight: '600',
+                    color: '#6c757d',
+                    padding: '12px',
+                    background: '#f8f9fa',
+                    fontSize: '13px',
+                  }}
                 >
-                  <div className="font-semibold text-gray-800 mb-1">{day}</div>
-                  {dayBookings.length > 0 && (
-                    <div className="space-y-1">
-                      {dayBookings.slice(0, 2).map(booking => (
-                        <div
-                          key={booking._id}
-                          className="text-xs bg-orange-100 text-orange-800 px-1 py-0.5 rounded truncate"
-                        >
-                          {booking.hotelRoom?.name || 'Unknown Room'}
-                        </div>
-                      ))}
-                      {dayBookings.length > 2 && (
-                        <div className="text-xs text-gray-500">+{dayBookings.length - 2} more</div>
-                      )}
-                    </div>
-                  )}
+                  {day}
                 </div>
-              );
-            })}
+              ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: '#dee2e6' }}>
+              {calendarDays.map((day, idx) => {
+                if (day === null) {
+                  return <div key={`empty-${idx}`} style={{ background: '#f8f9fa', minHeight: '100px' }} />;
+                }
+
+                const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                const dayBookings = getBookingsForDate(date);
+                const isToday = new Date().toDateString() === date.toDateString();
+                const isSelected = selectedDate === date.toISOString().split('T')[0];
+
+                return (
+                  <div
+                    key={day}
+                    onClick={() => setSelectedDate(date.toISOString().split('T')[0])}
+                    style={{
+                      minHeight: '100px',
+                      padding: '8px',
+                      background: isSelected ? '#cfe2ff' : isToday ? '#d1ecf1' : 'white',
+                      border: isToday ? '2px solid #17a2b8' : '1px solid #dee2e6',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.background = '#f0f0f0';
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.background = isToday ? '#d1ecf1' : 'white';
+                      }
+                    }}
+                  >
+                    <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px', fontSize: '14px' }}>
+                      {day}
+                    </div>
+                    {dayBookings.length > 0 && (
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', overflow: 'hidden' }}>
+                        {dayBookings.slice(0, 2).map(booking => (
+                          <div
+                            key={booking._id}
+                            style={{
+                              fontSize: '11px',
+                              background: '#fff3cd',
+                              color: '#856404',
+                              padding: '3px 5px',
+                              borderRadius: '3px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            title={booking.hotelRoom?.name}
+                          >
+                            {booking.hotelRoom?.name || 'Room'}
+                          </div>
+                        ))}
+                        {dayBookings.length > 2 && (
+                          <div style={{ fontSize: '10px', color: '#6c757d', fontStyle: 'italic' }}>
+                            +{dayBookings.length - 2} more
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {selectedDate ? `Bookings for ${selectedDate}` : 'Upcoming Bookings'}
-          </h3>
+          {/* Sidebar */}
+          <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '16px', height: 'fit-content' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#333' }}>
+              {selectedDate ? `📌 ${selectedDate}` : '📋 Upcoming'}
+            </h3>
 
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {(selectedDate
-              ? getBookingsForDate(new Date(selectedDate))
-              : bookings.slice(0, 10)
-            ).length === 0 ? (
-              <p className="text-gray-500">No bookings for this date</p>
-            ) : (
-              (selectedDate
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {(selectedDate
                 ? getBookingsForDate(new Date(selectedDate))
                 : bookings.slice(0, 10)
-              ).map(booking => (
-                <div key={booking._id} className="p-3 bg-gray-50 rounded border border-gray-200">
-                  <div className="font-semibold text-sm text-gray-800">
-                    {booking.hotelRoom?.name}
+              ).length === 0 ? (
+                <p style={{ fontSize: '14px', color: '#999' }}>No bookings</p>
+              ) : (
+                (selectedDate
+                  ? getBookingsForDate(new Date(selectedDate))
+                  : bookings.slice(0, 10)
+                ).map(booking => (
+                  <div key={booking._id} style={{ padding: '10px', background: '#f8f9fa', borderRadius: '4px', marginBottom: '8px', border: '1px solid #dee2e6', fontSize: '12px' }}>
+                    <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px' }}>
+                      {booking.hotelRoom?.name}
+                    </div>
+                    <div style={{ color: '#666', fontSize: '11px', marginBottom: '3px' }}>
+                      {booking.checkinDate} → {booking.checkoutDate}
+                    </div>
+                    <div style={{ color: '#666', fontSize: '11px', marginBottom: '4px' }}>
+                      {booking.adults} adults {booking.children > 0 ? `+ ${booking.children} children` : ''}
+                    </div>
+                    <div style={{ fontWeight: '600', color: '#28a745', fontSize: '13px' }}>
+                      ${booking.totalPrice}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-600">
-                    {booking.checkinDate} → {booking.checkoutDate}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    {booking.adults} adults {booking.children > 0 ? `+ ${booking.children} children` : ''}
-                  </div>
-                  <div className="text-xs font-semibold text-gray-800 mt-2">
-                    ${booking.totalPrice}
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
