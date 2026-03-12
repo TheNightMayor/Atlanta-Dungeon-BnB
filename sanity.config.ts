@@ -14,6 +14,7 @@ const structure = (S: any) =>
       S.listItem()
         .title('Booking Calendar')
         .child(S.component(BookingCalendarView).title('Booking Calendar')),
+      S.documentTypeListItem('booking').title('Bookings'),
       ...S.documentTypeListItems().filter(
         (item: any) => item.getId() !== 'booking'
       ),
