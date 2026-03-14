@@ -42,13 +42,10 @@ export async function POST(req: Request) {
 
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return new NextResponse('Authentication required', { status: 400 });
+  if (!session?.user?.name) {
+    return new NextResponse('Authentication Required', { status: 400 });
   }
-  if (!session.user?.name) {
-    return new NextResponse('User information incomplete', { status: 400 });
-  }
-  const userId = session.user.name;
+  const userId = (session.user as any).id ?? session.user.name;
   const formattedCheckoutDate = checkoutDate.split('T')[0];
   const formattedCheckinDate = checkinDate.split('T')[0];
 
@@ -74,7 +71,7 @@ export async function POST(req: Request) {
         },
       ],
       payment_method_types: ['card'],
-      success_url: `${origin}/users/${userId}`,
+      success_url: `${origin}/users/${session.user?.name ?? userId}`,
       metadata: {
         adults,
         checkinDate: formattedCheckinDate,

@@ -1,6 +1,10 @@
-import { auth } from '@/libs/auth'
+import { NextResponse } from 'next/server';
 
-export default auth
+export function proxy(request: Request) {
+    return NextResponse.next();
+}
+
+export default proxy;
 
 export const config = {
     matcher: ["/users/:path*"],

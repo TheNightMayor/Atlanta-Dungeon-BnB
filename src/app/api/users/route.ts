@@ -11,12 +11,18 @@ import {
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
+  console.log('/api/users GET - session:', session);
+  try {
+    console.log('/api/users GET - headers:', JSON.stringify(Object.fromEntries((req as any).headers)));
+  } catch (e) {
+    // ignore header stringify errors in dev
+  }
 
   if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
 
-  const userId = session.user.name;
+  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const data = await getUserData(userId);
@@ -28,6 +34,12 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
+  console.log('/api/users POST - session:', session);
+  try {
+    console.log('/api/users POST - headers:', JSON.stringify(Object.fromEntries((req as any).headers)));
+  } catch (e) {
+    // ignore header stringify errors in dev
+  }
 
   if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
@@ -39,7 +51,7 @@ export async function POST(req: Request) {
     return new NextResponse('All fields are required', { status: 400 });
   }
 
-  const userId = session.user.name;
+  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const alreadyExists = await checkReviewExists(userId, roomId);

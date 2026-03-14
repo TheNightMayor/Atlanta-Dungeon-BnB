@@ -32,14 +32,29 @@ const Auth = () => {
     }, [router, session]);
     
 
-    const loginHandler = async () => {
-        try {
-            await signIn();
-            router.push("/");
-        } catch (error) {
-            toast.error('something went wrong');
+ const loginHandler = async (provider?: 'google' | 'github' | 'credentials') => {
+    try {
+        if (provider && provider !== 'credentials') {
+            await signIn(provider, { callbackUrl: '/' });
+            return;
         }
-    };
+
+        const res = await signIn('credentials', {
+            redirect: false,
+            email: formData.email,
+            password: formData.password,
+        } as any);
+
+        if (res && typeof res === 'object' && 'error' in res && (res as any).error) {
+            toast.error((res as any).error || 'Invalid credentials');
+            return;
+        }
+
+        router.push('/');
+    } catch (err) {
+        toast.error('something went wrong');
+    }
+};
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -76,12 +91,12 @@ const Auth = () => {
                     <p>OR</p>
                     <span className="inline-flex items-center">
                         <AiFillGithub
-                            onClick={loginHandler}
+                            onClick={() => loginHandler('github')}
                             className="mr-3 text-4xl cursor-pointer text-black dark:text-white" 
                             />
                         |
                         <FcGoogle
-                            onClick={loginHandler}
+                            onClick={() => loginHandler('google')}
                             className="ml-3 text-4xl cursor-pointer" 
                             />
                     </span>
@@ -122,7 +137,7 @@ const Auth = () => {
                     </button>
                 </form>
                 
-                <button onClick={loginHandler} className="text-blue-700 underline">
+                <button onClick={() => loginHandler()} className="text-blue-700 underline">
                     Login
                 </button>
             </div>
