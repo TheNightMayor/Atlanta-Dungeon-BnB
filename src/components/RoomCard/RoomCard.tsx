@@ -2,6 +2,7 @@ import { Room } from "@/models/room"
 import { FC } from "react"
 import Image from "next/image";
 import Link from "next/link";
+import { PortableText } from "next-sanity";
 
 type Props = {
     room: Room;
@@ -32,7 +33,9 @@ const RoomCard: FC<Props> = props => {
                 </div>
                 {/* <p className="pt-2 text-xs">{type} Room</p> */}
 
-                <p className="pt-3 pb-6 text-sm font-medium h-36">{description.slice(0,180)}...</p>
+                <div className="pt-3 pb-6 text-sm font-medium h-36 overflow-hidden">
+                  <PortableText value={description} />
+                </div>
 
                 <button 
                     className='bg-primary inline-block text-center w-full py-2 mb-2 rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover:shadow-lg transition-all duration-500'

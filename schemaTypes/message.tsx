@@ -16,6 +16,12 @@ const message = {
             validation: Rule => Rule.required(),
         }),
         defineField({
+            name: "name",
+            title: "Name",
+            type: "string",
+            validation: Rule =>Rule.required(),
+        }),
+        defineField({
             name: "email",
             title: "Email",
             type: "email",
@@ -33,6 +39,13 @@ const message = {
             type: "string",
             validation: Rule =>Rule.required(),
         }),
+        defineField({
+            name: "responded",
+            title: "Responded",
+            type: "boolean",
+            description: "Check this box when the message has been responded to.",
+            initialValue: false,
+        }),
     ],
     preview: {
         select: {
@@ -40,12 +53,12 @@ const message = {
             email: 'email',
             topic: 'topic',
         },
-        prepare(selection: Any) {
-            const { user, email, topic } = selection
+        prepare(value: Record<string, any>) {
+            const { user, email, topic } = value;
             return {
                 title: `${topic}`,
                 subtitle: `${user ? user : 'unknown'} - ${email ? email : 'unknown'}`,
-            }
+            };
         }
     }
 }

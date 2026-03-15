@@ -1,75 +1,65 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { AiFillGithub } from "react-icons/ai"
-import { FcGoogle } from "react-icons/fc"
-import { signIn, useSession } from 'next-auth/react'
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const defaultFormData = {
     email: '',
     name: '',
-    password: '',
+    topic: '',
+    text: '',
 };
 
-const Auth = () => {
+const Contact = () => {
     const [formData, setFormData] = useState(defaultFormData);
 
     const inputStyles =
-        "border-2 border-tertiary-dark dark:bg-black sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
+        "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
 
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-        setFormData({ ...formData, [name]: value });
-    };
+        const handleInputChange = (
+            event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        ) => {
+            const { name, value } = event.target;
+            setFormData({ ...formData, [name]: value });
+        };
 
     const { data: session } = useSession();
     const router = useRouter();
 
-    useEffect(() => {
-        if (session) router.push("/")
-    }, [router, session]);
+        useEffect(() => {
+                if (!session) router.push("/auth");
+                else {
+                    setFormData(f => ({
+                        ...f,
+                        email: session.user?.email || '',
+                        name: session.user?.name || '',
+                    }));
+                }
+        }, [router, session]);
 
-
-    const loginHandler = async (provider?: 'google' | 'github' | 'credentials') => {
-        try {
-            if (provider && provider !== 'credentials') {
-                await signIn(provider, { callbackUrl: '/' });
-                return;
-            }
-
-            const res = await signIn('credentials', {
-                redirect: false,
-                email: formData.email,
-                password: formData.password,
-            } as any);
-
-            if (res && typeof res === 'object' && 'error' in res && (res as any).error) {
-                toast.error((res as any).error || 'Invalid credentials');
-                return;
-            }
-
-            router.push('/');
-        } catch (err) {
-            toast.error('something went wrong');
-        }
-    };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
+        if (!session?.user) {
+          toast.error('You must be logged in to send a message.');
+          return;
+        }
         try {
-            const response = await fetch('/api/sanity/signUp', {
+            const response = await fetch(`/api/user-messages/${session.user.email}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                  ...formData,
+                  userId: session.user.email,
+                }),
             });
 
             if (response.ok) {
-                toast.success('Success. Please sign in');
+                toast.success('Message sent!');
             } else {
                 const error = await response.json();
                 toast.error(error.error || 'Something went wrong');
@@ -86,17 +76,9 @@ const Auth = () => {
                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8 w-80 md:w-[70%] mx-auto">
                 <div className="flex mb-8 flex-col md:flex-row items-center justify-between">
                     <h1 className="text-ex font-bold leading-tight tracking-tight md:text-2xl">
-                        Create an Account
+                        Send us a message
                     </h1>
-                    <p>OR</p>
-                    <span className="ml-3 cursor-pointer inline-flex items-center font-medium border-2 border-tertiary-dark p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => loginHandler('google')}
-                    >
-                        Sign in with Google:
-                        <FcGoogle className="ml-2 text-2xl" />
 
-                        
-                    </span>
                 </div>
 
                 <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
@@ -118,28 +100,36 @@ const Auth = () => {
                         onChange={handleInputChange}
                     />
                     <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        placeholder="password"
+                        type="text"
+                        name="topic"
+                        value={formData.topic}
+                        placeholder="Topic"
                         required
                         minLength={6}
                         className={inputStyles}
                         onChange={handleInputChange}
                     />
+                    <textarea
+                        name="text"
+                        value={formData.text}
+                        placeholder="Your message"
+                        required
+                        minLength={10}
+                        className={inputStyles}
+                        onChange={handleInputChange}
+                        rows={6}
+                    />
+
                     <button
                         type="submit"
                         className="w-full bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        Sign up
+                        Send Message
                     </button>
                 </form>
 
-                <button onClick={() => loginHandler()} className="dark:text-gray-700 rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white font-medium ">
-                    Already have an account? Sign in
-                </button>
             </div>
         </section>
     )
 }
 
-export default Auth
+export default Contact

@@ -16,6 +16,8 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { getStripe } from "@/libs/stripe";
 import RoomReview from "@/components/RoomReview/RoomReview";
+import { PortableText } from "next-sanity";
+
 // import RoomBooking from "@/components/RoomBooking/RoomBooking";
 
 const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
@@ -119,7 +121,9 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                 <h2 className="font-bold text-3xl mb-2">
                                     Description
                                 </h2>
-                                <p>{room.description}</p>
+                                <div>
+                                    <PortableText value={room.description} />
+                                </div>
                             </div>
                             <div className="mb-11">
                                 <h2 className="font-bold text-3xl mb-2">

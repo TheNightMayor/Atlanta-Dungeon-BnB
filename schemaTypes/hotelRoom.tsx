@@ -42,7 +42,7 @@ const amenities = [
 
 const hotelRoom = {
   name: "hotelRoom",
-  title: "Hotel Room",
+  title: "Accommodation",
   type: "document",
   icon: FaBed,
   fields: [
@@ -64,9 +64,9 @@ const hotelRoom = {
     defineField({
       name: "description",
       title: "Description",
-      type: "text",
-      validation: (Rule) =>
-        Rule.required().min(100).error("Minimum 100 Characters"),
+      type: "array",
+      of: [{ type: "block" }],
+      validation: (Rule) => Rule.required().min(1).error("Please provide a description."),
     }),
     defineField({
       name: "price",

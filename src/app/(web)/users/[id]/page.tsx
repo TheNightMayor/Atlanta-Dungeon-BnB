@@ -90,9 +90,9 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   if (!userData) throw new Error('Cannot fetch data');
 
   return (
-    <div className='container mx-auto px-2 md:px-4 py10 h-[67vh]'>
+    <div className='container mx-auto px-2 md:px-4 pt-28 md:pt-24 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
       <div className='md:grid md:grid-cols-12 gap-10'>
-        <div className='hidden md:block md:col-span-4 lg:col-span-3 shadow-lg h-fit sticky top-10 bg-[#eff0f2] text-black rounded-lg px-6 py-4'>
+        <div className='hidden md:block md:col-span-4 lg:col-span-3 shadow-lg h-fit sticky top-10 bg-white text-[#1e1e1e] dark:bg-black dark:text-white rounded-lg px-6 py-4 border-2 border-gray-200 dark:border-tertiary-dark'>
           <div className='md:w-[143px] w-28 h-28 md:h-[143px] mx-auto mb-5 rounded-full overflow-hidden'>
             <Image
               src={userData.image}
@@ -107,14 +107,14 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
             <p className='text-sm'>{userData.about ?? ''}</p>
           </div> */}
           <div className='font-normal text-left'>
-            <h6 className='text-xl font-bold pb-3'>{userData.name}</h6>
+            <h6 className='text-xl font-bold pb-3 text-tertiary-dark'>{userData.name}</h6>
           </div>
           <div className='flex items-center'>
             <FaSignOutAlt
-              className='text-3xl cursor-pointer'
+              className='text-2xl cursor-pointer'
               onClick={() => signOut({ callbackUrl: '/' })}
             />
-            <p className='ml-2'> Sign Out</p>
+            <p className='ml-2 font-medium'> Sign Out</p>
           </div>
         </div>
 
@@ -140,32 +140,30 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
           </p> */}
           <div className='md:hidden flex items-center my-2'>
             <FaSignOutAlt
-              className='text-3xl cursor-pointer'
+              className='text-2xl cursor-pointer'
               onClick={() => signOut({ callbackUrl: '/' })}
             />
-            <p className='ml-2'>Sign out</p>
+            <p className='ml-2 font-medium'>Sign out</p>
           </div>
 
-          <nav className='sticky top-0 px-2 w-fit mx-auto md:w-full md:px-5 py-3 mb-8 text-gray-700 border border-gray-200 rounded-lg bg-gray-50 mt-7'>
+          <nav className='sticky top-0 px-2 w-fit mx-auto md:w-full md:px-5 py-3 mb-8 text-[#1e1e1e] dark:text-white border-2 border-gray-200 dark:border-tertiary-dark rounded-lg bg-white dark:bg-black mt-7'>
             <ol
-              className={`${
-                currentNav === 'bookings' ? 'text-blue-600' : 'text-gray-700'
-              } inline-flex mr-1 md:mr-5 items-center space-x-1 md:space-x-3`}
+              className={`${currentNav === 'bookings' ? 'text-tertiary-dark' : 'text-[#1e1e1e] dark:text-white'
+                } inline-flex mr-1 md:mr-5 items-center space-x-1 md:space-x-3`}
             >
               <li
                 onClick={() => setCurrentNav('bookings')}
                 className='inline-flex items-center cursor-pointer'
               >
                 <BsJournalBookmarkFill />
-                <a className='inline-flex items-center mx-1 md:mx-3 text-xs md:text-sm font-medium'>
+                <a className='inline-flex items-center mx-1 md:mx-3 text-xs md:text-sm font-bold'>
                   Current Bookings
                 </a>
               </li>
             </ol>
             <ol
-              className={`${
-                currentNav === 'amount' ? 'text-blue-600' : 'text-gray-700'
-              } inline-flex mr-1 md:mr-5 items-center space-x-1 md:space-x-3`}
+              className={`${currentNav === 'amount' ? 'text-tertiary-dark' : 'text-[#1e1e1e] dark:text-white'
+                } inline-flex mr-1 md:mr-5 items-center space-x-1 md:space-x-3`}
             >
               {/* <li
                 onClick={() => setCurrentNav('amount')}
@@ -181,7 +179,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
 
           {currentNav === 'bookings' ? (
             userBookings && (
-              <Table
+              <Table 
                 bookingDetails={userBookings}
                 setRoomId={setRoomId}
                 toggleRatingModal={toggleRatingModal}

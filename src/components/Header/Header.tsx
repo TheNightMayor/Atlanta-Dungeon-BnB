@@ -44,12 +44,8 @@ const Header = () => {
               <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
                 <Link href='/rooms'>Booking</Link>
               </li>
-              <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
-                <Link
-                  href="mailto:Atlantakbnb@yahoo.com"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >Contact</Link>
+                <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
+                <Link href='/contact'>Contact Us</Link>
               </li>
             </ul>
 

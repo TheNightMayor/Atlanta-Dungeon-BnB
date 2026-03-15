@@ -79,13 +79,13 @@ const booking = {
             hotelRoom: 'hotelRoom.coverImage.image',
             type: 'hotelRoom.type',
         },
-        prepare(selection: Any) {
-            const { user, checkinDate, checkoutDate, hotelRoom, type } = selection
+        prepare(value: Record<string, any>) {
+            const { user, checkinDate, checkoutDate, hotelRoom, type } = value;
             return {
                 title: `${checkinDate} - ${checkoutDate}`,
                 subtitle: `${user ? user : 'unknown'} - ${type ? type : 'unknown'}`,
                 media: hotelRoom,
-            }
+            };
         }
     }
 }

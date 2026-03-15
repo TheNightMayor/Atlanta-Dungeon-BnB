@@ -20,11 +20,19 @@ type Slug = {
   current: string;
 };
 
+export type PortableTextBlock = {
+  _key: string;
+  _type: 'block';
+  children: Array<{ _key: string; _type: string; text: string }>;
+  markDefs: any[];
+  style: string;
+};
+
 export type Room = {
   bookedDates: Any[];
   _id: string;
   coverImage: CoverImage;
-  description: string;
+  description: PortableTextBlock[];
   dimension: string;
   discount: number;
   images: Image[];

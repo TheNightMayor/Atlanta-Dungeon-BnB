@@ -38,18 +38,18 @@ const review = {
   ],
   preview: {
     select: {
-        title: 'hotelRoom.name',
-        user: 'user.name',
-        hotelRoom: 'hotelRoom.coverImage.image',
-        rating: 'userRating',
+      title: 'hotelRoom.name',
+      user: 'user.name',
+      hotelRoom: 'hotelRoom.coverImage.image',
+      rating: 'userRating',
     },
-    prepare(selection: Any) {
-        const { hotelRoom, user, title, rating} = selection
-        return {
-            title: `${user}`,
-            subtitle: `${title} - ${rating} Stars`,
-            media: hotelRoom,
-        }
+    prepare(value: Record<string, any>) {
+      const { hotelRoom, user, title, rating } = value;
+      return {
+        title: `${user}`,
+        subtitle: `${title} - ${rating} Stars`,
+        media: hotelRoom,
+      };
     }
 }
 };

@@ -48,9 +48,11 @@ const FeaturedRoom: FC<Props> = props => {
         </div>
 
         <div className='md:py-10 md:w-1/2 text-left'>
-          <h3 className='font-orbitron text-4xl mb-10 border-b-2 border-tertiary-dark'>{featuredRoom.name}</h3>
+          <h3 className='font-orbitron text-4xl mb-2 border-b-2 border-tertiary-dark'>{featuredRoom.name}</h3>
 
-          <p className='font-medium w-auto'>{featuredRoom.description}</p>
+          <div className='w-auto'>
+            <PortableText value={featuredRoom.description} />
+          </div>
 
           <div className='font-orbitron flex flex-col md:flex-row md:items-end justify-between mt-5 border-tertiary-dark px-10 py-5 mx-6 rounded-2xl border-2'>
             <div className='flex mb-3 md:mb-2 justify-center'>

@@ -28,7 +28,10 @@ const user = {
         defineField({
             name: "image",
             title: "Image",
-            type: "url",
+            type: "image",
+            options: {
+                hotspot: true,
+            },
         }),
         defineField({
             name: "password",
@@ -52,22 +55,18 @@ const user = {
             description: "a brief description about the user",
         })
     ],
-    // preview: {
-    //     select: {
-    //         name: 'name',
-    //         image: 'image',
-    //     },
-    //     prepare(selection: { name: 'string', image: 'url'}) {
-    //         const {name, image} = selection
-    //         console.log(selection)
-
-    //         return {
-    //             title: name,
-    //             subtitle: image,
-    //         }
-
-    //     }
-    // }
+    preview: {
+        select: {
+            name: 'name',
+            media: 'image',
+        },
+        prepare(value: Record<string, any>) {
+            return {
+                title: value.name,
+                media: value.media,
+            };
+        }
+    }
 };
 
 export default user 
