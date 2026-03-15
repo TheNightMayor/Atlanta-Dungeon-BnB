@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { BiLogoAirbnb } from "react-icons/bi"
+import { TbLetterV } from "react-icons/tb"
 import { BsEnvelope, BsInstagram, BsTree } from "react-icons/bs"
 
 const Footer = () => {
@@ -12,13 +13,11 @@ const Footer = () => {
                     <div className="flex items-center">
                         <BsEnvelope />
                         <Link
-                            href="mailto:Atlantakbnb@yahoo.com"
-                            rel="noopener noreferrer"
-                            target="_blank"
+                            href='/contact'
                             className="ml-2 py-4 font-bold"
-                        >email</Link>
+                        >Contact Us</Link>
                     </div>
-                    <div className="flex items-center py-4">
+                    {/* <div className="flex items-center py-4">
                         <BsInstagram />
                         <Link
                             href="https://www.instagram.com/atlkinkbnb/"
@@ -26,7 +25,7 @@ const Footer = () => {
                             target="_blank"
                             className="ml-2 font-bold"
                         >instagram</Link>
-                    </div>
+                    </div> */}
                     <div className="flex items-center">
                         <BsTree />
                         <Link
@@ -43,6 +42,15 @@ const Footer = () => {
                             target="_blank"
                             className="ml-2 py-4 font-bold"
                         >airbnb</Link>
+                    </div>
+                    <div className="flex items-center">
+                        <TbLetterV />
+                        <Link
+                            href={"https://www.vrbo.com/4255461?dateless=true"}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            className="ml-2 py-4 font-bold"
+                        >Vrbo</Link>
                     </div>
 
                 </div>
