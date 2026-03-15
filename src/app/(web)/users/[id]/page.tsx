@@ -4,7 +4,7 @@ import useSWR from 'swr';
 import { FaSignOutAlt } from 'react-icons/fa';
 import Image from 'next/image';
 import axios from 'axios';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 import { getUserBookings } from '@/libs/apis';
 import LoadingSpinner from '../../loading';
@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 import { User } from '@/models/user';
 
 const UserDetails = (props: { params: Promise<{ id: string }> }) => {
+  const { data: session } = useSession();
   const { id: userId } = use(props.params);
 
   const [currentNav, setCurrentNav] = useState<
@@ -89,13 +90,16 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   if (!userData) throw new Error('Cannot fetch data');
   if (!userData) throw new Error('Cannot fetch data');
 
+  // Prefer session user image (Google), then userData.image, then default
+  const profileImage = session?.user?.image || userData.image || '/images/default-user.png';
+
   return (
     <div className='container mx-auto px-2 md:px-4 pt-28 md:pt-24 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
       <div className='md:grid md:grid-cols-12 gap-10'>
         <div className='hidden md:block md:col-span-4 lg:col-span-3 shadow-lg h-fit sticky top-10 bg-white text-[#1e1e1e] dark:bg-black dark:text-white rounded-lg px-6 py-4 border-2 border-gray-200 dark:border-tertiary-dark'>
           <div className='md:w-[143px] w-28 h-28 md:h-[143px] mx-auto mb-5 rounded-full overflow-hidden'>
             <Image
-              src={userData.image}
+              src={profileImage}
               alt={userData.name}
               width={143}
               height={143}
@@ -127,8 +131,8 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
               className='img scale-animation rounded-full'
               width={56}
               height={56}
-              src={userData.image}
-              alt='User  Name'
+              src={profileImage}
+              alt='User Name'
             />
           </div>
           {/* <p className='block w-fit md:hidden text-sm py-2'>

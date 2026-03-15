@@ -2,18 +2,37 @@
 'use client';
 
 import Link from 'next/link';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
 import { MdDarkMode, MdOutlineLightMode } from 'react-icons/md';
 import { useSession } from 'next-auth/react';
+import { getUserData } from '@/libs/apis';
 
 import ThemeContext from '@/context/themeContext';
 import Image from 'next/image';
 
 const Header = () => {
+
   const { darkTheme, setDarkTheme } = useContext(ThemeContext);
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      if (session?.user?.id) {
+        try {
+          const userData = await getUserData(session.user.id);
+          setIsAdmin(!!userData?.isAdmin);
+        } catch (e) {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    fetchAdmin();
+  }, [session?.user?.id]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -36,15 +55,21 @@ const Header = () => {
               {isMenuOpen ? <FaTimes /> : <FaBars />}
             </button>
 
+
             {/* Desktop Navigation */}
             <ul className='hidden md:flex items-center justify-around w-full md:w-1/3 mt-4 md:mt-0'>
+              {isAdmin && (
+                <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
+                  <Link href="/studio" target="_blank" rel="noopener noreferrer">Studio</Link>
+                </li>
+              )}
               <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
                 <Link href='/'>Home</Link>
               </li>
               <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
                 <Link href='/rooms'>Booking</Link>
               </li>
-                <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
+              <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
                 <Link href='/contact'>Contact Us</Link>
               </li>
             </ul>
@@ -55,18 +80,25 @@ const Header = () => {
                 <li className='flex items-center'>
                   {session?.user ? (
                     <Link href={`/users/${session.user.name}`}>
-                      {session.user.image ? (
+                      {typeof session.user.image === 'string' && session.user.image.trim().length > 0 ? (
                         <div className='w-10 h-10 rounded-full overflow-hidden'>
                           <Image
                             src={session.user.image}
-                            alt={session.user.name!}
+                            alt={session.user.name || 'User'}
                             width={40}
                             height={40}
                             className='scale-animation img'
                           />
                         </div>
                       ) : (
-                        <FaUserCircle className='cursor-pointer' />
+                        (() => {
+                          if (session.user.image !== undefined && session.user.image !== null && session.user.image !== '') {
+                            // Log unexpected values for debugging
+                            // eslint-disable-next-line no-console
+                            console.warn('Unexpected user.image value:', session.user.image);
+                          }
+                          return <FaUserCircle className='cursor-pointer' />;
+                        })()
                       )}
                     </Link>
                   ) : (

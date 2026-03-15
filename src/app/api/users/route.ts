@@ -11,13 +11,7 @@ import {
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
-  console.log('/api/users GET - session:', session);
-  try {
-    console.log('/api/users GET - headers:', JSON.stringify(Object.fromEntries((req as any).headers)));
-  } catch (e) {
-    // ignore header stringify errors in dev
-  }
-
+  
   if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
@@ -34,12 +28,6 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  console.log('/api/users POST - session:', session);
-  try {
-    console.log('/api/users POST - headers:', JSON.stringify(Object.fromEntries((req as any).headers)));
-  } catch (e) {
-    // ignore header stringify errors in dev
-  }
 
   if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });

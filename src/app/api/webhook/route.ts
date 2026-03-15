@@ -28,7 +28,6 @@ export async function POST(req: Request) {
   switch (event.type) {
     case checkout_session_completed:
       const session = event.data.object;
-      console.log('session =>', session);
       const {
         metadata: {
           // @ts-expect-error metadata
