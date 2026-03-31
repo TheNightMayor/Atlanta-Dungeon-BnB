@@ -58,13 +58,6 @@ const booking = {
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
-            name: "children",
-            title: "Children",
-            type: "number",
-            initialValue: 0,
-            validation: Rule =>Rule.required().min(0),
-        }),
-        defineField({
             name: "totalPrice",
             title: "Total Price",
             type: "number",

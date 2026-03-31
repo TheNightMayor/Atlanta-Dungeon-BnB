@@ -41,7 +41,7 @@ const Header = () => {
     <header className='font-orbitron fixed top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-10% to-white dark:to-black to-80% p-8 md:p-8 mx-auto text-xl flex flex-wrap md:flex-nowrap items-center justify-between z-20'>
       <div className='container'>
         <div className='flex items-center justify-between w-full p-4 md:w-auto'>
-          <Link href='/' className='font-orbitron text-2xl text-black dark:text-white'>
+          <Link href='/' className='font-orbitron text-2xl text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-110'>
             Atlanta Bed and Bondage
           </Link>
 
@@ -57,20 +57,20 @@ const Header = () => {
 
 
             {/* Desktop Navigation */}
-            <ul className='hidden md:flex items-center justify-around w-full md:w-1/3 mt-4 md:mt-0'>
+            <ul className='hidden md:flex items-center justify-between w-full mt-4 md:mt-0'>
               {isAdmin && (
-                <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
-                  <Link href="/studio" target="_blank" rel="noopener noreferrer">Studio</Link>
+                <li className='inline-block px-4'>
+                  <Link href="/studio" target="_blank" rel="noopener noreferrer" className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Studio</Link>
                 </li>
               )}
-              <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
-                <Link href='/'>Home</Link>
+              <li className='inline-block px-6'>
+                <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Home</Link>
               </li>
-              <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
-                <Link href='/rooms'>Booking</Link>
+              <li className='inline-block px-6'>
+                <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Booking</Link>
               </li>
-              <li className='hover:-translate-y-1 duration-500 transition-all px-4'>
-                <Link href='/contact'>Contact Us</Link>
+              <li className='inline-block px-6'>
+                <Link href='/contact' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Contact Us</Link>
               </li>
             </ul>
 
@@ -97,7 +97,17 @@ const Header = () => {
                             // eslint-disable-next-line no-console
                             console.warn('Unexpected user.image value:', session.user.image);
                           }
-                          return <FaUserCircle className='cursor-pointer' />;
+                          return (
+                            <div className='w-10 h-10 rounded-full overflow-hidden'>
+                              <Image
+                                src="/images/default-user.svg"
+                                alt={session.user.name || 'User'}
+                                width={40}
+                                height={40}
+                                className='scale-animation img'
+                              />
+                            </div>
+                          );
                         })()
                       )}
                     </Link>
@@ -134,16 +144,17 @@ const Header = () => {
               }`}>
               <ul className='flex flex-col py-4'>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
-                  <Link href='/' onClick={() => setIsMenuOpen(false)}>Home</Link>
+                  <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Home</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
-                  <Link href='/rooms' onClick={() => setIsMenuOpen(false)}>Booking</Link>
+                  <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Booking</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
                   <Link
                     href="mailto:Atlantakbnb@yahoo.com"
                     rel="noopener noreferrer"
                     target="_blank"
+                    className='inline-block transition-transform duration-200 transform-gpu hover:scale-105'
                     onClick={() => setIsMenuOpen(false)}
                   >Contact</Link>
                 </li>

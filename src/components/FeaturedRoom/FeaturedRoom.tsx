@@ -55,24 +55,18 @@ const FeaturedRoom: FC<Props> = props => {
           </div>
 
           <div className='font-orbitron flex flex-col md:flex-row md:items-end justify-between mt-5 border-tertiary-dark px-10 py-5 mx-6 rounded-2xl border-2'>
-            <div className='flex mb-3 md:mb-2 justify-center'>
+            <div className='flex mb-3 md:my-2 justify-center'>
               <div className='flex gap-3 md:flex-col items-center justify-center mr-4'>
                 <p className='text-s font-medium lg:text-xl text-center'>Start From</p>
                 <p className='md:font-bold flex font-medium text-xl xl:text-3xl'>
                   ${featuredRoom.price}/Night
                 </p>
               </div>
-              {/* <div className='flex gap-3 flex-col items-center justify-center mr-4'>
-              <p className='text-s lg:text-xl text-center'>Discount</p>
-              <p className='md:font-bold flex font-medium text-xl xl:text-5xl'>
-                $ {featuredRoom.discount}
-              </p>
-            </div> */}
             </div>
 
             <Link
               href={`/rooms/${featuredRoom.slug.current}`}
-              className='border-2 h-fit w-full text-center border-tertiary-dark text-tertiary-dark px-2 py-3 lg:py-7 lg:px-7 rounded-2xl font-bold lg:text-xl'
+              className='bg-primary text-center w-full py-6 my-2 rounded-xl text-black dark:text-white text-xl font-bold hover:bg-white hover:dark:bg-black border-2 border-tertiary-dark transition-all duration-500 items-center justify-center'
             >
               More Details
             </Link>

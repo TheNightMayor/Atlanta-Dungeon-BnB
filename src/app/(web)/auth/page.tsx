@@ -1,7 +1,6 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { AiFillGithub } from "react-icons/ai"
 import { FcGoogle } from "react-icons/fc"
 import { signIn, useSession } from 'next-auth/react'
 import toast from "react-hot-toast";
@@ -17,7 +16,7 @@ const Auth = () => {
     const [formData, setFormData] = useState(defaultFormData);
 
     const inputStyles =
-        "border-2 border-tertiary-dark dark:bg-black sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
+        "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -69,7 +68,8 @@ const Auth = () => {
             });
 
             if (response.ok) {
-                toast.success('Success. Please sign in');
+                toast.success('Account created — signing you in');
+                await loginHandler();
             } else {
                 const error = await response.json();
                 toast.error(error.error || 'Something went wrong');
@@ -89,7 +89,7 @@ const Auth = () => {
                         Create an Account
                     </h1>
                     <p>OR</p>
-                    <span className="ml-3 cursor-pointer inline-flex items-center font-medium border-2 border-tertiary-dark p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <span className="ml-3 cursor-pointer inline-flex items-center font-medium border-2 border-tertiary-dark p-2 rounded-lg hover:bg-tertiary-dark hover:text-white transition-all duration-300"
                         onClick={() => loginHandler('google')}
                     >
                         Sign in with Google:
@@ -103,7 +103,7 @@ const Auth = () => {
                     <input 
                         type="text"
                         name="name"
-                        placeholder="Jane Doe"
+                        placeholder="John Doe"
                         required
                         className={inputStyles}
                         value={formData.name}
@@ -129,12 +129,12 @@ const Auth = () => {
                     />
                     <button
                         type="submit"
-                        className="w-full bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        className="w-full text-white bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center hover:bg-white hover:text-black border-2 border-tertiary-dark transition-all duration-300">
                         Sign up
                     </button>
                 </form>
 
-                <button onClick={() => loginHandler()} className="dark:text-gray-700 rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white font-medium ">
+                <button onClick={() => loginHandler()} className="rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-tertiary-dark hover:text-white dark:hover:bg-tertiary-dark dark:hover:text-white font-medium transition-all duration-300">
                     Already have an account? Sign in
                 </button>
             </div>

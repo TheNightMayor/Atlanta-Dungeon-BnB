@@ -24,7 +24,7 @@ const orbitron = Orbitron({
 
 export const metadata: Metadata = {
   title: "Dungeon Next Door",
-  description: "A stay suited to your particular tastes",
+  description: "Prepare for an Unforgettable Experience",
 };
 
 export default function RootLayout({

@@ -15,8 +15,8 @@ const RoomCard: FC<Props> = props => {
 
     return (
         <Link
-        href={`/rooms/${slug.current}`} 
-        className='border-2 border-tertiary-dark rounded-xl md:min-w-sm md:max-w-sm mb-10 mx-auto md:mx-2 overflow-hidden text-black min-h-96'>
+            href={`/rooms/${slug.current}`}
+            className='font-orbitron border-2 border-tertiary-dark rounded-xl md:min-w-sm md:max-w-sm my-8 mx-auto md:mx-2 overflow-hidden text-black min-h-96'>
             <div className='h-72 overflow-hidden m-4 rounded-xl'>
                 <Image
                     src={coverImage.url}
@@ -26,22 +26,21 @@ const RoomCard: FC<Props> = props => {
                     className="img scale-animation"
                 />
             </div>
-            <div className="p-4 bg-gray-100 dark:bg-black dark:text-gray-100 h-64">
+            <div className="p-4 bg-white dark:bg-black dark:text-gray-100 h-64">
                 <div className="flex text-lg font-semibold">
                     <p>{name} </p>
                     <p>&nbsp; $ {price}</p>
                 </div>
-                {/* <p className="pt-2 text-xs">{type} Room</p> */}
-
-                <div className="pt-3 pb-6 text-sm font-medium h-36 overflow-hidden">
-                  <PortableText value={description} />
+                <div className="pt-3 pb-6 text-sm font-medium h-36 overflow-hidden relative">
+                    <PortableText value={description} />
+                    <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-white dark:to-black" />
                 </div>
 
-                <button 
-                    className='bg-primary inline-block text-center w-full py-2 mb-2 rounded-xl text-white text-xl font-bold hover:-translate-y-2 hover:shadow-lg transition-all duration-500'
+                <button
+                    className='bg-primary inline-block text-center w-full py-2 mb-2 rounded-xl text-white text-xl font-bold hover:text-black hover:bg-white dark:hover:text-white dark:hover:bg-black border-2 border-tertiary-dark transition-all duration-500'
                 >
                     {isBooked ? "More Info" : "Book Now"}
-                 </button>
+                </button>
             </div>
         </Link>
     );

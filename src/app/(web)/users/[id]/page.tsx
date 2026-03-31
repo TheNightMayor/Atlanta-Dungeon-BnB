@@ -91,7 +91,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   if (!userData) throw new Error('Cannot fetch data');
 
   // Prefer session user image (Google), then userData.image, then default
-  const profileImage = session?.user?.image || userData.image || '/images/default-user.png';
+  const profileImage = session?.user?.image || userData.image || '/images/default-user.svg';
 
   return (
     <div className='container mx-auto px-2 md:px-4 pt-28 md:pt-24 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>

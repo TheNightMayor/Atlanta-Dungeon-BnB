@@ -94,7 +94,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     }
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="font-orbitron flex flex-col items-center">
 
 
             <div className="p-10 container mx-auto mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center">
@@ -167,22 +167,12 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* <div className="shadow dark:shadow-white rounded-lg p-6">
-                                <div className="items-center mb-4">
-                                    <p className="md:text-lg font-semibold">
-                                        Bookings
-                                    </p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <RoomBooking roomId={room._id} />
-                                </div>
-                            </div> */}
                         </div>
                     </div>
-                    <div className="md:col-span-4 rounded-xl border-2 border-tertiary-dark sticky top-36 h-fit overflow-visible">
+                    <div className="md:col-span-4 rounded-xl border-2 border-tertiary-dark sticky top-40 my-2 h-fit overflow-visible">
                         <BookRoomCta
                             discount={room.discount}
+                            flatFee={room.flatFee ?? 0}
                             price={room.price}
                             specialNote={room.specialNote}
                             checkinDate={checkinDate}
@@ -199,9 +189,13 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                         />
                     </div>
 
+                    <div className="col-span-4 md:col-start-1 md:col-span-12">
+                        <HotelPhotoGallery photos={room.images} />
+                    </div>
+
                 </div>
-                <HotelPhotoGallery photos={room.images} />
-                <div className="border-2 border-tertiary-dark rounded-lg p-6 w-1/2">
+                
+                <div className="border-2 border-tertiary-dark rounded-lg p-6 w-1/2 my-2">
                     <div className="items-center mb-4">
                         <p className="md:text-lg font-semibold">
                             Customer Reviews

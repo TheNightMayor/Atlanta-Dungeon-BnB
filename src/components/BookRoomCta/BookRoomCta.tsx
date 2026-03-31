@@ -17,6 +17,7 @@ type Props = {
     adults: number;
     noOfChildren: number;
     specialNote: string;
+    flatFee: number;
     isBooked: boolean;
     handleBookNowClick: () => void
 }
@@ -24,6 +25,7 @@ type Props = {
 const BookRoomCta: FC<Props> = props => {
     const {
         price,
+        flatFee,
         discount,
         specialNote,
         checkinDate,
@@ -53,7 +55,7 @@ const BookRoomCta: FC<Props> = props => {
             <h3>
                 <span className={`${discount ? "text-gray-400" : ""} font-bold text-xl`}
                 >
-                    $ {price}/night
+                    $ {price}/night {flatFee > 0 ? `+ $${flatFee} flat fee` : ''}
                 </span>
                 {discount ? (
                     <span className="font-bold text-xl">
@@ -118,35 +120,49 @@ const BookRoomCta: FC<Props> = props => {
                         className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-900"
                     />
                 </div>
-                {/* <div className="w-1/2 pl-2">
-                    <label
-                        htmlFor="children"
-                        className="block text-sm font-medium text-gray-900 dark:text-gray-400">
-                        Children
-                    </label>
-                    <input
-                        type="number"
-                        id="children"
-                        value={noOfChildren}
-                        onChange={(e) => setNoOfChildren(+e.target.value)}
-                        min={0}
-                        max={3}
-                        className="w-full border border-gray-300 rounded-lg p-2.5"
-                        />
-                </div> */}
             </div>
-            {calcNoOfDays() > 0 ? <p className="mt-3">
-                Total Price: $ {calcNoOfDays() * discountPrice + (adults > 2 ? (adults - 2) * 30 : 0) + 40}
-            </p> : <></>}
+            {(() => {
+                const nights = calcNoOfDays();
+                if (nights <= 0) return null;
+                const subtotal = nights * discountPrice;
+                const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
+                const totalPrice = subtotal + extraGuestCharge + flatFee;
+
+                return (
+                    <div className="mt-3">
+                        <div className="flex justify-between text-sm">
+                            <span>Subtotal ({nights} night{nights > 1 ? 's' : ''})</span>
+                            <span>${subtotal.toFixed(2)}</span>
+                        </div>
+                        {extraGuestCharge > 0 && (
+                            <div className="flex justify-between text-sm">
+                                <span>Extra guests</span>
+                                <span>${extraGuestCharge.toFixed(2)}</span>
+                            </div>
+                        )}
+                        {flatFee > 0 && (
+                            <div className="flex justify-between text-sm">
+                                <span>Flat fee</span>
+                                <span>${flatFee.toFixed(2)}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between font-bold mt-2">
+                            <span>Total</span>
+                            <span>${totalPrice.toFixed(2)}</span>
+                        </div>
+                    </div>
+                );
+            })()}
             <button
                 onClick={handleBookNowClick}
                 disabled={isBooked}
-                className="flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none justify-center">
+                className="flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none justify-center whitespace-nowrap">
                 {isBooked
                     ? <Link
                         href="mailto:Atlantakbnb@yahoo.com"
                         rel="noopener noreferrer"
                         target="_blank"
+                        className="whitespace-nowrap"
                     >
                         Contact Us
                     </Link>

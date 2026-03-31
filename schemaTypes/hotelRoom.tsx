@@ -82,6 +82,14 @@ const hotelRoom = {
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
+      name: "flatFee",
+      title: "Flat Fee",
+      type: "number",
+      description: "One-time flat fee added to each booking (e.g. cleaning or service fee)",
+      initialValue: 0,
+      validation: (Rule) => Rule.required().min(0),
+    }),
+    defineField({
       name: "images",
       title: "Images",
       type: "array",
