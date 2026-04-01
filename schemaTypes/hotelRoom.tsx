@@ -1,5 +1,9 @@
+import React from "react";
 import { FaBed } from "react-icons/fa";
 import { defineField } from "sanity";
+import IconGridPicker from "../studio/inputs/IconGridPicker";
+import ICONS from "../studio/inputs/iconList";
+import AMENITY_ICON_MAP from "../studio/inputs/amenityIconMap";
 const roomTypes = [
   { title: "Private", value: "private" },
   { title: "Content", value: "content" },
@@ -153,10 +157,33 @@ const hotelRoom = {
       of: [
         {
           type: "object",
-          fields: [ 
+          fields: [
             { name: "amenity", title: "Amenity", type: "string", options: { list: amenities} },
-            { name: "icon", title: "Icon", type: "string"},
+            {
+              name: "icon",
+              title: "Icon",
+              type: "string",
+              components: { input: IconGridPicker },
+            },
           ],
+          preview: {
+            select: { title: 'amenity', icon: 'icon' },
+            prepare(selection: any) {
+              const { title, icon } = selection;
+              let iconValue = icon;
+              if (!iconValue && title) {
+                // try to map from amenity key (title may be the display value or key)
+                const key = String(title).toLowerCase().replace(/\s+/g, '');
+                iconValue = AMENITY_ICON_MAP[key] || iconValue;
+              }
+              const found = ICONS.find((c: any) => c.value === iconValue);
+              const Media = found ? found.Icon : null;
+              return {
+                title: title || 'Amenity',
+                media: Media ? <Media /> : null,
+              };
+            },
+          },
         },
       ],
     }),
