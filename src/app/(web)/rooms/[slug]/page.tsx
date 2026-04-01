@@ -187,6 +187,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                             setAdults={setAdults}
                             noOfChildren={noOfChildren}
                             setNoOfChildren={setNoOfChildren}
+                            overnight={room.overnight ?? true}
                             isBooked={room.isBooked}
                             handleBookNowClick={handleBookNowClick}
                         />

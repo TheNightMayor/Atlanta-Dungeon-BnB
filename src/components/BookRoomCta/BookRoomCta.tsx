@@ -7,6 +7,34 @@ import { PortableText } from "next-sanity";
 import { getInfoPageByInternalName } from "@/libs/apis";
 import 'react-datepicker/dist/react-datepicker.css';
 
+const portableComponents: any = {
+    block: {
+        h1: ({ children }: any) => <h1 className="text-2xl font-bold">{children}</h1>,
+        h2: ({ children }: any) => <h2 className="text-xl font-semibold">{children}</h2>,
+        h3: ({ children }: any) => <h3 className="text-lg font-semibold">{children}</h3>,
+        normal: ({ children }: any) => <p className="text-base leading-7">{children}</p>,
+    },
+    marks: {
+        link: ({ children, value }: any) => {
+            const href = value?.href || '';
+            const target = href.startsWith('http') ? '_blank' : undefined;
+            return (
+                <a href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="text-primary underline">
+                    {children}
+                </a>
+            );
+        }
+    },
+    list: {
+        bullet: ({ children }: any) => <ul className="list-disc pl-6">{children}</ul>,
+        number: ({ children }: any) => <ol className="list-decimal pl-6">{children}</ol>,
+    },
+    listItem: {
+        bullet: ({ children }: any) => <li className="mb-1">{children}</li>,
+        number: ({ children }: any) => <li className="mb-1">{children}</li>,
+    }
+};
+
 type Props = {
     checkinDate: Date | null;
     setCheckinDate: Dispatch<SetStateAction<Date | null>>;
@@ -21,6 +49,7 @@ type Props = {
     noOfChildren: number;
     specialNote: string;
     flatFee: number;
+    overnight?: boolean;
     isBooked: boolean;
     handleBookNowClick: () => void
 }
@@ -43,6 +72,8 @@ const BookRoomCta: FC<Props> = props => {
         isBooked,
         handleBookNowClick
     } = props;
+    // default to true (overnight allowed) when not provided
+    const overnight = (props.overnight === undefined) ? true : props.overnight;
 
     const [liabilityPage, setLiabilityPage] = useState<null | { internalName: string; title: string; content: any[] }>(null);
     const [isLiabilityModalOpen, setIsLiabilityModalOpen] = useState(false);
@@ -76,11 +107,15 @@ const BookRoomCta: FC<Props> = props => {
     const discountPrice = price - (price / 100) * discount;
 
     const calcNoOfDays = () => {
-        if (!checkinDate || !checkoutDate) return 0;
+        if (!checkinDate) return 0;
+        if (!overnight) return 1;
+        if (!checkoutDate) return 0;
         const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
         const noOfDays = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
         return noOfDays;
     }
+
+    const isBookNowDisabled = isBooked || !checkinDate || (overnight && !checkoutDate) || adults < 1;
 
     return (
         <div className="px-7 py-6">
@@ -103,7 +138,7 @@ const BookRoomCta: FC<Props> = props => {
             <div className="w-full border-b-2 border-b-primary my-2" />
             <h4 className="my-8">{specialNote}</h4>
             <div className="flex">
-                <div className="w1/2 pr-2">
+                <div className={`${overnight ? 'w1/2 pr-2' : 'w-full pr-2'}`}>
                     <label
                         htmlFor="check-in-date"
                         className="block text-sm font-medium text-gray-900 dark:text-gray-400">
@@ -118,21 +153,23 @@ const BookRoomCta: FC<Props> = props => {
                         id="check-in-date"
                         className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
                 </div>
-                <div className="w1/2 pl-2">
-                    <label
-                        htmlFor="check-out-date"
-                        className="block text-sm font-medium text-gray-900 dark:text-gray-400">
-                        Check Out
-                    </label>
-                    <DatePicker
-                        selected={checkoutDate}
-                        onChange={date => setCheckoutDate(date)}
-                        dateFormat={"dd/MM/yyyy"}
-                        disabled={!checkinDate}
-                        minDate={calcMinCheckoutDate()}
-                        id="check-out-date"
-                        className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
-                </div>
+                {overnight && (
+                    <div className="w1/2 pl-2">
+                        <label
+                            htmlFor="check-out-date"
+                            className="block text-sm font-medium text-gray-900 dark:text-gray-400">
+                            Check Out
+                        </label>
+                        <DatePicker
+                            selected={checkoutDate}
+                            onChange={date => setCheckoutDate(date)}
+                            dateFormat={"dd/MM/yyyy"}
+                            disabled={!checkinDate}
+                            minDate={calcMinCheckoutDate()}
+                            id="check-out-date"
+                            className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
+                    </div>
+                )}
             </div>
             <div className="flex mt-4">
                 <div className="w-1/2 pr-2">
@@ -185,28 +222,23 @@ const BookRoomCta: FC<Props> = props => {
                     </div>
                 );
             })()}
-            <button
-                onClick={() => setIsLiabilityModalOpen(true)}
-                disabled={isBooked}
-                className="flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none justify-center whitespace-nowrap">
-                {isBooked
-                    ? <Link
-                        href="mailto:Atlantakbnb@yahoo.com"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                        className="whitespace-nowrap"
-                    >
-                        Contact Us
-                    </Link>
-                    : "Book Now"}
-            </button>
-
-            {/* <button
-                onClick={() => setIsLiabilityModalOpen(true)}
-                className="mt-2 underline text-sm text-blue-600 hover:text-blue-800"
-            >
-                View liability statement
-            </button> */}
+            {isBooked ? (
+                <Link
+                    href="/contact"
+                    className="flex btn-primary w-full mt-6 justify-center whitespace-nowrap"
+                    aria-label="Contact us"
+                >
+                    Contact Us
+                </Link>
+            ) : (
+                <button
+                    onClick={() => setIsLiabilityModalOpen(true)}
+                    disabled={isBookNowDisabled}
+                    aria-disabled={isBookNowDisabled}
+                    className={`flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-not-allowed justify-center whitespace-nowrap ${!isBookNowDisabled ? 'hover:scale-110' : ''}`}>
+                    Book Now
+                </button>
+            )}
 
             {isLiabilityModalOpen && (
                 <div
@@ -231,8 +263,8 @@ const BookRoomCta: FC<Props> = props => {
                             ) : liabilityPage ? (
                                 <div className="space-y-4 text-gray-800 dark:text-gray-200">
                                     <p className="font-semibold">{liabilityPage.title}</p>
-                                    <div className="prose prose-sm dark:prose-invert">
-                                        <PortableText value={liabilityPage.content} />
+                                        <div className="prose prose-sm dark:prose-invert">
+                                        <PortableText value={liabilityPage.content} components={portableComponents} />
                                     </div>
                                 </div>
                             ) : (
@@ -260,18 +292,28 @@ const BookRoomCta: FC<Props> = props => {
                                     <span>I confirm I am over 18 years old.</span>
                                 </label>
 
-                                <button
-                                    onClick={() => {
-                                        setIsLiabilityModalOpen(false);
-                                        if (hasReadStatement && isOver18) {
-                                            handleBookNowClick();
-                                        }
-                                    }}
-                                    disabled={!hasReadStatement || !isOver18 || isBooked}
-                                    className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
-                                >
-                                    {isBooked ? 'Contact Us' : 'Continue to payment'}
-                                </button>
+                                {isBooked ? (
+                                    <Link
+                                        href="/contact"
+                                        className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white text-center"
+                                        aria-label="Contact us"
+                                    >
+                                        Contact Us
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setIsLiabilityModalOpen(false);
+                                            if (hasReadStatement && isOver18) {
+                                                handleBookNowClick();
+                                            }
+                                        }}
+                                        disabled={!hasReadStatement || !isOver18}
+                                        className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
+                                    >
+                                        Continue to payment
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

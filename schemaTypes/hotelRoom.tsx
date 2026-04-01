@@ -173,6 +173,13 @@ const hotelRoom = {
       initialValue: false,
     }),
     defineField({
+      name: "overnight",
+      title: "Overnight?",
+      type: "boolean",
+      description: "Indicates whether this accommodation allows overnight stays",
+      initialValue: true,
+    }),
+    defineField({
       name: "reviews",
       title: "Reviews",
       type: "array",
