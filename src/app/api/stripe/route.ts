@@ -16,6 +16,9 @@ type RequestData = {
   children: number;
   numberOfDays: number;
   hotelRoomSlug: string;
+  price: number;
+  flatFee: number;
+  discount: number;
 };
 
 export async function POST(req: Request) {
@@ -26,19 +29,29 @@ export async function POST(req: Request) {
     children,
     hotelRoomSlug,
     numberOfDays,
+    price,
+    flatFee,
+    discount,
   }: RequestData = await req.json();
 
   if (
     !checkinDate ||
     !checkoutDate ||
-    !adults ||
+    adults == null ||
     !hotelRoomSlug ||
-    !numberOfDays
+    numberOfDays == null ||
+    price == null ||
+    flatFee == null ||
+    discount == null
   ) {
     return new NextResponse('Please all fields are required', { status: 400 });
   }
 
-  const origin = req.headers.get('origin');
+  const originHeader = req.headers.get('origin');
+  const origin =
+    typeof originHeader === 'string' && originHeader.startsWith('http')
+      ? originHeader
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const session = await getServerSession(authOptions);
 
@@ -51,8 +64,10 @@ export async function POST(req: Request) {
 
   try {
     const room = await getRoom(hotelRoomSlug);
-    const discountPrice = room.price - (room.price / 100) * room.discount;
-    const totalPrice = discountPrice * numberOfDays;
+    const discountPrice = price - (price / 100) * discount;
+    const subtotal = discountPrice * numberOfDays;
+    const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
+    const calculatedTotal = subtotal + extraGuestCharge + flatFee;
 
     // Create a stripe payment
     const stripeSession = await stripe.checkout.sessions.create({
@@ -66,12 +81,15 @@ export async function POST(req: Request) {
               name: room.name,
               images: room.images.map(image => image.url),
             },
-            unit_amount: parseInt((totalPrice * 100).toString()),
+            unit_amount: Math.round(calculatedTotal * 100),
           },
         },
       ],
       payment_method_types: ['card'],
-      success_url: `${origin}/users/${session.user?.name ?? userId}`,
+      success_url: `${origin}/users/${encodeURIComponent(
+        session.user?.name ?? userId
+      )}`,
+      cancel_url: `${origin}/rooms/${encodeURIComponent(hotelRoomSlug)}`,
       metadata: {
         adults,
         checkinDate: formattedCheckinDate,
@@ -80,9 +98,9 @@ export async function POST(req: Request) {
         hotelRoom: room._id,
         numberOfDays,
         user: userId,
-        discount: room.discount,
-        totalPrice
-      }
+        discount,
+        totalPrice: calculatedTotal,
+      },
     });
 
     return NextResponse.json(stripeSession, {

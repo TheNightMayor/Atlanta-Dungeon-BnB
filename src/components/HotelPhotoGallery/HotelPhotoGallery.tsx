@@ -33,7 +33,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                     />
 
                     <button
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full z-10 transition-all"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
                         onClick={(e) => {
                             e.stopPropagation();
                             handlePrevious();
@@ -43,7 +43,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                     </button>
 
                     <button
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full z-10 transition-all"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
                         onClick={(e) => {
                             e.stopPropagation();
                             handleNext();
@@ -83,7 +83,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
 
                 {showModal && (
                     <div
-                        className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-90 z-[55]"
+                        className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-90"
                         onClick={() => setShowModal(false)}
                     >
                         <div className="relative w-[90vw] h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
@@ -95,7 +95,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                             />
 
                             <button
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full z-10 transition-all"
+                                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handlePrevious();
@@ -105,7 +105,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                             </button>
 
                             <button
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full z-10 transition-all"
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleNext();
@@ -119,7 +119,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                             </span>
 
                             <button
-                                className="absolute top-4 right-4 text-white z-10"
+                                className="absolute top-4 right-4 text-white"
                                 onClick={() => setShowModal(false)}
                             >
                                 <MdCancel className="text-3xl" />

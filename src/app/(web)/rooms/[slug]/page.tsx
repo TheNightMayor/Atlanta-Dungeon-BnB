@@ -68,6 +68,9 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                 children: noOfChildren,
                 numberOfDays,
                 hotelRoomSlug,
+                price: room.price,
+                flatFee: room.flatFee ?? 0,
+                discount: room.discount,
             });
 
             if (stripe) {
@@ -169,7 +172,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                             </div>
                         </div>
                     </div>
-                    <div className="md:col-span-4 rounded-xl border-2 border-tertiary-dark sticky top-40 my-2 h-fit overflow-visible">
+                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark sticky top-40 my-2 h-fit overflow-visible">
                         <BookRoomCta
                             discount={room.discount}
                             flatFee={room.flatFee ?? 0}

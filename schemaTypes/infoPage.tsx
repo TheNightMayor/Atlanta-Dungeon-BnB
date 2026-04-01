@@ -1,11 +1,18 @@
 import { FaInfoCircle } from "react-icons/fa";
 
-const aboutPage = {
-  name: "aboutPage",
-  title: "About Page",
+const infoPage = {
+  name: "infoPage",
+  title: "Info Page",
   icon: FaInfoCircle,
   type: "document",
   fields: [
+    {
+      name: "internalName",
+      title: "Internal Name",
+      type: "string",
+      description: "Internal identifier for back-end or admin use (not shown to users).",
+      validation: (Rule: any) => Rule.required(),
+    },
     {
       name: "title",
       title: "Title",
@@ -27,4 +34,4 @@ const aboutPage = {
   },
 };
 
-export default aboutPage;
+export default infoPage;

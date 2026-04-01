@@ -98,7 +98,14 @@ export const getRoomBookingsQuery = groq`*[_type == "booking" && hotelRoom._ref 
     }
         }`;
 
-export const getAboutPageQuery = groq`*[_type == "aboutPage"][0] {
+export const getInfoPageQuery = groq`*[_type == "infoPage"][0] {
+    internalName,
+    title,
+    content
+}`;
+
+export const getInfoPageByInternalNameQuery = groq`*[_type == "infoPage" && internalName == $internalName][0] {
+    internalName,
     title,
     content
 }`;

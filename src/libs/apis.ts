@@ -121,10 +121,20 @@ export async function getUserData(userId: string) {
   return result;
 }
 
-export async function getAboutPage() {
+export async function getInfoPage() {
   const result = await sanityClient.fetch(
-    queries.getAboutPageQuery,
+    queries.getInfoPageQuery,
     {},
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
+export async function getInfoPageByInternalName(internalName: string) {
+  const result = await sanityClient.fetch(
+    queries.getInfoPageByInternalNameQuery,
+    { internalName },
     { cache: 'no-cache' }
   );
 

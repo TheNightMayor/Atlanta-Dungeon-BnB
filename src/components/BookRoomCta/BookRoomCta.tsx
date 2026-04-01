@@ -1,7 +1,10 @@
 'use client'
 import Link from "next/link";
-import { Dispatch, FC, SetStateAction } from "react"
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import DatePicker from "react-datepicker"
+import { MdCancel } from "react-icons/md";
+import { PortableText } from "next-sanity";
+import { getInfoPageByInternalName } from "@/libs/apis";
 import 'react-datepicker/dist/react-datepicker.css';
 
 type Props = {
@@ -40,6 +43,35 @@ const BookRoomCta: FC<Props> = props => {
         isBooked,
         handleBookNowClick
     } = props;
+
+    const [liabilityPage, setLiabilityPage] = useState<null | { internalName: string; title: string; content: any[] }>(null);
+    const [isLiabilityModalOpen, setIsLiabilityModalOpen] = useState(false);
+    const [hasReadStatement, setHasReadStatement] = useState(false);
+    const [isOver18, setIsOver18] = useState(false);
+    const [isLiabilityLoading, setIsLiabilityLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLiability = async () => {
+            try {
+                const data = await getInfoPageByInternalName("liability");
+                setLiabilityPage(data);
+            } catch (error) {
+                console.error("Failed to load liability info page", error);
+            } finally {
+                setIsLiabilityLoading(false);
+            }
+        };
+
+        fetchLiability();
+    }, []);
+
+    useEffect(() => {
+        document.body.style.overflow = isLiabilityModalOpen ? 'hidden' : '';
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isLiabilityModalOpen]);
 
     const discountPrice = price - (price / 100) * discount;
 
@@ -154,7 +186,7 @@ const BookRoomCta: FC<Props> = props => {
                 );
             })()}
             <button
-                onClick={handleBookNowClick}
+                onClick={() => setIsLiabilityModalOpen(true)}
                 disabled={isBooked}
                 className="flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-none justify-center whitespace-nowrap">
                 {isBooked
@@ -168,6 +200,83 @@ const BookRoomCta: FC<Props> = props => {
                     </Link>
                     : "Book Now"}
             </button>
+
+            {/* <button
+                onClick={() => setIsLiabilityModalOpen(true)}
+                className="mt-2 underline text-sm text-blue-600 hover:text-blue-800"
+            >
+                View liability statement
+            </button> */}
+
+            {isLiabilityModalOpen && (
+                <div
+                    className="fixed inset-0 flex items-center justify-center bg-black/40 dark:bg-black/70 p-4"
+                    onClick={() => setIsLiabilityModalOpen(false)}
+                >
+                    <div
+                        className="bg-white dark:bg-slate-900 text-black dark:text-white w-full max-w-3xl rounded-2xl p-6 shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden max-h-[80vh] relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setIsLiabilityModalOpen(false)}
+                            aria-label="Close liability modal"
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        >
+                            <MdCancel className="text-2xl" />
+                        </button>
+
+                        <div className="mt-4 overflow-y-auto max-h-[62vh] pr-2 scrollbar-rounded">
+                            {isLiabilityLoading ? (
+                                <p className="mt-4">Loading liability statement...</p>
+                            ) : liabilityPage ? (
+                                <div className="space-y-4 text-gray-800 dark:text-gray-200">
+                                    <p className="font-semibold">{liabilityPage.title}</p>
+                                    <div className="prose prose-sm dark:prose-invert">
+                                        <PortableText value={liabilityPage.content} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="mt-4 text-red-600 dark:text-red-400">Liability statement not found.</p>
+                            )}
+
+                            <div className="mt-5 flex flex-col gap-3">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={hasReadStatement}
+                                        onChange={e => setHasReadStatement(e.target.checked)}
+                                        className="h-4 w-4"
+                                    />
+                                    <span>I have read and understood this liability statement.</span>
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={isOver18}
+                                        onChange={e => setIsOver18(e.target.checked)}
+                                        className="h-4 w-4"
+                                    />
+                                    <span>I confirm I am over 18 years old.</span>
+                                </label>
+
+                                <button
+                                    onClick={() => {
+                                        setIsLiabilityModalOpen(false);
+                                        if (hasReadStatement && isOver18) {
+                                            handleBookNowClick();
+                                        }
+                                    }}
+                                    disabled={!hasReadStatement || !isOver18 || isBooked}
+                                    className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
+                                >
+                                    {isBooked ? 'Contact Us' : 'Continue to payment'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
