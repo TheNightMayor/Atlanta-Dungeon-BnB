@@ -93,3 +93,8 @@ export const getRoomBookingsQuery = groq`*[_type == "booking" && hotelRoom._ref 
         name
     }
         }`;
+
+export const getAboutPageQuery = groq`*[_type == "aboutPage"][0] {
+    title,
+    content
+}`;

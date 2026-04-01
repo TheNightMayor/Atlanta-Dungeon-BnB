@@ -67,6 +67,9 @@ const Header = () => {
                 <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Home</Link>
               </li>
               <li className='inline-block px-6'>
+                <Link href='/about' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>About Us</Link>
+              </li>
+              <li className='inline-block px-6'>
                 <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Booking</Link>
               </li>
               <li className='inline-block px-6'>
@@ -147,16 +150,17 @@ const Header = () => {
                   <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Home</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
+                  <Link href='/about' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>About Us</Link>
+                </li>
+                <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
                   <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Booking</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
                   <Link
-                    href="mailto:Atlantakbnb@yahoo.com"
-                    rel="noopener noreferrer"
-                    target="_blank"
+                    href="/contact"
                     className='inline-block transition-transform duration-200 transform-gpu hover:scale-105'
                     onClick={() => setIsMenuOpen(false)}
-                  >Contact</Link>
+                  >Contact Us</Link>
                 </li>
               </ul>
             </div>

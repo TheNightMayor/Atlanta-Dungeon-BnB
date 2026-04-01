@@ -5,5 +5,6 @@ import hotelRoom from "./hotelRoom";
 import review from "./review";
 import message from "./message";
 import verificationToken from "./verificationToken";
+import aboutPage from "./aboutPage";
 
-export const schemaTypes = [user, account, booking, hotelRoom, review, message, verificationToken];
+export const schemaTypes = [user, account, booking, hotelRoom, review, message, verificationToken, aboutPage];

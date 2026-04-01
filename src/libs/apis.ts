@@ -121,6 +121,16 @@ export async function getUserData(userId: string) {
   return result;
 }
 
+export async function getAboutPage() {
+  const result = await sanityClient.fetch(
+    queries.getAboutPageQuery,
+    {},
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
 export async function checkReviewExists(
   userId: string,
   hotelRoomId: string

@@ -17,15 +17,15 @@ const Footer = () => {
                             className="ml-2 py-4 font-bold"
                         >Contact Us</Link>
                     </div>
-                    {/* <div className="flex items-center py-4">
+                    <div className="flex items-center py-4">
                         <BsInstagram />
                         <Link
-                            href="https://www.instagram.com/atlkinkbnb/"
+                            href="https://www.instagram.com/atlantabedandb0ndage/"
                             rel="noopener noreferrer"
                             target="_blank"
                             className="ml-2 font-bold"
-                        >instagram</Link>
-                    </div> */}
+                        >Instagram</Link>
+                    </div>
                     <div className="flex items-center">
                         <BsTree />
                         <Link
