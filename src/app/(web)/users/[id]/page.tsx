@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { FaSignOutAlt } from 'react-icons/fa';
 import Image from 'next/image';
 import axios from 'axios';
@@ -8,7 +8,7 @@ import { signOut, useSession } from 'next-auth/react';
 
 import { getUserBookings } from '@/libs/apis';
 import LoadingSpinner from '../../loading';
-import { useState } from 'react';
+import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
 import { use } from 'react';
 import { BsJournalBookmarkFill } from 'react-icons/bs';
 import Table from '@/components/Table/Table';
@@ -30,6 +30,9 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [ratingValue, setRatingValue] = useState<number | null>(0);
   const [ratingText, setRatingText] = useState('');
+  const [selectedProfileImage, setSelectedProfileImage] = useState<File | null>(null);
+  const [selectedProfileImagePreview, setSelectedProfileImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const toggleRatingModal = () => setIsRatingVisible(prevState => !prevState);
 
@@ -68,6 +71,54 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     return data;
   };
 
+  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedProfileImage(file);
+    setSelectedProfileImagePreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  const handleLabelKeyDown = (e: KeyboardEvent<HTMLLabelElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const input = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement | null;
+      input?.click();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (selectedProfileImagePreview) {
+        URL.revokeObjectURL(selectedProfileImagePreview);
+      }
+    };
+  }, [selectedProfileImagePreview]);
+
+  const uploadProfileImage = async () => {
+    if (!selectedProfileImage) return;
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedProfileImage);
+
+      const res = await fetch('/api/users/image', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Upload failed');
+      }
+
+      await mutate('/api/users');
+      setSelectedProfileImage(null);
+      setSelectedProfileImagePreview(null);
+      toast.success('Profile image uploaded');
+    } catch (err) {
+      console.error('Upload failed', err);
+      toast.error('Failed to upload profile image');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const {
     data: userBookings,
     error,
@@ -91,7 +142,21 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   if (!userData) throw new Error('Cannot fetch data');
 
   // Prefer session user image (Google), then userData.image, then default
-  const profileImage = session?.user?.image || userData.image || '/images/default-user.svg';
+  const userDataImageUrl = userData.image && typeof userData.image !== 'string'
+    ? (userData.image as { url?: string }).url
+    : userData.image;
+
+  const sessionUserImageUrl = (() => {
+    const image = session?.user?.image;
+    if (typeof image === 'string' && image.trim().length > 0) return image;
+    const imgObj = image as { url?: string } | undefined;
+    if (imgObj && typeof imgObj.url === 'string') return imgObj.url;
+    return null;
+  })();
+
+  const profileImage = sessionUserImageUrl || userDataImageUrl || '/images/default-user.svg';
+
+  const isCurrentUser = session?.user?.id === userId || session?.user?.name === userId;
 
   return (
     <div className='container mx-auto px-2 md:px-4 pt-2 md:pt-2 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
@@ -120,6 +185,47 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
             />
             <p className='ml-2 font-medium'> Sign Out</p>
           </div>
+
+          {isCurrentUser && (
+            <div className='mt-6 text-center'>
+              <label
+                className='inline-flex cursor-pointer items-center justify-center rounded-full border border-gray-300 bg-gray-100 px-6 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:border-tertiary-dark dark:bg-tertiary-dark dark:text-white'
+                tabIndex={0}
+                role='button'
+                aria-label='Select profile image'
+                onKeyDown={handleLabelKeyDown}
+              >
+                Select profile image
+                <input
+                  type='file'
+                  accept='image/*'
+                  className='sr-only'
+                  onChange={handleProfileImageChange}
+                />
+              </label>
+
+              {selectedProfileImagePreview && (
+                <div className='mx-auto mt-4 w-24 h-24 overflow-hidden rounded-full border border-gray-200 dark:border-tertiary-dark'>
+                  <img
+                    src={selectedProfileImagePreview}
+                    alt='Profile preview'
+                    className='h-full w-full object-cover'
+                  />
+                </div>
+              )}
+
+              {selectedProfileImage && (
+                <button
+                  type='button'
+                  onClick={uploadProfileImage}
+                  disabled={isUploadingImage}
+                  className='mt-4 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-black transition duration-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:text-white'
+                >
+                  {isUploadingImage ? 'Uploading…' : 'Upload image'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className='md:col-span-8 lg:col-span-9 col-span-1'>
@@ -135,6 +241,46 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
               alt='User Name'
             />
           </div>
+          {isCurrentUser && (
+            <div className='md:hidden mt-4 flex flex-col items-start gap-3'>
+              <label
+                className='inline-flex cursor-pointer items-center justify-center rounded-full border border-gray-300 bg-gray-100 px-5 py-3 text-sm font-medium transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:border-tertiary-dark dark:bg-tertiary-dark dark:text-white'
+                tabIndex={0}
+                role='button'
+                aria-label='Pick profile image'
+                onKeyDown={handleLabelKeyDown}
+              >
+                Pick profile image
+                <input
+                  type='file'
+                  accept='image/*'
+                  className='sr-only'
+                  onChange={handleProfileImageChange}
+                />
+              </label>
+
+              {selectedProfileImagePreview && (
+                <div className='w-20 h-20 overflow-hidden rounded-full border border-gray-200 dark:border-tertiary-dark'>
+                  <img
+                    src={selectedProfileImagePreview}
+                    alt='Profile preview'
+                    className='h-full w-full object-cover'
+                  />
+                </div>
+              )}
+
+              {selectedProfileImage && (
+                <button
+                  type='button'
+                  onClick={uploadProfileImage}
+                  disabled={isUploadingImage}
+                  className='rounded-full bg-primary px-4 py-2 text-xs font-semibold text-black transition duration-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:text-white'
+                >
+                  {isUploadingImage ? 'Uploading…' : 'Upload'}
+                </button>
+              )}
+            </div>
+          )}
           {/* <p className='block w-fit md:hidden text-sm py-2'>
             {userData.about ?? ''}
           </p>

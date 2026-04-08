@@ -36,6 +36,17 @@ const Header = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+  const sessionUserImage = (() => {
+    const image = session?.user?.image;
+    if (typeof image === 'string' && image.trim().length > 0) {
+      return image;
+    }
+    const imageObject = image as { url?: string } | undefined;
+    if (imageObject && typeof imageObject.url === 'string') {
+      return imageObject.url;
+    }
+    return null;
+  })();
 
   return (
     <header className='font-orbitron sticky top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-50% via-white via-90% dark:via-black to-100% pt-2 pb-8 md:px-8 md:py-8 mx-auto text-xl flex flex-nowrap items-center justify-between z-20 w-full'>
@@ -83,10 +94,10 @@ const Header = () => {
                 <li className='flex items-center'>
                   {session?.user ? (
                     <Link href={`/users/${session.user.name}`}>
-                      {typeof session.user.image === 'string' && session.user.image.trim().length > 0 ? (
+                      {sessionUserImage ? (
                         <div className='w-10 h-10 rounded-full overflow-hidden'>
                           <Image
-                            src={session.user.image}
+                            src={sessionUserImage}
                             alt={session.user.name || 'User'}
                             width={40}
                             height={40}
@@ -94,24 +105,15 @@ const Header = () => {
                           />
                         </div>
                       ) : (
-                        (() => {
-                          if (session.user.image !== undefined && session.user.image !== null && session.user.image !== '') {
-                            // Log unexpected values for debugging
-                            // eslint-disable-next-line no-console
-                            console.warn('Unexpected user.image value:', session.user.image);
-                          }
-                          return (
-                            <div className='w-10 h-10 rounded-full overflow-hidden'>
-                              <Image
-                                src="/images/default-user.svg"
-                                alt={session.user.name || 'User'}
-                                width={40}
-                                height={40}
-                                className='scale-animation img'
-                              />
-                            </div>
-                          );
-                        })()
+                        <div className='w-10 h-10 rounded-full overflow-hidden'>
+                          <Image
+                            src="/images/default-user.svg"
+                            alt={session.user.name || 'User'}
+                            width={40}
+                            height={40}
+                            className='scale-animation img'
+                          />
+                        </div>
                       )}
                     </Link>
                   ) : (
