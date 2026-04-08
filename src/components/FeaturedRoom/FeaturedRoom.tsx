@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Image from 'next/image';
 
 import { PortableText } from 'next-sanity';
@@ -17,10 +17,24 @@ const FeaturedRoom: FC<Props> = props => {
   const { featuredRoom } = props;
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+
+    if (selectedImageIndex !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = originalOverflow;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [selectedImageIndex]);
+
   const allImages = [featuredRoom.coverImage, ...featuredRoom.images.toSpliced(2, featuredRoom.images.length)];
 
   return (
-    <section className='z-10 bg-white dark:bg-black flex py-10 w-full mx-auto justify-center relative'>
+    <section className='bg-white dark:bg-black flex w-full mx-auto justify-center relative'>
       <div className='container flex flex-col-reverse justify-center gap-5 md:flex-row m-6'>
         <div className='md:grid gap-10 grid-cols-1 md:w-1/5 w-full'>
           <div className='rounded-2xl overflow-hidden mb-4 mt-4 h-72 cursor-pointer' onClick={() => setSelectedImageIndex(0)}>
@@ -47,7 +61,7 @@ const FeaturedRoom: FC<Props> = props => {
           {/* </div> */}
         </div>
 
-        <div className='md:py-10 md:w-1/2 text-left'>
+        <div className='md:w-1/2 text-left'>
           <h3 className='font-orbitron text-4xl mb-2 border-b-2 border-tertiary-dark'>{featuredRoom.name}</h3>
 
           <div className='w-auto'>

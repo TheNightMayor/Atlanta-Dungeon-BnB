@@ -94,7 +94,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const profileImage = session?.user?.image || userData.image || '/images/default-user.svg';
 
   return (
-    <div className='container mx-auto px-2 md:px-4 pt-28 md:pt-24 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
+    <div className='container mx-auto px-2 md:px-4 pt-2 md:pt-2 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
       <div className='md:grid md:grid-cols-12 gap-10'>
         <div className='hidden md:block md:col-span-4 lg:col-span-3 shadow-lg h-fit sticky top-10 bg-white text-[#1e1e1e] dark:bg-black dark:text-white rounded-lg px-6 py-4 border-2 border-gray-200 dark:border-tertiary-dark'>
           <div className='md:w-[143px] w-28 h-28 md:h-[143px] mx-auto mb-5 rounded-full overflow-hidden'>

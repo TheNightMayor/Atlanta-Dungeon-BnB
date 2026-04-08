@@ -72,7 +72,7 @@ const Contact = () => {
     };
 
     return (
-            <section className="container mx-auto pt-28 md:pt-24">
+            <section className="container mx-auto pt-2 md:pt-2">
                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8 w-80 md:w-[70%] mx-auto">
                 <div className="flex mb-8 flex-col md:flex-row items-center justify-between">
                     <h1 className="text-ex font-bold leading-tight tracking-tight md:text-2xl">

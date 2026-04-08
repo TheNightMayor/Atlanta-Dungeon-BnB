@@ -47,7 +47,7 @@ export default function RootLayout({
             <Toast />
             <div className="flex flex-col flex-1">
               <Header />
-              <main className="font-normal pt-24 flex-grow">
+              <main className="font-normal flex-grow">
                 {children}
               </main>
               <Footer />

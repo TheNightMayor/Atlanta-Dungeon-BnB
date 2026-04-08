@@ -1,3 +1,4 @@
+'use client'
 import Link from "next/link"
 import { BiLogoAirbnb } from "react-icons/bi"
 import { TbLetterV } from "react-icons/tb"
@@ -5,25 +6,25 @@ import { BsEnvelope, BsInstagram, BsTree } from "react-icons/bs"
 
 const Footer = () => {
     return (
-        <footer className="font-orbitron">
+        <footer>
 
-            <div className="bg-gradient-to-t  from-tertiary-light to-white dark:to-black  w-full bottom-0 left-0" >
-                <h4 className="justify-self-center font-semibold text-[24px] py-4">Contact Us</h4>
-                <div className="flex md:flex-row flex-wrap items-center justify-evenly">
+            <div className="pt-8 font-orbitron bg-gradient-to-t  from-tertiary-light from-50% via-white  dark:via-black via-90% to-transparent w-full bottom-0 left-0" >
+                <h4 className="justify-self-center">Contact Us</h4>
+                <div className="flex md:flex-row flex-wrap items-center justify-evenly text-sm md:text-base gap-2 py-2">
                     <div className="flex items-center">
                         <BsEnvelope />
                         <Link
                             href='/contact'
-                            className="ml-2 py-4 font-bold"
+                            className="ml-2"
                         >Contact Us</Link>
                     </div>
-                    <div className="flex items-center py-4">
+                    <div className="flex items-center">
                         <BsInstagram />
                         <Link
                             href="https://www.instagram.com/atlantabedandb0ndage/"
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 font-bold"
+                            className="ml-2"
                         >Instagram</Link>
                     </div>
                     <div className="flex items-center">
@@ -32,7 +33,7 @@ const Footer = () => {
                             href={"https://linktr.ee/atlantakbnb"}
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 py-4 font-bold">Linktree</Link>
+                            className="ml-2">Linktree</Link>
                     </div>
                     <div className="flex items-center">
                         <BiLogoAirbnb />
@@ -40,7 +41,7 @@ const Footer = () => {
                             href={"https://www.airbnb.com/rooms/1171823093801738771"}
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 py-4 font-bold"
+                            className="ml-2"
                         >airbnb</Link>
                     </div>
                     <div className="flex items-center">
@@ -49,7 +50,7 @@ const Footer = () => {
                             href={"https://www.vrbo.com/4255461?dateless=true"}
                             rel="noopener noreferrer"
                             target="_blank"
-                            className="ml-2 py-4 font-bold"
+                            className="ml-2"
                         >Vrbo</Link>
                     </div>
 
