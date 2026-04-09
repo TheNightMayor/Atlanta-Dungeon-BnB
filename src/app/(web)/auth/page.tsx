@@ -14,6 +14,7 @@ const defaultFormData = {
 
 const Auth = () => {
     const [formData, setFormData] = useState(defaultFormData);
+    const [isSigningIn, setIsSigningIn] = useState(false);
 
     const inputStyles =
         "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
@@ -27,14 +28,14 @@ const Auth = () => {
     const router = useRouter();
 
     useEffect(() => {
-        if (session) router.push("/")
+        if (session) router.push('/auth/redirect')
     }, [router, session]);
 
 
     const loginHandler = async (provider?: 'google' | 'github' | 'credentials') => {
         try {
             if (provider && provider !== 'credentials') {
-                await signIn(provider, { callbackUrl: '/' });
+                await signIn(provider, { callbackUrl: '/auth/redirect' });
                 return;
             }
 
@@ -49,7 +50,7 @@ const Auth = () => {
                 return;
             }
 
-            router.push('/');
+            router.push('/auth/redirect');
         } catch (err) {
             toast.error('something went wrong');
         }
@@ -81,12 +82,21 @@ const Auth = () => {
         }
     };
 
+    const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (isSigningIn) {
+            await loginHandler('credentials');
+            return;
+        }
+        await handleSubmit(event);
+    };
+
     return (
             <section className="container mx-auto pt-2 md:pt-2">
                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8 w-80 md:w-[70%] mx-auto">
                 <div className="flex mb-8 flex-col md:flex-row items-center justify-between">
                     <h1 className="text-ex font-bold leading-tight tracking-tight md:text-2xl">
-                        Create an Account
+                        {isSigningIn ? 'Sign in' : 'Create an Account'}
                     </h1>
                     <p>OR</p>
                     <span className="ml-3 cursor-pointer inline-flex items-center font-medium border-2 border-tertiary-dark p-2 rounded-lg hover:bg-tertiary-dark hover:text-white transition-all duration-300"
@@ -99,16 +109,19 @@ const Auth = () => {
                     </span>
                 </div>
 
-                <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-                    <input 
-                        type="text"
-                        name="name"
-                        placeholder="John Doe"
-                        required
-                        className={inputStyles}
-                        value={formData.name}
-                        onChange={handleInputChange}
-                    /> <input
+                <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+                    {!isSigningIn && (
+                        <input 
+                            type="text"
+                            name="name"
+                            placeholder="John Doe"
+                            required
+                            className={inputStyles}
+                            value={formData.name}
+                            onChange={handleInputChange}
+                        />
+                    )}
+                    <input
                         type="email"
                         name="email"
                         value={formData.email}
@@ -130,12 +143,12 @@ const Auth = () => {
                     <button
                         type="submit"
                         className="w-full text-white bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center hover:bg-white hover:text-black border-2 border-tertiary-dark transition-all duration-300">
-                        Sign up
+                        {isSigningIn ? 'Sign in' : 'Sign up'}
                     </button>
                 </form>
 
-                <button onClick={() => loginHandler()} className="rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-tertiary-dark hover:text-white dark:hover:bg-tertiary-dark dark:hover:text-white font-medium transition-all duration-300">
-                    Already have an account? Sign in
+                <button onClick={() => setIsSigningIn(s => !s)} className="rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-tertiary-dark hover:text-white dark:hover:bg-tertiary-dark dark:hover:text-white font-medium transition-all duration-300">
+                    {isSigningIn ? 'Create a new Account' : 'Already have an account? Sign in'}
                 </button>
             </div>
         </section>

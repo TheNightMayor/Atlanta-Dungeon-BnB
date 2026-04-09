@@ -73,6 +73,7 @@ export const getUserDataQuery = groq`*[_type == 'user' && _id == $userId][0] {
     about,
     _createdAt,
     image,
+    idVerified,
     "imageUrl": coalesce(image.asset->url, image),
     idDocument,
     "idDocumentUrl": coalesce(idDocument.asset->url, idDocument),

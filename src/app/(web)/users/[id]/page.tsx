@@ -15,6 +15,7 @@ import Table from '@/components/Table/Table';
 import Chart from '@/components/Chart/Chart';
 import RatingModal from '@/components/RatingModal/RatingModal';
 import BackDrop from '@/components/BackDrop/BackDrop';
+import ProfileProgress from '@/components/ProfileProgress/ProfileProgress';
 import toast from 'react-hot-toast';
 import { User } from '@/models/user';
 
@@ -226,6 +227,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                 className='img rounded-full'
               />
             </div>
+            
             {/* <div className='font-normal py-4 text-left'>
             <h6 className='text-xl font-bold pb-3'>About</h6>
             <p className='text-sm'>{userData.about ?? ''}</p>
@@ -338,6 +340,14 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
               height={56}
               src={profileImage}
               alt='User Name'
+            />
+          </div>
+          <div className="hidden md:block md:ml-6 w-full">
+            <ProfileProgress
+              createdAt={userData._createdAt}
+              profileImageUploaded={Boolean(userData.imageUrl || userData.image)}
+              idUploaded={Boolean(userData.idDocumentUrl || userData.idDocument)}
+              idVerified={Boolean(userData.idVerified)}
             />
           </div>
           {isCurrentUser && (
