@@ -25,10 +25,10 @@ const ProfileProgress: React.FC<Props> = ({ createdAt, profileImageUploaded, idU
 
   return (
     <div className="w-full">
-      <h3 className="text-lg font-semibold mb-4">Profile progress</h3>
+      <h3 className="hidden md:block md:text-lg font-semibold">Profile progress</h3>
 
-      <div className="w-full">
-        <div className="relative py-6">
+      <div className="w-full py-2">
+        <div className="relative md:py-6">
           <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-3 bg-gray-200 rounded-full" />
           <div
             className="absolute left-0 top-1/2 transform -translate-y-1/2 h-3 bg-tertiary-dark rounded-full transition-all duration-500 ease-in-out"
@@ -58,12 +58,12 @@ const ProfileProgress: React.FC<Props> = ({ createdAt, profileImageUploaded, idU
             {formattedCreated && <div className="text-xs text-gray-500 mt-1">{formattedCreated}</div>}
           </div>
           <div className="text-center text-sm">
-            <div className="font-medium">Profile image uploaded</div>
-            <div className="text-xs text-gray-500 mt-1">{profileImageUploaded ? 'Image uploaded' : 'Pending'}</div>
+            <div className="font-medium">Profile Image</div>
+            <div className="text-xs text-gray-500 mt-1">{profileImageUploaded ? 'Uploaded' : 'Pending'}</div>
           </div>
           <div className="text-center text-sm">
-            <div className="font-medium">ID uploaded</div>
-            <div className="text-xs text-gray-500 mt-1">{idUploaded ? 'ID document uploaded' : 'Pending'}</div>
+            <div className="font-medium">ID Photo</div>
+            <div className="text-xs text-gray-500 mt-1">{idUploaded ? 'Uploaded' : 'Pending'}</div>
           </div>
           <div className="text-center text-sm">
             <div className="font-medium">ID verified</div>
