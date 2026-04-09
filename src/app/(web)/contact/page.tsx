@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -27,6 +28,7 @@ const Contact = () => {
 
     const { data: session } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
         useEffect(() => {
                 if (!session) router.push("/auth");
@@ -37,7 +39,11 @@ const Contact = () => {
                         name: session.user?.name || '',
                     }));
                 }
-        }, [router, session]);
+                const topicParam = searchParams.get('topic');
+                if (topicParam) {
+                    setFormData(f => ({ ...f, topic: topicParam }));
+                }
+        }, [router, session, searchParams]);
 
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

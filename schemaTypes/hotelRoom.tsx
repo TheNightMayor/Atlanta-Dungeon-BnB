@@ -147,18 +147,7 @@ const hotelRoom = {
       initialValue:
         "Check-in time is noon, checkout is at midnight. If any items are left behind, contact management",
     }),
-    defineField({
-      name: "dimension",
-      title: "Dimension",
-      type: "string",
-    }),
-    defineField({
-      name: "numberOfBeds",
-      title: "Number of Beds",
-      type: "number",
-      validation: (Rule) => Rule.min(1),
-      initialValue: 1,
-    }),
+    
     defineField({
       name: "offeredAmenities",
       title: "Offered Amenities",
@@ -197,10 +186,11 @@ const hotelRoom = {
       ],
     }),
     defineField({
-      name: "isBooked",
-      title: "Is Booked",
+      name: "instantBook",
+      title: "Instant Book",
       type: "boolean",
-      initialValue: false,
+      description: "Enable to allow users to instantly book this accommodation",
+      initialValue: true,
     }),
     defineField({
       name: "isFeatured",

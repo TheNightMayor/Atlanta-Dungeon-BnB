@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   if (
     !checkinDate ||
-    !checkoutDate ||
+    (numberOfDays > 1 && !checkoutDate) ||
     adults == null ||
     !hotelRoomSlug ||
     numberOfDays == null ||
@@ -59,8 +59,8 @@ export async function POST(req: Request) {
     return new NextResponse('Authentication Required', { status: 400 });
   }
   const userId = (session.user as any).id ?? session.user.name;
-  const formattedCheckoutDate = checkoutDate.split('T')[0];
   const formattedCheckinDate = checkinDate.split('T')[0];
+  const formattedCheckoutDate = checkoutDate ? checkoutDate.split('T')[0] : formattedCheckinDate;
 
   try {
     const room = await getRoom(hotelRoomSlug);

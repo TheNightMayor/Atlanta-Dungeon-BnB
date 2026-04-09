@@ -83,7 +83,7 @@ export const updateHotelRoom = async (hotelRoomId: string) => {
         patch: {
           id: hotelRoomId,
           set: {
-            isBooked: true,
+            instantBook: false,
           },
         },
       },

@@ -48,10 +48,10 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     };
 
     const handleBookNowClick = async () => {
-        if (!checkinDate || !checkoutDate)
-            return toast.error("Please provide checkin / checkout dates");
+        if (!checkinDate || (room.overnight && !checkoutDate))
+            return toast.error("Please provide checkin" + (room.overnight ? " / checkout dates" : " date"));
 
-        if (checkinDate > checkoutDate)
+        if (room.overnight && checkinDate && checkoutDate && checkinDate > checkoutDate)
             return toast.error("Please choose a valid checkin period");
 
         const numberOfDays = calcNumDays();
@@ -90,7 +90,9 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     };
 
     const calcNumDays = () => {
-        if (!checkinDate || !checkoutDate) return;
+        if (!checkinDate) return;
+        if (!room.overnight) return 1;
+        if (!checkoutDate) return;
         const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
         const noOfDays = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
         return noOfDays;
@@ -188,7 +190,8 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                             noOfChildren={noOfChildren}
                             setNoOfChildren={setNoOfChildren}
                             overnight={room.overnight ?? true}
-                            isBooked={room.isBooked}
+                            instantBook={room.instantBook}
+                            roomName={room.name}
                             handleBookNowClick={handleBookNowClick}
                         />
                     </div>

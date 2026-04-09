@@ -10,7 +10,7 @@ type Props = {
 
 const RoomCard: FC<Props> = props => {
     const {
-        room: { coverImage, name, price, type, description, slug, isBooked },
+        room: { coverImage, name, price, type, description, slug, instantBook },
     } = props;
 
     return (
@@ -39,7 +39,7 @@ const RoomCard: FC<Props> = props => {
                 <button
                     className='bg-primary inline-block text-center w-full py-2 mb-2 rounded-xl text-white text-xl font-bold hover:text-black hover:bg-white dark:hover:text-white dark:hover:bg-black border-2 border-tertiary-dark transition-all duration-500'
                 >
-                    {isBooked ? "More Info" : "Book Now"}
+                    {instantBook ? "Book Now" : "More Info"}
                 </button>
             </div>
         </Link>

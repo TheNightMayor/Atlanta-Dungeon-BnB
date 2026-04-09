@@ -33,15 +33,14 @@ export type Room = {
   _id: string;
   coverImage: CoverImage;
   description: PortableTextBlock[];
-  dimension: string;
   discount: number;
   images: Image[];
   flatFee?: number;
   overnight?: boolean;
-  isBooked: boolean;
+  instantBook: boolean;
   isFeatured: boolean;
   name: string;
-  numberOfBeds: number;
+  
   offeredAmenities: Amenity[];
   price: number;
   slug: Slug;

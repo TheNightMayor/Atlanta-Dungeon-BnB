@@ -50,7 +50,8 @@ type Props = {
     specialNote: string;
     flatFee: number;
     overnight?: boolean;
-    isBooked: boolean;
+    instantBook: boolean;
+    roomName?: string;
     handleBookNowClick: () => void
 }
 
@@ -69,7 +70,8 @@ const BookRoomCta: FC<Props> = props => {
         setAdults,
         // noOfChildren,
         // setNoOfChildren,
-        isBooked,
+        instantBook,
+        roomName,
         handleBookNowClick
     } = props;
     // default to true (overnight allowed) when not provided
@@ -106,6 +108,14 @@ const BookRoomCta: FC<Props> = props => {
 
     const discountPrice = price - (price / 100) * discount;
 
+    const formatDisplayDate = (d: Date | null) => {
+        if (!d) return 'desired dates';
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+    };
+
     const calcNoOfDays = () => {
         if (!checkinDate) return 0;
         if (!overnight) return 1;
@@ -115,7 +125,7 @@ const BookRoomCta: FC<Props> = props => {
         return noOfDays;
     }
 
-    const isBookNowDisabled = isBooked || !checkinDate || (overnight && !checkoutDate) || adults < 1;
+    const isBookNowDisabled = !instantBook || !checkinDate || (overnight && !checkoutDate) || adults < 1;
 
     return (
         <div className="px-7 py-6">
@@ -142,13 +152,12 @@ const BookRoomCta: FC<Props> = props => {
                     <label
                         htmlFor="check-in-date"
                         className="block text-sm font-medium text-gray-900 dark:text-gray-400">
-                        Check In
+                        {instantBook ? 'Check In' : 'Desired date'}
                     </label>
                     <DatePicker
-                        disabled={isBooked}
                         selected={checkinDate}
                         onChange={date => setCheckinDate(date)}
-                        dateFormat={"dd/MM/yyyy"}
+                        dateFormat={"MM/dd/yyyy"}
                         minDate={new Date()}
                         id="check-in-date"
                         className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
@@ -163,7 +172,7 @@ const BookRoomCta: FC<Props> = props => {
                         <DatePicker
                             selected={checkoutDate}
                             onChange={date => setCheckoutDate(date)}
-                            dateFormat={"dd/MM/yyyy"}
+                            dateFormat={"MM/dd/yyyy"}
                             disabled={!checkinDate}
                             minDate={calcMinCheckoutDate()}
                             id="check-out-date"
@@ -179,7 +188,7 @@ const BookRoomCta: FC<Props> = props => {
                         Adults
                     </label>
                     <input
-                        disabled={isBooked}
+                        
                         type="number"
                         id="adults"
                         value={adults}
@@ -222,14 +231,20 @@ const BookRoomCta: FC<Props> = props => {
                     </div>
                 );
             })()}
-            {isBooked ? (
-                <Link
-                    href="/contact"
-                    className="flex btn-primary w-full mt-6 justify-center whitespace-nowrap"
-                    aria-label="Contact us"
-                >
-                    Contact Us
-                </Link>
+            {!instantBook ? (
+                (() => {
+                    const dateStr = (checkinDate ? (overnight && checkoutDate ? `${formatDisplayDate(checkinDate)} to ${formatDisplayDate(checkoutDate)}` : formatDisplayDate(checkinDate)) : 'desired dates');
+                    const topic = `inquiry regarding ${roomName || 'accommodation'} on ${dateStr}`;
+                    return (
+                        <Link
+                            href={`/contact?topic=${encodeURIComponent(topic)}`}
+                            className="flex btn-primary w-full mt-6 justify-center whitespace-nowrap"
+                            aria-label="Contact us"
+                        >
+                            Contact Us
+                        </Link>
+                    );
+                })()
             ) : (
                 <button
                     onClick={() => setIsLiabilityModalOpen(true)}
@@ -292,14 +307,20 @@ const BookRoomCta: FC<Props> = props => {
                                     <span>I confirm I am over 18 years old.</span>
                                 </label>
 
-                                {isBooked ? (
-                                    <Link
-                                        href="/contact"
-                                        className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white text-center"
-                                        aria-label="Contact us"
-                                    >
-                                        Contact Us
-                                    </Link>
+                                {!instantBook ? (
+                                    (() => {
+                                        const dateStr = (checkinDate ? (overnight && checkoutDate ? `${formatDisplayDate(checkinDate)} to ${formatDisplayDate(checkoutDate)}` : formatDisplayDate(checkinDate)) : 'desired dates');
+                                        const topic = `inquiry regarding ${roomName || 'accommodation'} on ${dateStr}`;
+                                        return (
+                                            <Link
+                                                href={`/contact?topic=${encodeURIComponent(topic)}`}
+                                                className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white text-center"
+                                                aria-label="Contact us"
+                                            >
+                                                Contact Us
+                                            </Link>
+                                        );
+                                    })()
                                 ) : (
                                     <button
                                         onClick={() => {
