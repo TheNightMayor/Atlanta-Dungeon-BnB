@@ -13,5 +13,8 @@ export type User = {
         isAdmin: boolean;
         about: string | null;
         _createdAt: string;
-        image: UserImage;
+    image: UserImage;
+    imageUrl?: string | null;
+    idDocument?: UserImage;
+    idDocumentUrl?: string | null;
 };

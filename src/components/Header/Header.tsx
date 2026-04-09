@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { useContext, useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
 import { MdDarkMode, MdOutlineLightMode } from 'react-icons/md';
 import { useSession } from 'next-auth/react';
@@ -18,11 +19,19 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+  };
+
+  const { data: me } = useSWR(session?.user?.id ? '/api/users' : null, fetcher);
+
   useEffect(() => {
     const fetchAdmin = async () => {
       if (session?.user?.id) {
         try {
-          const userData = await getUserData(session.user.id);
+          const userData = me ?? (await getUserData(session.user.id));
           setIsAdmin(!!userData?.isAdmin);
         } catch (e) {
           setIsAdmin(false);
@@ -37,6 +46,9 @@ const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const sessionUserImage = (() => {
+    // Prefer the user record from /api/users (me) which will reflect recent image uploads
+    if (me && me.imageUrl) return me.imageUrl;
+
     const image = session?.user?.image;
     if (typeof image === 'string' && image.trim().length > 0) {
       return image;

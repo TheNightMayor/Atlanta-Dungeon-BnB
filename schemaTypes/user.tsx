@@ -34,6 +34,16 @@ const user = {
             },
         }),
         defineField({
+            name: 'idDocument',
+            title: 'ID Document',
+            type: 'image',
+            description: 'Upload a photo of the user\'s driver\'s license or ID (private).',
+            options: {
+                hotspot: false,
+            },
+            // You may want to restrict visibility in Studio to admins only in the future
+        }),
+        defineField({
             name: "password",
             type: "string",
             // hidden: true,

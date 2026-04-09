@@ -76,6 +76,9 @@ export const getUserDataQuery = groq`*[_type == 'user' && _id == $userId][0] {
     about,
     _createdAt,
     image,
+    "imageUrl": coalesce(image.asset->url, image),
+    idDocument,
+    "idDocumentUrl": coalesce(idDocument.asset->url, idDocument),
 }`;
 
 export const getRoomReviewsQuery = groq`*[_type == "review" && hotelRoom._ref == $roomId] {
