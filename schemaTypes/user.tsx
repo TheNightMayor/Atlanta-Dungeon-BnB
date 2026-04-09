@@ -18,6 +18,13 @@ const user = {
             // hidden: true,
         }),
         defineField({
+            name: 'idVerified',
+            title: 'ID Verified',
+            type: 'boolean',
+            description: 'Toggle when the user\'s ID has been verified',
+            initialValue: false,
+        }),
+        defineField({
             validation: (Rule) => Rule.required(),
             name: "name",
             title: "Name",
