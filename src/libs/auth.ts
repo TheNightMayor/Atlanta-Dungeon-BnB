@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth';
+import type { Session } from 'next-auth';
 import { SanityAdapter } from 'next-auth-sanity';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
@@ -128,7 +129,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    session: async ({ session, token }) => {
+    session: async ({ session, token }: { session: Session; token: any }) => {
       try {
         const userEmail = token.email as string | undefined;
         let userId: string | undefined;
