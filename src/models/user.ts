@@ -11,6 +11,7 @@ export type User = {
         name: string;
         email: string;
         isAdmin: boolean;
+    idVerified?: boolean;
         about: string | null;
         _createdAt: string;
     image: UserImage;
