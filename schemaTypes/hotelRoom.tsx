@@ -2,6 +2,7 @@ import React from "react";
 import { FaBed } from "react-icons/fa";
 import { defineField } from "sanity";
 import IconGridPicker from "../studio/inputs/IconGridPicker";
+import PublicUrlInput from "../studio/inputs/PublicUrlInput";
 import ICONS from "../studio/inputs/iconList";
 import AMENITY_ICON_MAP from "../studio/inputs/amenityIconMap";
 const roomTypes = [
@@ -64,6 +65,14 @@ const hotelRoom = {
         source: "name",
       },
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'publicUrl',
+      title: 'Public URL',
+      type: 'url',
+      description: 'Read-only link to the front-end page for this accommodation',
+      readOnly: true,
+      components: { input: PublicUrlInput },
     }),
     defineField({
       name: "description",
@@ -198,6 +207,13 @@ const hotelRoom = {
       title: "Is Featured",
       type: "boolean",
       initialValue: false,
+    }),
+    defineField({
+      name: "visibleToUsers",
+      title: "Visible to users",
+      type: "boolean",
+      description: "Controls whether this accommodation is visible to site users",
+      initialValue: true,
     }),
     defineField({
       name: "overnight",
