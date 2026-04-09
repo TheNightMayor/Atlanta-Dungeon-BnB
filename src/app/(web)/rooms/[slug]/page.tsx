@@ -47,7 +47,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
         return undefined;
     };
 
-    const handleBookNowClick = async () => {
+    const handleBookNowClick = async (discountCode?: string | null) => {
         if (!checkinDate || (room.overnight && !checkoutDate))
             return toast.error("Please provide checkin" + (room.overnight ? " / checkout dates" : " date"));
 
@@ -71,6 +71,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                 price: room.price,
                 flatFee: room.flatFee ?? 0,
                 discount: room.discount,
+                discountCode: discountCode ?? null,
             });
 
             if (stripe) {
@@ -174,7 +175,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                             </div>
                         </div>
                     </div>
-                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark sticky top-40 my-2 h-fit overflow-visible">
+                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:sticky top-40 my-2 h-fit overflow-visible">
                         <BookRoomCta
                             discount={room.discount}
                             flatFee={room.flatFee ?? 0}
@@ -196,13 +197,13 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                         />
                     </div>
 
-                    <div className="col-span-4 md:col-start-1 md:col-span-12">
+                    <div className="col-span-12 md:col-start-1 md:col-span-12">
                         <HotelPhotoGallery photos={room.images} />
                     </div>
 
                 </div>
                 
-                <div className="border-2 border-tertiary-dark rounded-lg p-6 w-1/2 my-2">
+                <div className="border-2 border-tertiary-dark rounded-lg p-6 md:w-1/2 my-2">
                     <div className="items-center mb-4">
                         <p className="md:text-lg font-semibold">
                             Customer Reviews

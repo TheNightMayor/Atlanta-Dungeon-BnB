@@ -58,4 +58,5 @@ export type CreateBookingDto = {
   children: number;
   totalPrice: number;
   discount: number;
+  discountCode?: string | null;
 };

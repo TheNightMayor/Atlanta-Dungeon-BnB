@@ -95,6 +95,18 @@ const hotelRoom = {
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
+      name: 'discountCodes',
+      title: 'Discount Codes',
+      type: 'array',
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'discountCode' }],
+        },
+      ],
+      description: 'Reference discount codes that apply to this accommodation',
+    }),
+    defineField({
       name: "flatFee",
       title: "Flat Fee",
       type: "number",

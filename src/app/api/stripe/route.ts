@@ -4,6 +4,7 @@ import { authOptions } from '@/libs/auth';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { getRoom } from '@/libs/apis';
+import sanityClient from '@/libs/sanity';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',
@@ -19,6 +20,7 @@ type RequestData = {
   price: number;
   flatFee: number;
   discount: number;
+  discountCode?: string | null;
 };
 
 export async function POST(req: Request) {
@@ -32,6 +34,7 @@ export async function POST(req: Request) {
     price,
     flatFee,
     discount,
+    discountCode,
   }: RequestData = await req.json();
 
   if (
@@ -41,10 +44,9 @@ export async function POST(req: Request) {
     !hotelRoomSlug ||
     numberOfDays == null ||
     price == null ||
-    flatFee == null ||
-    discount == null
+    flatFee == null
   ) {
-    return new NextResponse('Please all fields are required', { status: 400 });
+    return new NextResponse('Please all required fields are provided', { status: 400 });
   }
 
   const originHeader = req.headers.get('origin');
@@ -64,7 +66,51 @@ export async function POST(req: Request) {
 
   try {
     const room = await getRoom(hotelRoomSlug);
-    const discountPrice = price - (price / 100) * discount;
+
+    // handle optional discount code validation and calculation
+    let appliedDiscountPerNight = 0; // dollars
+    let discountId: string | null = null;
+    if (discountCode && typeof discountCode === 'string' && discountCode.trim().length > 0) {
+      const code = discountCode.trim().toUpperCase();
+      const discountQuery = `*[_type == 'discountCode' && code == $code][0]{_id, code, type, value, active, startDate, endDate, maxUses, onePerUser, appliesTo[]->{_id}}`;
+      const discountDoc: any = await sanityClient.fetch(discountQuery, { code });
+
+      if (!discountDoc) return new NextResponse('Invalid discount code', { status: 400 });
+      if (!discountDoc.active) return new NextResponse('Discount code is not active', { status: 400 });
+
+      const today = new Date();
+      if (discountDoc.startDate && new Date(discountDoc.startDate) > today) return new NextResponse('Discount code not yet active', { status: 400 });
+      if (discountDoc.endDate && new Date(discountDoc.endDate) < today) return new NextResponse('Discount code expired', { status: 400 });
+
+      if (Array.isArray(discountDoc.appliesTo) && discountDoc.appliesTo.length > 0) {
+        const appliesToIds = discountDoc.appliesTo.map((d: any) => d._id);
+        if (!appliesToIds.includes(room._id)) return new NextResponse('Discount code does not apply to this accommodation', { status: 400 });
+      }
+
+      if (discountDoc.maxUses != null) {
+        const usageCountQuery = `count(*[_type == 'booking' && discountCode._ref == $discountId])`;
+        const usageCount = await sanityClient.fetch(usageCountQuery, { discountId: discountDoc._id });
+        if (usageCount >= discountDoc.maxUses) return new NextResponse('Discount code usage limit reached', { status: 400 });
+      }
+
+      if (discountDoc.onePerUser) {
+        const userBookingsWithCodeQuery = `count(*[_type == 'booking' && discountCode._ref == $discountId && user._ref == $userId])`;
+        const userCount = await sanityClient.fetch(userBookingsWithCodeQuery, { discountId: discountDoc._id, userId });
+        if (userCount > 0) return new NextResponse('You have already used this discount code', { status: 400 });
+      }
+
+      // compute per-night discount
+      if (discountDoc.type === 'percentage') {
+        appliedDiscountPerNight = (price * (Number(discountDoc.value) || 0)) / 100;
+      } else {
+        appliedDiscountPerNight = Number(discountDoc.value) || 0;
+      }
+
+      discountId = discountDoc._id;
+    }
+
+    // fallback to numeric discount (percentage) if no code applied
+    const discountPrice = discountId ? Math.max(0, price - appliedDiscountPerNight) : price - (price / 100) * discount;
     const subtotal = discountPrice * numberOfDays;
     const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
     const calculatedTotal = subtotal + extraGuestCharge + flatFee;
@@ -99,6 +145,8 @@ export async function POST(req: Request) {
         numberOfDays,
         user: userId,
         discount,
+        discountCode: discountId ?? null,
+        discountPerNight: discountId ? String(appliedDiscountPerNight) : '0',
         totalPrice: calculatedTotal,
       },
     });

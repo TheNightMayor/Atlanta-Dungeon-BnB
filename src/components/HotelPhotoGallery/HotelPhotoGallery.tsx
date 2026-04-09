@@ -22,7 +22,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
     };
 
     return (
-        <div className="w-2/3 py-8">
+        <div className="md:w-2/3 py-8">
             <div className="container px-3">
                 <div className="relative w-full h-[400px] rounded-2xl overflow-hidden bg-black flex items-center justify-center group cursor-pointer" onClick={() => setShowModal(true)}>
                     <Image

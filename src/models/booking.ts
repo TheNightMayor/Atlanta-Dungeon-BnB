@@ -13,4 +13,5 @@ export type Booking = {
     children: number;
     totalPrice: number;
     discount: number;
+    discountCode?: string | null;
   };

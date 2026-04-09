@@ -52,7 +52,7 @@ type Props = {
     overnight?: boolean;
     instantBook: boolean;
     roomName?: string;
-    handleBookNowClick: () => void
+    handleBookNowClick: (discountCode?: string | null) => void
 }
 
 const BookRoomCta: FC<Props> = props => {
@@ -74,6 +74,10 @@ const BookRoomCta: FC<Props> = props => {
         roomName,
         handleBookNowClick
     } = props;
+        const [discountCodeInput, setDiscountCodeInput] = useState<string>('');
+    const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
+    const [applyError, setApplyError] = useState<string | null>(null);
+    const [isApplying, setIsApplying] = useState(false);
     // default to true (overnight allowed) when not provided
     const overnight = (props.overnight === undefined) ? true : props.overnight;
 
@@ -106,7 +110,8 @@ const BookRoomCta: FC<Props> = props => {
         };
     }, [isLiabilityModalOpen]);
 
-    const discountPrice = price - (price / 100) * discount;
+    const appliedPerNight = appliedDiscount ? Number(appliedDiscount.perNight || 0) : null;
+    const discountPrice = appliedPerNight != null ? Math.max(0, price - appliedPerNight) : price - (price / 100) * discount;
 
     const formatDisplayDate = (d: Date | null) => {
         if (!d) return 'desired dates';
@@ -130,19 +135,9 @@ const BookRoomCta: FC<Props> = props => {
     return (
         <div className="px-7 py-6">
             <h3>
-                <span className={`${discount ? "text-gray-400" : ""} font-bold text-xl`}
-                >
+                <span className="text-gray-400 font-bold text-xl">
                     $ {price}/night {flatFee > 0 ? `+ $${flatFee} flat fee` : ''}
                 </span>
-                {discount ? (
-                    <span className="font-bold text-xl">
-                        {' '}
-                        | discount {discount}%. Now{' '}
-                        <span className="text-tertiary-dark">$ {discountPrice}</span>
-                    </span>
-                ) : (
-                    ''
-                )}
             </h3>
 
             <div className="w-full border-b-2 border-b-primary my-2" />
@@ -322,13 +317,13 @@ const BookRoomCta: FC<Props> = props => {
                                         );
                                     })()
                                 ) : (
-                                    <button
-                                        onClick={() => {
-                                            setIsLiabilityModalOpen(false);
-                                            if (hasReadStatement && isOver18) {
-                                                handleBookNowClick();
-                                            }
-                                        }}
+                                            <button
+                                                onClick={() => {
+                                                    setIsLiabilityModalOpen(false);
+                                                    if (hasReadStatement && isOver18) {
+                                                        handleBookNowClick(appliedDiscount?.code || discountCodeInput || null);
+                                                    }
+                                                }}
                                         disabled={!hasReadStatement || !isOver18}
                                         className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
                                     >
@@ -340,6 +335,77 @@ const BookRoomCta: FC<Props> = props => {
                     </div>
                 </div>
             )}
+            <div className="mt-4 flex flex-col">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-400">Discount code</label>
+                <div className="flex gap-2 mt-1 flex-wrap">
+                    <input
+                        value={discountCodeInput}
+                        onChange={e => {
+                            setDiscountCodeInput(e.target.value);
+                            setApplyError(null);
+                        }}
+                        className="w-1/2 grow border border-gray-300 rounded-lg p-2.5 text-gray-900 placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Enter code"
+                    />
+                    <button
+                        onClick={async () => {
+                            setApplyError(null);
+                            if (!discountCodeInput || discountCodeInput.trim().length === 0) {
+                                setApplyError('Enter a code');
+                                return;
+                            }
+                            setIsApplying(true);
+                            try {
+                                const res = await fetch('/api/discounts/validate', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ code: discountCodeInput, price }),
+                                });
+                                const data = await res.json();
+                                if (!res.ok) {
+                                    setApplyError(data || 'Invalid code');
+                                    setAppliedDiscount(null);
+                                } else {
+                                    setAppliedDiscount(data);
+                                    setApplyError(null);
+                                }
+                            } catch (err) {
+                                setApplyError('Validation failed');
+                                setAppliedDiscount(null);
+                            } finally {
+                                setIsApplying(false);
+                            }
+                        }}
+                        className="grow rounded-lg bg-primary px-3 py-2 text-white disabled:opacity-60"
+                        disabled={isApplying}
+                    >
+                        {isApplying ? 'Applying...' : 'Apply'}
+                    </button>
+                </div>
+
+                {applyError && <p className="text-sm text-red-600 mt-2">{applyError}</p>}
+
+                {appliedDiscount && (
+                    <div className="mt-2 flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                        <div className="text-sm">
+                            <span className="font-semibold">Applied:</span> {appliedDiscount.code}
+                            {appliedDiscount.perNight != null && (
+                                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">- ${Number(appliedDiscount.perNight).toFixed(2)}/night</span>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => {
+                                setAppliedDiscount(null);
+                                setDiscountCodeInput('');
+                                setApplyError(null);
+                            }}
+                            className="text-sm text-red-600 hover:underline"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

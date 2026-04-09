@@ -47,6 +47,7 @@ export const createBooking = async ({
   numberOfDays,
   totalPrice,
   user,
+  discountCode,
 }: CreateBookingDto) => {
   const mutation = {
     mutations: [
@@ -62,6 +63,7 @@ export const createBooking = async ({
           children,
           totalPrice,
           discount,
+          ...(discountCode ? { discountCode: { _type: 'reference', _ref: discountCode } } : {}),
         },
       },
     ],

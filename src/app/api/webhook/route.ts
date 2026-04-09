@@ -48,6 +48,8 @@ export async function POST(req: Request) {
           discount,
           // @ts-expect-error metadata
           totalPrice,
+          // @ts-expect-error metadata
+          discountCode,
         },
       } = session;
 
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
         numberOfDays: Number(numberOfDays),
         discount: Number(discount),
         totalPrice: Number(totalPrice),
+        discountCode: discountCode ?? null,
         user,
       });
       
