@@ -86,6 +86,7 @@ const BookRoomCta: FC<Props> = props => {
     const [hasReadStatement, setHasReadStatement] = useState(false);
     const [isOver18, setIsOver18] = useState(false);
     const [isLiabilityLoading, setIsLiabilityLoading] = useState(true);
+    const [blockedDates, setBlockedDates] = useState<Date[]>([]);
 
     useEffect(() => {
         const fetchLiability = async () => {
@@ -100,6 +101,31 @@ const BookRoomCta: FC<Props> = props => {
         };
 
         fetchLiability();
+    }, []);
+
+    useEffect(() => {
+        async function fetchBlocked() {
+            try {
+                const res = await fetch('/api/blocked-dates');
+                if (!res.ok) return;
+                const items: { date: string }[] = await res.json();
+                const dates = (items || []).map(i => {
+                    try {
+                        const dstr = (i.date || '').split('T')[0];
+                        const [y, m, d] = dstr.split('-').map(Number);
+                        if (!y || !m || !d) return null;
+                        return new Date(y, m - 1, d);
+                    } catch {
+                        const dt = new Date(i.date);
+                        return isNaN(dt.getTime()) ? null : dt;
+                    }
+                }).filter((d: Date | null): d is Date => !!d);
+                setBlockedDates(dates);
+            } catch (err) {
+                console.error('Failed to load blocked dates', err);
+            }
+        }
+        fetchBlocked();
     }, []);
 
     useEffect(() => {
@@ -154,6 +180,7 @@ const BookRoomCta: FC<Props> = props => {
                         onChange={date => setCheckinDate(date)}
                         dateFormat={"MM/dd/yyyy"}
                         minDate={new Date()}
+                        excludeDates={blockedDates}
                         id="check-in-date"
                         className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
                 </div>
@@ -170,6 +197,7 @@ const BookRoomCta: FC<Props> = props => {
                             dateFormat={"MM/dd/yyyy"}
                             disabled={!checkinDate}
                             minDate={calcMinCheckoutDate()}
+                            excludeDates={blockedDates}
                             id="check-out-date"
                             className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
                     </div>

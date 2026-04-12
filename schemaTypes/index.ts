@@ -7,5 +7,6 @@ import message from "./message";
 import verificationToken from "./verificationToken";
 import infoPage from "./infoPage";
 import discountCode from "./discountCode";
+import blockedDate from "./blockedDate";
 
-export const schemaTypes = [user, account, booking, hotelRoom, review, message, verificationToken, infoPage, discountCode];
+export const schemaTypes = [user, account, booking, hotelRoom, review, message, verificationToken, infoPage, discountCode, blockedDate];
