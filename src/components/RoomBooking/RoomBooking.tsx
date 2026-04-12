@@ -20,7 +20,7 @@ const RoomBooking: FC<{ roomId: string }> = ({ roomId }) => {
     if (typeof roomBookings === 'undefined' && !isLoading)
       throw new Error('Cannot fetch data');
   
-    console.log(roomBookings);
+    // roomBookings loaded; removed debug logging
 
     return (
       <>

@@ -5,22 +5,38 @@ export const getFeaturedRoomQuery = groq`*[_type == "hotelRoom" && isFeatured ==
     description,
     discount,
     flatFee,
-    images,
+        images[]{
+            "url": coalesce(image.asset->url, url),
+            image,
+            url
+        },
     isFeatured,
     overnight,
     name,
     price,
     slug,
-    coverImage
+        coverImage {
+            "url": coalesce(image.asset->url, url),
+            image,
+            url
+        }
 }`;
 
 export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == true] {
     _id, 
-    coverImage,
-    description,
-    discount,
-    flatFee,
-    images,
+        coverImage {
+            "url": coalesce(image.asset->url, url),
+            image,
+            url
+        },
+        description,
+        discount,
+        flatFee,
+        images[]{
+            "url": coalesce(image.asset->url, url),
+            image,
+            url
+        },
     instantBook,
     overnight,
     isFeatured,
@@ -32,11 +48,19 @@ export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == tr
 
 export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug][0] {
     _id,
-    coverImage,
-    description,
-    discount,
-    flatFee,
-    images,
+        coverImage {
+            "url": coalesce(image.asset->url, url),
+            image,
+            url
+        },
+        description,
+        discount,
+        flatFee,
+        images[]{
+            "url": coalesce(image.asset->url, url),
+            image,
+            url
+        },
     instantBook,
     overnight,
     isFeatured,

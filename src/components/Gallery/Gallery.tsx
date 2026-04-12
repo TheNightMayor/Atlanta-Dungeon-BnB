@@ -89,7 +89,7 @@ const Gallery = () => {
             onClick={() => setModalIndex(allImages.findIndex(i => i.key === img.key))}
           >
             <Image
-              alt='gallery'
+              alt={`Hotel gallery image ${img.key}`}
               className='img hover:opacity-90 transition-opacity'
               src={img.url || placeholderImage}
               width={200}
@@ -115,10 +115,11 @@ const Gallery = () => {
           </button>
           <div className='relative w-[90vw] max-w-4xl h-[80vh]'>
             <Image
-              alt='gallery large'
+              alt={`Hotel gallery large image ${allImages[modalIndex]?.key}`}
               className='object-contain'
               src={allImages[modalIndex]?.url || placeholderImage}
               fill
+              sizes='90vw'
             />
           </div>
           <button

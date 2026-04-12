@@ -15,7 +15,7 @@ export async function GET(
       statusText: "Succesful",
     });
   } catch (error) {
-    console.log("Getting Booking Failed", error);
+    console.error("Getting Booking Failed", error);
     return new NextResponse("Unable to fetch", { status: 400 });
   }
 }

@@ -157,7 +157,7 @@ export async function POST(req: Request) {
     });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.log('Payment falied', error);
+    console.error('Payment failed', error);
     return new NextResponse(error, { status: 500 });
   }
 }

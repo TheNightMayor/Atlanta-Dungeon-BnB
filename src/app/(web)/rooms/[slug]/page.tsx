@@ -5,7 +5,7 @@ import { MdOutlineCleaningServices } from "react-icons/md";
 import { LiaFireExtinguisherSolid } from "react-icons/lia";
 import { AiOutlineMedicineBox } from "react-icons/ai";
 import { GiSmokeBomb } from "react-icons/gi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { use } from "react";
 
 import { getRoom } from "@/libs/apis";
@@ -30,7 +30,9 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
 
     const fetchRoom = async () => getRoom(slug);
 
-    const { data: room, error, isLoading } = useSWR("/api/room", fetchRoom);
+        const { data: room, error, isLoading } = useSWR("/api/room", fetchRoom);
+
+        // (debug logging removed)
 
     if (error) throw new Error('Cannot Fetch Data');
     if (typeof room === 'undefined' && !isLoading)
@@ -85,7 +87,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                 }
             }
         } catch (error) {
-            console.log("Error: ", error);
+            console.error(error);
             toast.error("an error occurred");
         }
     };

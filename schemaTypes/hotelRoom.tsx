@@ -123,7 +123,7 @@ const hotelRoom = {
           type: "object",
           fields: [
             { name: "image", type: "image", title: "Image" },
-            { name: "url", type: "url", title: "URL" },
+            { name: "url", type: "url", title: "URL", hidden: true },
           ],
           preview: {select: {media: 'image', title: 'image.asset.originalFilename'}}
         },
@@ -136,7 +136,7 @@ const hotelRoom = {
       title: "Cover Image",
       type: "object",
       fields: [
-        { name: "url", type: "url", title: "URL" },
+        { name: "url", type: "url", title: "URL", hidden: true },
         { name: "image", type: "image", title: "Image" },
       ],
       validation: (Rule) => Rule.required().error("Cover Image is required"),

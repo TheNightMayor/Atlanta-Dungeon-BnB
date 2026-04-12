@@ -51,18 +51,17 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
 
     setIsSubmittingReview(true)
 
-    try {
-      const { data } = await axios.post('/api/users', {
-        reviewText: ratingText,
-        ratingValue,
-        roomId,
-      });
-      console.log(data);
-      toast.success('Review Submitted');
-    } catch (error) {
-      console.log(error);
-      toast.error('Review Failed');
-    } finally {
+      try {
+        await axios.post('/api/users', {
+          reviewText: ratingText,
+          ratingValue,
+          roomId,
+        });
+        toast.success('Review Submitted');
+      } catch (error) {
+        console.error(error);
+        toast.error('Review Failed');
+      } finally {
       setRatingText('');
       setRatingValue(null);
       setRoomId(null);

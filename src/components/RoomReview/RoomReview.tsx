@@ -15,13 +15,11 @@ const RoomReview: FC<{ roomId: string }> = ({ roomId }) => {
     data: roomReviews,
     error,
     isLoading,
-  } = useSWR('/api/room-reviews', fetchRoomReviews);
+  } = useSWR(`/api/room-reviews/${roomId}`, fetchRoomReviews);
 
   if (error) throw new Error('Cannot fetch data');
   if (typeof roomReviews === 'undefined' && !isLoading)
     throw new Error('Cannot fetch data');
-
-  console.log(roomReviews);
   return (
     <>
       {roomReviews &&

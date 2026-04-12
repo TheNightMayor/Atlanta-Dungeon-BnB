@@ -41,6 +41,8 @@ const FeaturedRoom: FC<Props> = props => {
             <Image
               src={featuredRoom.coverImage.url}
               alt={featuredRoom.name}
+              loading='eager'
+              priority
               width={200}
               height={300}
               className='img scale-animation'
@@ -48,10 +50,10 @@ const FeaturedRoom: FC<Props> = props => {
           </div>
           {/* <div className='grid grid-cols-2 gap-6 h-48'> */}
           {featuredRoom.images.toSpliced(2, (featuredRoom.images.length)).map((image, index) => (
-            <div key={image._key} className='rounded-2xl overflow-hidden mb-4 h-72 cursor-pointer' onClick={() => setSelectedImageIndex(index + 1)}>
+            <div key={image._key ?? `${featuredRoom._id}-img-${index}`} className='rounded-2xl overflow-hidden mb-4 h-72 cursor-pointer' onClick={() => setSelectedImageIndex(index + 1)}>
               <Image
                 src={image.url}
-                alt={image._key}
+                alt={`${featuredRoom.name} image ${index + 1}`}
                 width={200}
                 height={300}
                 className='img scale-animation'
@@ -96,8 +98,9 @@ const FeaturedRoom: FC<Props> = props => {
           <div className='relative w-[90vw] h-[90vh]'>
             <Image
               src={allImages[selectedImageIndex].url}
-              alt='Featured room image'
+              alt={`${featuredRoom.name} image ${selectedImageIndex + 1}`}
               fill
+              sizes='90vw'
               className='object-contain'
             />
             <button

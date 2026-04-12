@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       });
 
     default:
-      console.log(`unhandled event type ${event.type}`);
+      console.warn(`unhandled event type ${event.type}`);
   }
   return NextResponse.json("Event Received", {
     status: 200,

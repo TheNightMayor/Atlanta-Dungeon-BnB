@@ -15,7 +15,7 @@ export async function GET(
       statusText: "Succesful",
     });
   } catch (error) {
-    console.log("Getting Review Failed", error);
+    console.error("Getting Review Failed", error);
     return new NextResponse("Unable to fetch", { status: 400 });
   }
 }

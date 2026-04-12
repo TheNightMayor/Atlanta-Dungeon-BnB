@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     return NextResponse.json(data, { status: 200, statusText: 'Successful' });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.log('Error Updating', error);
+    console.error('Error Updating', error);
     return new NextResponse('Unable to create review', { status: 400 });
   }
 }

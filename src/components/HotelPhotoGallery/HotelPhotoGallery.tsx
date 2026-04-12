@@ -4,12 +4,20 @@ import { FC, useState } from "react"
 import Image from "next/image";
 
 import { Image as ImageType } from "@/models/room"
+import getImageUrl from '@/libs/imageUrl';
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { MdCancel } from "react-icons/md";
 
 const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [showModal, setShowModal] = useState(false);
+
+    const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600"%3E%3Crect fill="%23cccccc" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="24" fill="%23666" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+
+    // Filter photos to those with a usable url to avoid Next/Image errors
+    const usablePhotos = Array.isArray(photos) ? photos.map(p => ({ ...p, url: getImageUrl(p) || '' })) : [];
+    const displayedPhotos = usablePhotos.filter(p => !!p.url);
+    const effectivePhotos = displayedPhotos.length > 0 ? displayedPhotos : usablePhotos;
 
     const handlePrevious = () => {
         setCurrentPhotoIndex(prevIndex => prevIndex === 0 ? photos.length - 1 : prevIndex - 1
@@ -24,13 +32,16 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
     return (
         <div className="md:w-2/3 py-8">
             <div className="container px-3">
-                <div className="relative w-full h-[400px] rounded-2xl overflow-hidden bg-black flex items-center justify-center group cursor-pointer" onClick={() => setShowModal(true)}>
-                    <Image
-                        src={photos[currentPhotoIndex].url}
-                        alt={`Room Photo ${currentPhotoIndex + 1}`}
-                        fill
-                        className="object-contain"
-                    />
+                        <div className="relative w-full h-[400px] rounded-2xl overflow-hidden bg-black flex items-center justify-center group cursor-pointer" onClick={() => setShowModal(true)}>
+                            <Image
+                                src={effectivePhotos[currentPhotoIndex]?.url || placeholderImage}
+                                alt={`Room Photo ${currentPhotoIndex + 1}`}
+                                fill
+                                loading='eager'
+                                priority
+                                sizes='(max-width: 768px) 100vw, 800px'
+                                className="object-contain"
+                            />
 
                     <button
                         className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
@@ -53,12 +64,12 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                     </button>
 
                     <span className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded text-sm">
-                        {currentPhotoIndex + 1} / {photos.length}
+                        {currentPhotoIndex + 1} / {effectivePhotos.length}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-5 gap-3 mt-4">
-                    {photos.map((photo, index) => (
+                    {effectivePhotos.map((photo, index) => (
                         <button
                             key={index}
                             onClick={() => {
@@ -72,9 +83,10 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                             }`}
                         >
                             <Image
-                                src={photo.url}
-                                alt={`Thumbnail ${index + 1}`}
+                                src={photo.url || placeholderImage}
+                                alt={`Room ${index + 1} thumbnail`}
                                 fill
+                                sizes='20vw'
                                 className="object-cover"
                             />
                         </button>
@@ -88,9 +100,10 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                     >
                         <div className="relative w-[90vw] h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                             <Image
-                                src={photos[currentPhotoIndex].url}
+                                src={effectivePhotos[currentPhotoIndex]?.url || placeholderImage}
                                 alt={`Room Photo ${currentPhotoIndex + 1}`}
                                 fill
+                                sizes='90vw'
                                 className="object-contain"
                             />
 
