@@ -5,6 +5,7 @@ type IcsEvent = {
   id: string;
   summary?: string;
   description?: string;
+  location?: string | null;
   start?: string | null;
   end?: string | null;
   allDay?: boolean;
