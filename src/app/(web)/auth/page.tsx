@@ -17,6 +17,8 @@ const Auth = () => {
     const [formData, setFormData] = useState(defaultFormData);
     const [isSigningIn, setIsSigningIn] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showForgot, setShowForgot] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     const inputStyles =
         "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full pr-10 p-2.5 focus:outline-none"
@@ -93,6 +95,60 @@ const Auth = () => {
         await handleSubmit(event);
     };
 
+    const handleForgotSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        try {
+            const resp = await fetch('/api/auth/forgot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.email }),
+            });
+
+            const data = await resp.json().catch(() => ({}));
+            if (resp.ok) {
+                toast.success('If an account exists, you will receive reset instructions');
+                // keep modal open and set cooldown from server (if provided)
+                setResendCooldown(Number(data?.cooldown) || 180);
+            } else {
+                toast.error(data.error || 'Something went wrong');
+            }
+        } catch (err) {
+            toast.error('Something went wrong');
+        }
+    };
+
+    const handleResend = async () => {
+        try {
+            const resp = await fetch('/api/auth/forgot/resend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.email }),
+            });
+
+            const data = await resp.json().catch(() => ({}));
+            if (resp.ok) {
+                toast.success('If an account exists, reset instructions have been resent');
+                setResendCooldown(Number(data?.cooldown) || 180);
+            } else {
+                toast.error(data.error || 'Something went wrong');
+            }
+        } catch (err) {
+            toast.error('Something went wrong');
+        }
+    };
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const t = setInterval(() => setResendCooldown(s => {
+            if (s <= 1) {
+                clearInterval(t);
+                return 0;
+            }
+            return s - 1;
+        }), 1000);
+        return () => clearInterval(t);
+    }, [resendCooldown]);
+
     return (
             <section className="container mx-auto pt-2 md:pt-2">
                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8 w-80 md:w-[70%] mx-auto">
@@ -160,9 +216,43 @@ const Auth = () => {
                     </button>
                 </form>
 
-                <button onClick={() => setIsSigningIn(s => !s)} className="rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-tertiary-dark hover:text-white dark:hover:bg-tertiary-dark dark:hover:text-white font-medium transition-all duration-300">
-                    {isSigningIn ? 'Create a new Account' : 'Already have an account? Sign in'}
-                </button>
+                <div className="flex flex-col space-y-2">
+                    <button onClick={() => setIsSigningIn(s => !s)} className="rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-tertiary-dark hover:text-white dark:hover:bg-tertiary-dark dark:hover:text-white font-medium transition-all duration-300">
+                        {isSigningIn ? 'Create a new Account' : 'Already have an account? Sign in'}
+                    </button>
+
+                    <button onClick={() => setShowForgot(true)} className="text-sm underline text-tertiary-dark dark:text-white self-start">
+                        Forgot username or password?
+                    </button>
+                </div>
+
+                {showForgot && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+                        <div className="bg-white dark:bg-black p-6 rounded-lg w-80">
+                            <h2 className="text-lg font-semibold mb-3">Forgot username or password</h2>
+                            <form onSubmit={handleForgotSubmit} className="space-y-3">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="name@company.com"
+                                    required
+                                    className={inputStyles}
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                />
+                                <div className="flex space-x-2">
+                                    <button type="submit" className="flex-1 text-white bg-tertiary-dark rounded-lg px-4 py-2" disabled={resendCooldown > 0}>{resendCooldown > 0 ? `Sent — wait ${resendCooldown}s` : 'Send reset'}</button>
+                                    <button type="button" onClick={() => setShowForgot(false)} className="flex-1 border-2 border-tertiary-dark rounded-lg px-4 py-2">Cancel</button>
+                                </div>
+                                <div className="mt-2">
+                                    <button type="button" onClick={handleResend} disabled={resendCooldown > 0} className="w-full rounded-lg border-2 border-tertiary-dark px-4 py-2 bg-white dark:bg-black">
+                                        {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Resend email'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
     )

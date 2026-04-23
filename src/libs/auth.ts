@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth';
 import type { Session } from 'next-auth';
-import { SanityAdapter } from 'next-auth-sanity';
+// Sanity adapter removed; using direct sanity client where needed
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  // adapter: SanityAdapter({ client: sanityClient }),
+  // If you want an adapter later, re-add and configure here
   debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
@@ -97,9 +97,13 @@ export const authOptions: NextAuthOptions = {
                   }
                 })();
 
+                const headersAny = resp.headers as any;
+                const rawContentType = headersAny && (resp.headers['content-type'] ?? (typeof headersAny.get === 'function' ? headersAny.get('content-type') : undefined)) as unknown;
+                const contentType = typeof rawContentType === 'string' ? rawContentType : String(rawContentType ?? '') || 'image/jpeg';
+
                 const asset = await sanityClient.assets.upload('image', buffer, {
                   filename,
-                  contentType: resp.headers['content-type'] || 'image/jpeg',
+                  contentType: contentType,
                 });
 
                 if (asset && asset._id) {
