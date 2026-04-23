@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc"
+import { FiEye, FiEyeOff } from "react-icons/fi"
 import { signIn, useSession } from 'next-auth/react'
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -15,9 +16,10 @@ const defaultFormData = {
 const Auth = () => {
     const [formData, setFormData] = useState(defaultFormData);
     const [isSigningIn, setIsSigningIn] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const inputStyles =
-        "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
+        "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full pr-10 p-2.5 focus:outline-none"
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -130,16 +132,27 @@ const Auth = () => {
                         className={inputStyles}
                         onChange={handleInputChange}
                     />
-                    <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        placeholder="password"
-                        required
-                        minLength={6}
-                        className={inputStyles}
-                        onChange={handleInputChange}
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            value={formData.password}
+                            placeholder="password"
+                            required
+                            minLength={6}
+                            className={inputStyles}
+                            onChange={handleInputChange}
+                            aria-label="Password"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(s => !s)}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-2xl text-tertiary-dark dark:text-white"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? <FiEyeOff /> : <FiEye />}
+                        </button>
+                    </div>
                     <button
                         type="submit"
                         className="w-full text-white bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center hover:bg-white hover:text-black border-2 border-tertiary-dark transition-all duration-300">
