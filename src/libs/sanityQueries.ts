@@ -1,27 +1,5 @@
 import { groq } from "next-sanity";
 
-export const getFeaturedRoomQuery = groq`*[_type == "hotelRoom" && isFeatured == true][0] {
-    _id,
-    description,
-    discount,
-    flatFee,
-        images[]{
-            "url": coalesce(image.asset->url, url),
-            image,
-            url
-        },
-    isFeatured,
-    overnight,
-    name,
-    price,
-    slug,
-        coverImage {
-            "url": coalesce(image.asset->url, url),
-            image,
-            url
-        }
-}`;
-
 export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == true] {
     _id, 
         coverImage {
@@ -142,6 +120,12 @@ export const getInfoPageQuery = groq`*[_type == "infoPage"][0] {
 }`;
 
 export const getInfoPageByInternalNameQuery = groq`*[_type == "infoPage" && internalName == $internalName][0] {
+    internalName,
+    title,
+    content
+}`;
+
+export const getInfoPageByTitleQuery = groq`*[_type == "infoPage" && title == $title][0] {
     internalName,
     title,
     content

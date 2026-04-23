@@ -8,16 +8,6 @@ import { Booking } from '@/models/booking';
 import { UpdateReviewDto } from '@/models/review';
 import { CreateMessageDto } from '@/models/message';
 
-export async function getFeaturedRoom() {
-  const result = await sanityClient.fetch<Room>(
-    queries.getFeaturedRoomQuery,
-    {},
-    { cache: 'no-cache' }
-  );
-
-  return result;
-}
-
 export async function getRooms() {
   const result = await sanityClient.fetch<Room[]>(
     queries.getRoomsQuery,
@@ -137,6 +127,16 @@ export async function getInfoPageByInternalName(internalName: string) {
   const result = await sanityClient.fetch(
     queries.getInfoPageByInternalNameQuery,
     { internalName },
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
+export async function getInfoPageByTitle(title: string) {
+  const result = await sanityClient.fetch(
+    queries.getInfoPageByTitleQuery,
+    { title },
     { cache: 'no-cache' }
   );
 
