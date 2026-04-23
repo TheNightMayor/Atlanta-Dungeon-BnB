@@ -61,9 +61,9 @@ const Header = () => {
   })();
 
   return (
-    <header className='font-orbitron sticky top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-50% via-white via-90% dark:via-black to-100% pt-2 pb-8 md:px-8 md:py-8 mx-auto text-xl flex flex-nowrap items-center justify-between z-20 w-full'>
-      <div className='container'>
-        <div className='flex items-center justify-between w-full px-4 md:w-auto'>
+    <header className='font-orbitron sticky top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-50% via-white via-90% dark:via-black to-100% pt-2 pb-8 md:px-8 md:pb-10 md:pt-4 mx-auto text-xl flex flex-nowrap items-center justify-between z-20 w-full '>
+      <div className='w-full'>
+        <div className='flex items-center justify-between px-4 md:w-auto'>
           <Link href='/' className='font-orbitron md:text-2xl text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-110'>
             Atlanta Bed and Bondage
           </Link>
