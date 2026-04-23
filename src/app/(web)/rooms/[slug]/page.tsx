@@ -15,7 +15,7 @@ import BookRoomCta from "@/components/BookRoomCta/BookRoomCta";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { getStripe } from "@/libs/stripe";
-import RoomReview from "@/components/RoomReview/RoomReview";
+// Room reviews removed from individual room pages; use combined reviews on home page
 import { PortableText } from "next-sanity";
 
 // import RoomBooking from "@/components/RoomBooking/RoomBooking";
@@ -205,16 +205,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
 
                 </div>
                 
-                <div className="border-2 border-tertiary-dark rounded-lg p-6 md:w-1/2 my-2">
-                    <div className="items-center mb-4">
-                        <p className="md:text-lg font-semibold">
-                            Customer Reviews
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <RoomReview roomId={room._id} />
-                    </div>
-                </div>
+                {/* Per-room reviews removed; combined reviews shown on home page */}
             </div>
 
         </div>

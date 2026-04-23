@@ -236,6 +236,24 @@ export async function getRoomReviews(roomId: string) {
   return result;
 }
 
+export async function getRandomReviews(limit = 5) {
+  const result = await sanityClient.fetch(
+    queries.getRandomReviewsQuery,
+    {},
+    { cache: 'no-cache' }
+  );
+
+  if (!Array.isArray(result) || result.length === 0) return [];
+  const n = Math.min(limit, result.length);
+  // Fisher-Yates shuffle to pick n random items without modifying original
+  const items = result.slice();
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items.slice(0, n);
+}
+
 export async function getRoomBookings(roomId: string) {
   const result = await sanityClient.fetch<Booking[]>(
     queries.getRoomBookingsQuery,
