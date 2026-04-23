@@ -1,11 +1,11 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import { signIn, useSession } from 'next-auth/react'
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const defaultFormData = {
     email: '',
@@ -19,6 +19,7 @@ const Auth = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showForgot, setShowForgot] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(0);
+    const forgotRef = useRef<HTMLDivElement | null>(null);
 
     const inputStyles =
         "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full pr-10 p-2.5 focus:outline-none"
@@ -30,6 +31,25 @@ const Auth = () => {
 
     const { data: session } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const mode = searchParams?.get('mode');
+        const emailParam = searchParams?.get('email');
+        if (mode === 'signin') setIsSigningIn(true);
+        if (emailParam) setFormData(f => ({ ...f, email: decodeURIComponent(emailParam) }));
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (!showForgot) return;
+        const onDocClick = (e: MouseEvent) => {
+            if (forgotRef.current && !forgotRef.current.contains(e.target as Node)) {
+                setShowForgot(false);
+            }
+        };
+        document.addEventListener('mousedown', onDocClick);
+        return () => document.removeEventListener('mousedown', onDocClick);
+    }, [showForgot]);
 
     useEffect(() => {
         if (session) router.push('/auth/redirect')
@@ -228,7 +248,7 @@ const Auth = () => {
 
                 {showForgot && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-                        <div className="bg-white dark:bg-black p-6 rounded-lg w-80">
+                        <div ref={forgotRef} className="bg-white dark:bg-black p-6 rounded-lg w-80">
                             <h2 className="text-lg font-semibold mb-3">Forgot username or password</h2>
                             <form onSubmit={handleForgotSubmit} className="space-y-3">
                                 <input

@@ -38,7 +38,8 @@ export default function ResetPage() {
       const data = await resp.json().catch(() => ({}));
       if (resp.ok) {
         toast.success('Password reset successful — please sign in');
-        router.push('/auth');
+        const target = `/auth?mode=signin&email=${encodeURIComponent(email)}`;
+        router.push(target);
       } else {
         toast.error(data.error || 'Something went wrong');
       }
