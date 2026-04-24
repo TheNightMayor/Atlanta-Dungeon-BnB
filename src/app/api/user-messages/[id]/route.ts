@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createMessage } from '@/libs/apis';
+import { sendContactNotificationEmail } from '@/libs/email';
 import sanityClient from '@/libs/sanity';
 import { groq } from 'next-sanity';
 
@@ -26,6 +27,13 @@ export async function POST(req: NextRequest, { params }: { params: any }) {
       email,
       userId: user._id,
     });
+
+    try {
+      await sendContactNotificationEmail(name, email, topic, text);
+    } catch (notificationError) {
+      console.error('Failed to send contact notification email', notificationError);
+    }
+
     return NextResponse.json({ success: true, result });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
