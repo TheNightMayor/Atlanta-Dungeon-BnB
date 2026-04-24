@@ -6,11 +6,12 @@ import { LiaFireExtinguisherSolid } from "react-icons/lia";
 import { AiOutlineMedicineBox } from "react-icons/ai";
 import { GiSmokeBomb } from "react-icons/gi";
 import { useState, useEffect } from "react";
-import { use } from "react";
+import { useParams } from 'next/navigation';
 
-import { getRoom } from "@/libs/apis";
+import { getInfoPageByInternalName } from "@/libs/apis";
 import LoadingSpinner from "../../loading";
 import HotelPhotoGallery from "@/components/HotelPhotoGallery/HotelPhotoGallery";
+import { Room } from '@/models/room';
 import BookRoomCta from "@/components/BookRoomCta/BookRoomCta";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -18,27 +19,68 @@ import { getStripe } from "@/libs/stripe";
 // Room reviews removed from individual room pages; use combined reviews on home page
 import { PortableText } from "next-sanity";
 
+const RulesSection = () => {
+    const [rulesInfo, setRulesInfo] = useState<null | { internalName: string; title: string; content: any[] }>(null);
+    const [isOpen, setIsOpen] = useState(true);
+
+    useEffect(() => {
+        const fetchRules = async () => {
+            try {
+                const data = await getInfoPageByInternalName('rules');
+                setRulesInfo(data);
+            } catch (err) {
+                console.error('Failed to load rules info page', err);
+            }
+        };
+        fetchRules();
+    }, []);
+
+    if (!rulesInfo) return null;
+
+    return (
+        <div className="mb-11 border-2 border-tertiary-dark rounded-lg p-4">
+            <button
+                onClick={() => setIsOpen(prev => !prev)}
+                className="flex items-center gap-3 font-orbitron font-bold text-3xl mb-2"
+                aria-expanded={isOpen}
+            >
+                <span>Rules</span>
+                <span className="text-2xl" aria-hidden>{isOpen ? '▼' : '▶'}</span>
+            </button>
+            {isOpen ? (
+                <div>
+                    <PortableText value={rulesInfo.content} />
+                </div>
+            ) : null}
+        </div>
+    );
+};
+
 // import RoomBooking from "@/components/RoomBooking/RoomBooking";
 
-const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
-    const { slug } = use(props.params);
+const RoomDetails = () => {
+    const slug = useParams()?.slug as string | undefined;
 
     const [checkinDate, setCheckinDate] = useState<Date | null>(null);
     const [checkoutDate, setCheckoutDate] = useState<Date | null>(null);
     const [adults, setAdults] = useState(1);
     const [noOfChildren, setNoOfChildren] = useState(0);
 
-    const fetchRoom = async () => getRoom(slug);
+    const fetchRoom = async (url: string) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch room');
+        return res.json() as Promise<Room>;
+    };
 
-        const { data: room, error, isLoading } = useSWR("/api/room", fetchRoom);
+    const { data: room, error, isLoading } = useSWR<Room>(slug ? `/api/room/${slug}` : null, fetchRoom);
 
-        // (debug logging removed)
+    if (!slug || !room) {
+        return <LoadingSpinner />;
+    }
 
-    if (error) throw new Error('Cannot Fetch Data');
-    if (typeof room === 'undefined' && !isLoading)
-        throw new Error('Cannot Fetch Data');
-
-    if (!room) return <LoadingSpinner />
+    if (error) {
+        return <div className="text-center text-red-600">Unable to load room details.</div>;
+    }
 
     const calcMinCheckoutDate = () => {
         if (checkinDate) {
@@ -102,14 +144,14 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
     }
 
     return (
-        <div className="font-orbitron flex flex-col items-center">
+        <div className="flex flex-col items-center">
 
 
             <div className="p-10 container mx-auto mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center">
                 <div className="md:grid md:grid-cols-12 gap-10 px-3">
                     <div className="md:col-span-8 md:w-full">
                         <div>
-                            <h2 className="font-bold text-left text-lg md:text-2xl">
+                            <h2 className=" font-orbitron font-bold text-left text-lg md:text-2xl">
                                 {room.name}
                             </h2>
                             <div className="flex my-11 justify-evenly ">
@@ -126,7 +168,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                 ))}
                             </div>
                             <div className="mb-11">
-                                <h2 className="font-bold text-3xl mb-2">
+                                <h2 className="font-orbitron font-bold text-3xl mb-2">
                                     Description
                                 </h2>
                                 <div>
@@ -134,7 +176,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                 </div>
                             </div>
                             <div className="mb-11">
-                                <h2 className="font-bold text-3xl mb-2">
+                                <h2 className="font-orbitron font-bold text-3xl mb-2">
                                     Offered Amenities
                                 </h2>
                                 <div className="grid grid-cols-2">
@@ -153,7 +195,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                 </div>
                             </div>
                             <div className="mb-11">
-                                <h2 className="font-bold text-3xl mb-2">
+                                <h2 className="font-orbitron font-bold text-3xl mb-2">
                                     Safety and Hygiene
                                 </h2>
                                 <div className="grid grid-cols-2">
@@ -176,6 +218,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                                 </div>
                             </div>
                         </div>
+                        <RulesSection />
                     </div>
                     <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:sticky top-40 my-2 h-fit overflow-visible">
                         <BookRoomCta
@@ -204,7 +247,7 @@ const RoomDetails = (props: { params: Promise<{ slug: string }> }) => {
                     </div>
 
                 </div>
-                
+
                 {/* Per-room reviews removed; combined reviews shown on home page */}
             </div>
 
