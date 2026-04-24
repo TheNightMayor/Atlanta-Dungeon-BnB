@@ -205,12 +205,6 @@ const hotelRoom = {
       initialValue: true,
     }),
     defineField({
-      name: "isFeatured",
-      title: "Is Featured",
-      type: "boolean",
-      initialValue: false,
-    }),
-    defineField({
       name: "visibleToUsers",
       title: "Visible to users",
       type: "boolean",

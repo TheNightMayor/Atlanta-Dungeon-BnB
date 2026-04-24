@@ -16,7 +16,7 @@ const RoomCard: FC<Props> = props => {
     return (
         <Link
             href={`/rooms/${slug.current}`}
-            className='font-orbitron border-2 border-tertiary-dark rounded-xl md:min-w-sm md:max-w-sm my-8 mx-auto md:mx-2 overflow-hidden text-black min-h-96'>
+            className='border-2 border-tertiary-dark rounded-xl md:min-w-sm md:max-w-sm my-8 mx-auto md:mx-2 overflow-hidden text-black min-h-96'>
             <div className='h-72 overflow-hidden m-4 rounded-xl'>
                 <Image
                     src={coverImage.url}
@@ -27,11 +27,11 @@ const RoomCard: FC<Props> = props => {
                 />
             </div>
             <div className="p-4 bg-white dark:bg-black dark:text-gray-100 h-64">
-                <div className="flex text-lg font-semibold">
+                <div className="flex text-lg font-bold justify-between">
                     <p>{name} </p>
                     <p>&nbsp; $ {price}</p>
                 </div>
-                <div className="pt-3 pb-6 text-sm font-medium h-36 overflow-hidden relative">
+                <div className="pt-3 pb-6 text-sm h-36 overflow-hidden relative">
                     <PortableText value={description} />
                     <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-white dark:to-black" />
                 </div>

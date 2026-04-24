@@ -38,7 +38,6 @@ export type Room = {
   flatFee?: number;
   overnight?: boolean;
   instantBook: boolean;
-  isFeatured: boolean;
   name: string;
   
   offeredAmenities: Amenity[];
