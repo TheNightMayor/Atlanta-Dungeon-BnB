@@ -17,8 +17,8 @@ const RoomCard: FC<Props> = props => {
     return (
         <Link
             href={`/rooms/${slug.current}`}
-            className='border-2 border-tertiary-dark rounded-xl md:min-w-sm md:max-w-sm my-8 mx-auto md:mx-2 overflow-hidden text-black min-h-96'>
-            <div className='h-72 overflow-hidden m-4 rounded-xl'>
+            className='block border-2 border-tertiary-dark rounded-xl w-full max-w-screen-sm my-4 md:my-6 mx-auto md:mx-2 overflow-hidden text-black'>
+            <div className='h-48 md:h-72 overflow-hidden m-4 rounded-xl'>
                 <Image
                     src={coverImage.url}
                     alt={name}
@@ -27,13 +27,14 @@ const RoomCard: FC<Props> = props => {
                     className="img scale-animation"
                 />
             </div>
-            <div className="p-4 bg-white dark:bg-black dark:text-gray-100 h-64">
+            <div className="p-4 bg-white dark:bg-black dark:text-gray-100">
                 <div className="flex text-lg font-bold justify-between">
                     <p>{name} </p>
                     <p>&nbsp; $ {price}</p>
                 </div>
-                <div className="pt-3 pb-6 text-sm h-36 overflow-hidden relative">
+                <div className="pt-3 pb-6 text-sm max-h-36 overflow-hidden relative">
                     <PortableText value={description} components={portableTextComponents} />
+                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-white dark:to-black" />
                 </div>
 
                 <button
