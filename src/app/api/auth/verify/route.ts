@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const tokenDoc = await sanityClient.fetch(
       `*[_type == "verification-token" && identifier == $email && token == $token][0]`,
-      { email, token }
+      { email, token } as any
     );
 
     if (!tokenDoc || !tokenDoc.expires) {

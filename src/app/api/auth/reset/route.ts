@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     // Find matching token
     const tokenDoc = await sanityClient.fetch(
       `*[_type == "verification-token" && identifier == $email && token == $token][0]`,
-      { email, token }
+      { email, token } as any
     );
 
     if (!tokenDoc) {
