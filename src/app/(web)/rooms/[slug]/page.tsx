@@ -149,12 +149,33 @@ const RoomDetails = () => {
 
 
             <div className="container mx-auto w-full px-4 py-4 md:px-10 md:py-8 mt-2 md:mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center overflow-x-hidden">
-                <div className="md:grid md:grid-cols-12 gap-10 px-3 w-full">
-                    <div className="md:col-span-8 md:w-full">
+                <div className="md:grid md:grid-cols-12 gap-10 px-3 w-full room-details-grid">
+                    <div className="md:col-span-8 md:w-full room-main">
                         <div>
                             <h2 className="font-orbitron font-bold text-left text-lg md:text-2xl break-words max-w-full">
                                 {room.name}
                             </h2>
+                            <div className="desktop-portrait-cta-show hidden mb-6 portrait-cta-wrapper">
+                                <BookRoomCta
+                                    discount={room.discount}
+                                    flatFee={room.flatFee ?? 0}
+                                    price={room.price}
+                                    specialNote={room.specialNote}
+                                    checkinDate={checkinDate}
+                                    setCheckinDate={setCheckinDate}
+                                    checkoutDate={checkoutDate}
+                                    setCheckoutDate={setCheckoutDate}
+                                    calcMinCheckoutDate={calcMinCheckoutDate}
+                                    adults={adults}
+                                    setAdults={setAdults}
+                                    noOfChildren={noOfChildren}
+                                    setNoOfChildren={setNoOfChildren}
+                                    overnight={room.overnight ?? true}
+                                    instantBook={room.instantBook}
+                                    roomName={room.name}
+                                    handleBookNowClick={handleBookNowClick}
+                                />
+                            </div>
                             <HotelPhotoGallery photos={room.images} />
                             <div>
                                 <PortableText value={room.description} components={portableTextComponents} />
@@ -185,7 +206,7 @@ const RoomDetails = () => {
                         </div>
                         <RulesSection />
                     </div>
-                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:sticky top-40 my-2 h-fit overflow-visible">
+                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:sticky top-40 my-2 h-fit overflow-visible room-cta desktop-portrait-cta-hide">
                         <BookRoomCta
                             discount={room.discount}
                             flatFee={room.flatFee ?? 0}

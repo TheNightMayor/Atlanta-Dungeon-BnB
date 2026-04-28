@@ -68,3 +68,28 @@ h3 {
 .dark .scrollbar-rounded::-webkit-scrollbar-thumb {
   background-color: rgba(255,255,255,0.28);
 }
+
+.desktop-portrait-cta-show {
+  display: none;
+}
+
+.desktop-portrait-cta-hide {
+  display: block;
+}
+
+@media (min-width: 1024px) and (orientation: portrait) {
+  .desktop-portrait-cta-show {
+    display: block;
+  }
+
+  .desktop-portrait-cta-hide {
+    display: none;
+  }
+
+  .portrait-cta-wrapper {
+    border: 2px solid rgba(59, 130, 246, 0.9);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
