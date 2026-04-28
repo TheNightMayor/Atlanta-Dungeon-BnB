@@ -16,7 +16,7 @@ const ClientComponent: FC = _props => {
                     Atlanta Bed and Bondage
                 </h1>
                 <p className="text-black dark:text-white max-w-lg text-xl font-bold ">
-                    Your dungeon next-door</p>
+                    Your Dungeon Next Door</p>
             </div>
         </div>
     </section>
