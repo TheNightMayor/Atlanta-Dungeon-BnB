@@ -28,7 +28,7 @@ export const portableTextComponents: any = {
     h1: ({ children }: any) => <h1 className="py-4 text-2xl md:text-4xl font-orbitron">{children}</h1>,
     h2: ({ children }: any) => <h2 className="text-xl font-orbitron">{children}</h2>,
     h3: ({ children }: any) => <h3 className="text-lg font-orbitron">{children}</h3>,
-    normal: ({ children }: any) => <p className="text-base leading-10 py-4">{children}</p>,
+    normal: ({ children }: any) => <p className="text-base leading-10">{children}</p>,
     hr: () => <hr className="my-6 border-gray-200" />,
   },
   marks: {

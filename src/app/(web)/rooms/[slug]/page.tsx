@@ -145,76 +145,40 @@ const RoomDetails = () => {
     }
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="w-full overflow-x-hidden flex flex-col items-center">
 
 
-            <div className="p-10 container mx-auto mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center">
-                <div className="md:grid md:grid-cols-12 gap-10 px-3">
+            <div className="container mx-auto w-full px-4 py-4 md:px-10 md:py-8 mt-2 md:mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center overflow-x-hidden">
+                <div className="md:grid md:grid-cols-12 gap-10 px-3 w-full">
                     <div className="md:col-span-8 md:w-full">
                         <div>
-                            <h2 className=" font-orbitron font-bold text-left text-lg md:text-2xl">
+                            <h2 className="font-orbitron font-bold text-left text-lg md:text-2xl break-words max-w-full">
                                 {room.name}
                             </h2>
-                            <div className="flex my-11 justify-evenly ">
-                                {room.offeredAmenities.map(amenity => (
-                                    <div
-                                        key={amenity._key}
-                                        className="md:w-44 w-full text-center px-2 md:px-0 h-20 md:h-40 mr-3 bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
-                                    >
-                                        <i className={`fa-solid ${amenity.icon} md:text-2xl`}></i>
-                                        <p className="text-xs md:text-base pt-3">
-                                            {amenity.amenity}
-                                        </p>
-                                    </div>
-                                ))}
+                            <HotelPhotoGallery photos={room.images} />
+                            <div>
+                                <PortableText value={room.description} components={portableTextComponents} />
                             </div>
                             <div className="mb-11">
-                                <h2 className="font-orbitron font-bold text-3xl mb-2">
-                                    Description
-                                </h2>
-                                <div>
-                                    <PortableText value={room.description} components={portableTextComponents} />
-                                </div>
-                            </div>
-                            <div className="mb-11">
-                                <h2 className="font-orbitron font-bold text-3xl mb-2">
-                                    Offered Amenities
-                                </h2>
-                                <div className="grid grid-cols-2">
-                                    {room.offeredAmenities.map(amenity => (
-                                        <div key={amenity._key}
-                                            className="flex items-center md:my-0 my-1"
-                                        >
-                                            <i className={`fa-solid ${amenity.icon}`}
-                                            ></i>
-                                            <p className="text-xs md:text-base ml-2">
-                                                {amenity.amenity}
-                                            </p>
-
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="mb-11">
-                                <h2 className="font-orbitron font-bold text-3xl mb-2">
+                                <h3 className="font-orbitron font-bold text-xl mb-2 break-words max-w-full">
                                     Safety and Hygiene
-                                </h2>
-                                <div className="grid grid-cols-2">
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="flex items-center my-1 md:my-0">
                                         <MdOutlineCleaningServices />
-                                        <p className="ml-2 md:text-base text-xs">Daily Cleaning</p>
+                                        <p className="ml-2 md:text-base text-xs break-words max-w-full">Daily Cleaning</p>
                                     </div>
                                     <div className="flex items-center my-1 md:my-0">
                                         <LiaFireExtinguisherSolid />
-                                        <p className="ml-2 md:text-base text-xs">Fire Extinguisher</p>
+                                        <p className="ml-2 md:text-base text-xs break-words max-w-full">Fire Extinguisher</p>
                                     </div>
                                     <div className="flex items-center my-1 md:my-0">
                                         <AiOutlineMedicineBox />
-                                        <p className="ml-2 md:text-base text-xs">First Aid Kit</p>
+                                        <p className="ml-2 md:text-base text-xs break-words max-w-full">First Aid Kit</p>
                                     </div>
                                     <div className="flex items-center my-1 md:my-0">
                                         <GiSmokeBomb />
-                                        <p className="ml-2 md:text-base text-xs">Disinfection and Sterilization</p>
+                                        <p className="ml-2 md:text-base text-xs break-words max-w-full">Disinfection and Sterilization</p>
                                     </div>
                                 </div>
                             </div>
@@ -244,7 +208,19 @@ const RoomDetails = () => {
                     </div>
 
                     <div className="col-span-12 md:col-start-1 md:col-span-12">
-                        <HotelPhotoGallery photos={room.images} />
+                        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 my-6 w-full">
+                            {room.offeredAmenities.map(amenity => (
+                                <div
+                                    key={amenity._key}
+                                    className="text-center px-2 md:px-0 h-20 md:h-40 bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
+                                >
+                                    <i className={`fa-solid ${amenity.icon} md:text-2xl`}></i>
+                                    <p className="text-xs md:text-base pt-3 break-words max-w-full">
+                                        {amenity.amenity}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                 </div>
