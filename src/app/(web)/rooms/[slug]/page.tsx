@@ -18,6 +18,7 @@ import axios from "axios";
 import { getStripe } from "@/libs/stripe";
 // Room reviews removed from individual room pages; use combined reviews on home page
 import { PortableText } from "next-sanity";
+import { portableTextComponents } from '@/libs/portableTextComponents';
 
 const RulesSection = () => {
     const [rulesInfo, setRulesInfo] = useState<null | { internalName: string; title: string; content: any[] }>(null);
@@ -49,7 +50,7 @@ const RulesSection = () => {
             </button>
             {isOpen ? (
                 <div>
-                    <PortableText value={rulesInfo.content} />
+                    <PortableText value={rulesInfo.content} components={portableTextComponents} />
                 </div>
             ) : null}
         </div>
@@ -172,7 +173,7 @@ const RoomDetails = () => {
                                     Description
                                 </h2>
                                 <div>
-                                    <PortableText value={room.description} />
+                                    <PortableText value={room.description} components={portableTextComponents} />
                                 </div>
                             </div>
                             <div className="mb-11">

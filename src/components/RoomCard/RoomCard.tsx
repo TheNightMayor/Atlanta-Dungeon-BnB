@@ -3,6 +3,7 @@ import { FC } from "react"
 import Image from "next/image";
 import Link from "next/link";
 import { PortableText } from "next-sanity";
+import { portableTextComponents } from '@/libs/portableTextComponents';
 
 type Props = {
     room: Room;
@@ -32,8 +33,7 @@ const RoomCard: FC<Props> = props => {
                     <p>&nbsp; $ {price}</p>
                 </div>
                 <div className="pt-3 pb-6 text-sm h-36 overflow-hidden relative">
-                    <PortableText value={description} />
-                    <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-white dark:to-black" />
+                    <PortableText value={description} components={portableTextComponents} />
                 </div>
 
                 <button

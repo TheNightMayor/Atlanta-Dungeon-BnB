@@ -49,6 +49,10 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          if (!user.emailVerified) {
+            throw new Error('Please confirm your email before signing in.');
+          }
+
           return {
             id: user._id,
             email: user.email,

@@ -4,36 +4,9 @@ import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import DatePicker from "react-datepicker"
 import { MdCancel } from "react-icons/md";
 import { PortableText } from "next-sanity";
+import { portableTextComponents } from '@/libs/portableTextComponents';
 import { getInfoPageByInternalName } from "@/libs/apis";
 import 'react-datepicker/dist/react-datepicker.css';
-
-const portableComponents: any = {
-    block: {
-        h1: ({ children }: any) => <h1 className="text-2xl font-bold">{children}</h1>,
-        h2: ({ children }: any) => <h2 className="text-xl font-semibold">{children}</h2>,
-        h3: ({ children }: any) => <h3 className="text-lg font-semibold">{children}</h3>,
-        normal: ({ children }: any) => <p className="text-base leading-7">{children}</p>,
-    },
-    marks: {
-        link: ({ children, value }: any) => {
-            const href = value?.href || '';
-            const target = href.startsWith('http') ? '_blank' : undefined;
-            return (
-                <a href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="text-primary underline">
-                    {children}
-                </a>
-            );
-        }
-    },
-    list: {
-        bullet: ({ children }: any) => <ul className="list-disc pl-6">{children}</ul>,
-        number: ({ children }: any) => <ol className="list-decimal pl-6">{children}</ol>,
-    },
-    listItem: {
-        bullet: ({ children }: any) => <li className="mb-1">{children}</li>,
-        number: ({ children }: any) => <li className="mb-1">{children}</li>,
-    }
-};
 
 type Props = {
     checkinDate: Date | null;
@@ -302,7 +275,7 @@ const BookRoomCta: FC<Props> = props => {
                                 <div className="space-y-4 text-gray-800 dark:text-gray-200">
                                     <p className="font-semibold">{liabilityPage.title}</p>
                                         <div className="prose prose-sm dark:prose-invert">
-                                        <PortableText value={liabilityPage.content} components={portableComponents} />
+                                        <PortableText value={liabilityPage.content} components={portableTextComponents} />
                                     </div>
                                 </div>
                             ) : (

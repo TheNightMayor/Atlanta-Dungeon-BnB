@@ -29,6 +29,35 @@ export async function sendResetEmail(to: string, token: string) {
   }
 }
 
+export async function sendVerificationEmail(to: string, token: string) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const verificationUrl = `${appUrl.replace(/\/$/, '')}/auth/verify?token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`;
+
+  const body = {
+    from,
+    to,
+    subject: 'Confirm your email',
+    html: `<p>Welcome! Please confirm your account by clicking the link below:</p>
+           <p><a href="${verificationUrl}">Confirm your email</a></p>
+           <p>If you didn't create an account, you can ignore this message.</p>`,
+  };
+
+  const res = await fetch(RESEND_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to send email: ${res.status} ${text}`);
+  }
+}
+
 export async function sendContactNotificationEmail(
   name: string,
   fromEmail: string,

@@ -92,12 +92,13 @@ const Auth = () => {
                 body: JSON.stringify(formData),
             });
 
+            const data = await response.json().catch(() => ({}));
+
             if (response.ok) {
-                toast.success('Account created — signing you in');
-                await loginHandler();
+                toast.success(data.message || 'Account created. Check your email to confirm your account.');
+                setIsSigningIn(true);
             } else {
-                const error = await response.json();
-                toast.error(error.error || 'Something went wrong');
+                toast.error(data.error || 'Something went wrong');
             }
         } catch (error) {
             toast.error('Something went wrong');
