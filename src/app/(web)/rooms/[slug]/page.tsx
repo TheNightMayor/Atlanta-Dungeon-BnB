@@ -79,6 +79,22 @@ const RoomDetails = () => {
 
     const { data: room, error, isLoading } = useSWR<Room>(slug ? `/api/room/${slug}` : null, fetchRoom);
 
+    const getAmenityGridClass = (count: number) => {
+        const columns = Math.min(Math.ceil(count / 2), 6);
+        switch (columns) {
+            case 2:
+                return 'lg:grid-cols-2 xl:grid-cols-2';
+            case 3:
+                return 'lg:grid-cols-3 xl:grid-cols-3';
+            case 4:
+                return 'lg:grid-cols-4 xl:grid-cols-4';
+            case 5:
+                return 'lg:grid-cols-5 xl:grid-cols-5';
+            default:
+                return 'lg:grid-cols-6 xl:grid-cols-6';
+        }
+    };
+
     if (!slug || !room) {
         return <LoadingSpinner />;
     }
@@ -152,7 +168,7 @@ const RoomDetails = () => {
         <div className="w-full overflow-x-hidden overflow-y-visible flex flex-col items-center pb-10">
 
 
-            <div className="container mx-auto w-full px-4 py-4 md:px-10 md:py-8 mt-2 md:mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center overflow-x-hidden overflow-y-visible pb-10">
+            <div className="container mx-auto w-full px-4 py-4 md:px-10 md:py-8 mt-0 md:mt-8 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center overflow-x-hidden overflow-y-visible pb-10">
                 <div className="md:grid md:grid-cols-12 gap-10 px-3 w-full room-details-grid">
                     <div className="md:col-span-8 md:w-full room-main">
                         <div>
@@ -210,7 +226,7 @@ const RoomDetails = () => {
                         </div>
                         <RulesSection />
                     </div>
-                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[224px] md:left-[70%] lg:left-[70%] xl:left-[65%] 2xl:left-[60%] w-[10rem] md:w-[13rem] lg:w-[16rem] xl:w-[24rem] 2xl:w-[28rem] self-start my-2 h-fit overflow-visible room-cta desktop-portrait-cta-hide">
+                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[160px] md:left-[60%] md:w-[20rem] lg:w-[20rem] xl:w-[20rem] self-start my-2 h-fit overflow-visible">
                         <BookRoomCta
                             discount={room.discount}
                             flatFee={room.flatFee ?? 0}
@@ -232,8 +248,8 @@ const RoomDetails = () => {
                         />
                     </div>
 
-                    <div className="col-span-12 md:col-start-1 md:col-span-12">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 my-6 w-full justify-items-center">
+                    <div className="col-span-12 md:col-start-1 md:col-span-8">
+                        <div className={`grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 ${getAmenityGridClass(room.offeredAmenities.length)} gap-1 my-6 w-full justify-items-center`}>
                             {room.offeredAmenities.map(amenity => (
                                 <div
                                     key={amenity._key}

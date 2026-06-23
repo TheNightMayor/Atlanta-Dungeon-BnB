@@ -132,7 +132,7 @@ const BookRoomCta: FC<Props> = props => {
     const isBookNowDisabled = !instantBook || !checkinDate || (overnight && !checkoutDate) || adults < 1;
 
     return (
-        <div className="px-7 py-6">
+        <div className="px-7 py-4 bg-white dark:bg-slate-900 rounded-lg md:rounded-2xl shadow-[0_12px_30px_-16px_rgba(0,0,0,0.18)]">
             <h3>
                 <span className="text-gray-400 font-bold text-xl">
                     $ {price}/night {flatFee > 0 ? `+ $${flatFee} flat fee` : ''}
@@ -140,7 +140,7 @@ const BookRoomCta: FC<Props> = props => {
             </h3>
 
             <div className="w-full border-b-2 border-b-primary my-2" />
-            <h4 className="my-8">{specialNote}</h4>
+            <h4 className="my-6">{specialNote}</h4>
             <div className="flex">
                 <div className={`${overnight ? 'w1/2 pr-2' : 'w-full pr-2'}`}>
                     <label
@@ -176,7 +176,7 @@ const BookRoomCta: FC<Props> = props => {
                     </div>
                 )}
             </div>
-            <div className="flex mt-4">
+            <div className="flex mt-3">
                 <div className="w-1/2 pr-2">
                     <label
                         htmlFor="adults"
@@ -220,7 +220,7 @@ const BookRoomCta: FC<Props> = props => {
                                 <span>${flatFee.toFixed(2)}</span>
                             </div>
                         )}
-                        <div className="flex justify-between font-bold mt-2">
+                        <div className="flex justify-between font-bold mt-1">
                             <span>Total</span>
                             <span>${totalPrice.toFixed(2)}</span>
                         </div>
@@ -234,7 +234,7 @@ const BookRoomCta: FC<Props> = props => {
                     return (
                         <Link
                             href={`/contact?topic=${encodeURIComponent(topic)}`}
-                            className="flex btn-primary w-full mt-6 justify-center whitespace-nowrap"
+                            className="btn-tertiary-solid inline-flex w-full justify-center mt-4"
                             aria-label="Contact us"
                         >
                             Contact Us
@@ -282,7 +282,7 @@ const BookRoomCta: FC<Props> = props => {
                                 <p className="mt-4 text-red-600 dark:text-red-400">Liability statement not found.</p>
                             )}
 
-                            <div className="mt-5 flex flex-col gap-3">
+                            <div className="mt-4 flex flex-col gap-2">
                                 <label className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
@@ -336,7 +336,7 @@ const BookRoomCta: FC<Props> = props => {
                     </div>
                 </div>
             )}
-            <div className="mt-4 flex flex-col">
+            <div className="mt-3 flex flex-col">
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-400">Discount code</label>
                 <div className="flex gap-2 mt-1 flex-wrap">
                     <input
@@ -377,7 +377,7 @@ const BookRoomCta: FC<Props> = props => {
                                 setIsApplying(false);
                             }
                         }}
-                        className="grow rounded-lg bg-primary px-3 py-2 text-white disabled:opacity-60"
+                        className="grow btn-tertiary-solid disabled:opacity-60 disabled:cursor-not-allowed"
                         disabled={isApplying}
                     >
                         {isApplying ? 'Applying...' : 'Apply'}

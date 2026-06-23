@@ -122,7 +122,7 @@ h3 {
   display: block;
 }
 
-@media (min-width: 1024px) and (orientation: portrait) {
+@media (max-width: 767px) {
   .desktop-portrait-cta-show {
     display: block;
   }

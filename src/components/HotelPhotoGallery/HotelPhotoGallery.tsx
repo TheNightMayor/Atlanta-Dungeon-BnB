@@ -30,7 +30,7 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
     };
 
     return (
-        <div className="md:w-full md:py-8">
+        <div className="w-full md:w-[90%] lg:w-[80%] xl:w-[70%] mx-auto md:py-8">
             <div className="container px-3">
                         <div
                     role="button"
