@@ -16,7 +16,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-     "baseUrl": ".",  
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"

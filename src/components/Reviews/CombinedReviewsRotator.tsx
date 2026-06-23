@@ -94,7 +94,7 @@ export default function CombinedReviewsRotator({ reviews }: { reviews: Review[] 
 
   return (
     <section className="container mx-auto my-8">
-      <div className="p-6 rounded-lg border-2 border-tertiary-dark">
+      <div className="card-border p-6">
         <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
         <div className="mx-auto max-w-3xl relative h-auto">
           <div style={frontStyle} className="p-6 border rounded-lg bg-white dark:bg-black">

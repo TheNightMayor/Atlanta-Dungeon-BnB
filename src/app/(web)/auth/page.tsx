@@ -21,8 +21,7 @@ const Auth = () => {
     const [resendCooldown, setResendCooldown] = useState(0);
     const forgotRef = useRef<HTMLDivElement | null>(null);
 
-    const inputStyles =
-        "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full pr-10 p-2.5 focus:outline-none"
+    const inputStyles = "form-input"
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -178,14 +177,12 @@ const Auth = () => {
                         {isSigningIn ? 'Sign in' : 'Create an Account'}
                     </h1>
                     <p>OR</p>
-                    <span className="ml-3 cursor-pointer inline-flex items-center font-medium border-2 border-tertiary-dark p-2 rounded-lg hover:bg-tertiary-dark hover:text-white transition-all duration-300"
+                    <button type="button" className="btn-tertiary-outline ml-3 inline-flex items-center"
                         onClick={() => loginHandler('google')}
                     >
                         Sign in with Google:
                         <FcGoogle className="ml-2 text-2xl" />
-
-                        
-                    </span>
+                    </button>
                 </div>
 
                 <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
@@ -232,13 +229,13 @@ const Auth = () => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full text-white bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center hover:bg-white hover:text-black border-2 border-tertiary-dark transition-all duration-300">
+                        className="btn-tertiary-solid">
                         {isSigningIn ? 'Sign in' : 'Sign up'}
                     </button>
                 </form>
 
                 <div className="flex flex-col space-y-2">
-                    <button onClick={() => setIsSigningIn(s => !s)} className="rounded-lg border-2 border-tertiary-dark px-5 py-2.5 hover:bg-tertiary-dark hover:text-white dark:hover:bg-tertiary-dark dark:hover:text-white font-medium transition-all duration-300">
+                    <button onClick={() => setIsSigningIn(s => !s)} className="btn-tertiary-outline w-full">
                         {isSigningIn ? 'Create a new Account' : 'Already have an account? Sign in'}
                     </button>
 
@@ -249,7 +246,7 @@ const Auth = () => {
 
                 {showForgot && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-                        <div ref={forgotRef} className="bg-white dark:bg-black p-6 rounded-lg w-80">
+                        <div ref={forgotRef} className="modal-panel w-80">
                             <h2 className="text-lg font-semibold mb-3">Forgot username or password</h2>
                             <form onSubmit={handleForgotSubmit} className="space-y-3">
                                 <input
@@ -262,11 +259,11 @@ const Auth = () => {
                                     onChange={handleInputChange}
                                 />
                                 <div className="flex space-x-2">
-                                    <button type="submit" className="flex-1 text-white bg-tertiary-dark rounded-lg px-4 py-2" disabled={resendCooldown > 0}>{resendCooldown > 0 ? `Sent — wait ${resendCooldown}s` : 'Send reset'}</button>
-                                    <button type="button" onClick={() => setShowForgot(false)} className="flex-1 border-2 border-tertiary-dark rounded-lg px-4 py-2">Cancel</button>
+                                    <button type="submit" className="btn-tertiary-solid flex-1" disabled={resendCooldown > 0}>{resendCooldown > 0 ? `Sent — wait ${resendCooldown}s` : 'Send reset'}</button>
+                                    <button type="button" onClick={() => setShowForgot(false)} className="btn-tertiary flex-1">Cancel</button>
                                 </div>
                                 <div className="mt-2">
-                                    <button type="button" onClick={handleResend} disabled={resendCooldown > 0} className="w-full rounded-lg border-2 border-tertiary-dark px-4 py-2 bg-white dark:bg-black">
+                                    <button type="button" onClick={handleResend} disabled={resendCooldown > 0} className="btn-tertiary-white">
                                         {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Resend email'}
                                     </button>
                                 </div>

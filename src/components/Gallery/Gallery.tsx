@@ -116,10 +116,12 @@ const Gallery = () => {
           style={{ gridTemplateColumns: `repeat(${Math.max(1, displayedCount)}, minmax(25vh, 1fr))` }}
         >
           {visibleImages.map((img) => (
-            <div
+            <button
               key={img.key}
-              className='relative w-full aspect-square overflow-hidden rounded-3xl bg-gray-100 dark:bg-gray-900 shadow-sm hover:shadow-md transition'
+              type="button"
+              className='relative w-full aspect-square overflow-hidden rounded-3xl bg-gray-100 dark:bg-gray-900 shadow-sm hover:shadow-md transition focus:outline-none'
               onClick={() => setModalIndex(allImages.findIndex(i => i.key === img.key))}
+              aria-label={`Open gallery image ${img.key}`}
             >
               <Image
                 alt={`Hotel gallery image ${img.key}`}
@@ -128,7 +130,7 @@ const Gallery = () => {
                 fill
                 sizes='25vh'
               />
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -137,17 +139,31 @@ const Gallery = () => {
         <div
           className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/80'
           onClick={() => setModalIndex(null)}
+          role="presentation"
         >
           <button
+            type="button"
+            className='z-[10000] absolute top-4 right-4 text-white text-4xl px-2'
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalIndex(null);
+            }}
+            aria-label='Close gallery modal'
+          >
+            ×
+          </button>
+          <button
+            type="button"
             className='z-[10000] absolute left-4 text-white text-4xl px-2'
             onClick={(e) => {
               e.stopPropagation();
               setModalIndex((modalIndex - 1 + allImages.length) % allImages.length);
             }}
+            aria-label='Previous image'
           >
             ‹
           </button>
-          <div className='relative w-[90vw] max-w-4xl h-[80vh]'>
+          <div className='relative w-[90vw] max-w-4xl h-[80vh]' role="dialog" aria-modal="true" aria-label="Gallery image viewer">
             <Image
               alt={`Hotel gallery large image ${allImages[modalIndex]?.key}`}
               className='object-contain'

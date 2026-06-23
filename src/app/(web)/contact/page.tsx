@@ -16,8 +16,7 @@ const defaultFormData = {
 const Contact = () => {
     const [formData, setFormData] = useState(defaultFormData);
 
-    const inputStyles =
-        "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none"
+    const inputStyles = "form-input"
 
         const handleInputChange = (
             event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -128,7 +127,7 @@ const Contact = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-tertiary-dark focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        className="btn-tertiary-solid">
                         Send Message
                     </button>
                 </form>

@@ -4,7 +4,7 @@ import { FormEvent, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const inputStyles = "border-2 border-tertiary-dark dark:bg-black dark:text-white sm:text-sm text-black rounded-lg block w-full p-2.5 focus:outline-none";
+const inputStyles = "form-input";
 
 export default function ResetPage() {
   const params = useSearchParams();
@@ -57,7 +57,7 @@ export default function ResetPage() {
         <form onSubmit={handleSubmit} className="space-y-3">
           <input type="password" placeholder="New password" value={password} onChange={e => setPassword(e.target.value)} className={inputStyles} required minLength={6} />
           <input type="password" placeholder="Confirm password" value={confirm} onChange={e => setConfirm(e.target.value)} className={inputStyles} required minLength={6} />
-          <button type="submit" disabled={loading} className="w-full text-white bg-tertiary-dark rounded-lg px-4 py-2">{loading ? 'Resetting…' : 'Reset password'}</button>
+          <button type="submit" disabled={loading} className="btn-tertiary-solid">{loading ? 'Resetting…' : 'Reset password'}</button>
         </form>
       </div>
     </section>

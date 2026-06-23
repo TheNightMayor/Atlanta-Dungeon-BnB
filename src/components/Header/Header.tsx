@@ -61,17 +61,17 @@ const Header = () => {
   })();
 
   return (
-    <header className='font-orbitron sticky top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-50% via-white via-90% dark:via-black to-100% pt-2 pb-8 md:px-8 md:pb-10 md:pt-4 mx-auto text-xl flex flex-nowrap items-center justify-between z-20 w-full '>
+    <header className='font-orbitron sticky top-0 left-0 right-0 bg-gradient-to-b from-tertiary-light from-50% via-white via-90% dark:via-black to-100% text-white pt-2 pb-8 md:px-8 md:pb-10 md:pt-4 mx-auto text-xl flex flex-nowrap items-center justify-between z-20 w-full '>
       <div className='w-full'>
         <div className='flex items-center justify-between px-4 md:w-auto'>
-          <Link href='/' className='font-orbitron md:text-2xl text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-110'>
+          <Link href='/' className='font-orbitron md:text-2xl text-white transition-transform duration-200 transform-gpu hover:scale-110'>
             Atlanta Bed and Bondage
           </Link>
 
           <div className='flex justify-between'>
             {/* Mobile menu button */}
             <button
-              className='md:hidden text-2xl'
+              className='md:hidden text-2xl text-white'
               onClick={toggleMenu}
               aria-label='Toggle menu'
             >
@@ -83,20 +83,20 @@ const Header = () => {
             <ul className='hidden md:flex items-center justify-between w-full mt-4 md:mt-0'>
               {isAdmin && (
                 <li className='inline-block px-4'>
-                  <Link href="/studio" target="_blank" rel="noopener noreferrer" className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Studio</Link>
+                  <Link href="/studio" target="_blank" rel="noopener noreferrer" className='inline-block transition-transform duration-200 transform-gpu hover:scale-110 text-white'>Studio</Link>
                 </li>
               )}
               <li className='inline-block px-4'>
-                <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Home</Link>
+                <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110 text-white'>Home</Link>
               </li>
               <li className='inline-block px-4'>
-                <Link href='/about' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>About Us</Link>
+                <Link href='/about' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110 text-white'>About Us</Link>
               </li>
               <li className='inline-block px-4'>
-                <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Booking</Link>
+                <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110 text-white'>Booking</Link>
               </li>
               <li className='inline-block px-4'>
-                <Link href='/contact' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110'>Contact Us</Link>
+                <Link href='/contact' className='inline-block transition-transform duration-200 transform-gpu hover:scale-110 text-white'>Contact Us</Link>
               </li>
             </ul>
 
@@ -136,21 +136,29 @@ const Header = () => {
                 </li>
                 <li className='ml-2'>
                   {darkTheme ? (
-                    <MdOutlineLightMode
-                      className='cursor-pointer'
+                    <button
+                      type='button'
+                      className='text-2xl text-white focus:outline-none'
                       onClick={() => {
                         setDarkTheme(false);
                         localStorage.removeItem('hotel-theme');
                       }}
-                    />
+                      aria-label='Switch to light mode'
+                    >
+                      <MdOutlineLightMode />
+                    </button>
                   ) : (
-                    <MdDarkMode
-                      className='cursor-pointer'
+                    <button
+                      type='button'
+                      className='text-2xl text-white focus:outline-none'
                       onClick={() => {
                         setDarkTheme(true);
                         localStorage.setItem('hotel-theme', 'true');
                       }}
-                    />
+                      aria-label='Switch to dark mode'
+                    >
+                      <MdDarkMode />
+                    </button>
                   )}
                 </li>
               </ul>

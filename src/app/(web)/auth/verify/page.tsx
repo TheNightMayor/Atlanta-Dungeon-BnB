@@ -43,16 +43,16 @@ const VerifyPage = () => {
 
   return (
     <section className="container mx-auto py-10 px-4">
-      <div className="mx-auto max-w-xl rounded-3xl border-2 border-tertiary-dark bg-white dark:bg-black p-8 text-center">
+      <div className="mx-auto max-w-xl rounded-3xl card-border bg-white dark:bg-black p-8 text-center">
         <h1 className="text-3xl font-bold mb-4">Email Verification</h1>
         <p className="mb-6 text-base text-gray-700 dark:text-gray-300">{message}</p>
         {status === 'success' ? (
-          <Link href="/auth" className="inline-block rounded-lg bg-primary px-6 py-3 text-white hover:bg-white hover:text-black border-2 border-tertiary-dark transition">
+          <Link href="/auth" className="btn-primary inline-block px-6 py-3">
             Return to sign in
           </Link>
         ) : (
           <div className="space-x-4">
-            <Link href="/auth" className="inline-block rounded-lg border-2 border-tertiary-dark px-6 py-3 text-black dark:text-white hover:bg-tertiary-dark hover:text-white transition">
+            <Link href="/auth" className="btn-tertiary-outline inline-block px-6 py-3">
               Go to auth page
             </Link>
           </div>

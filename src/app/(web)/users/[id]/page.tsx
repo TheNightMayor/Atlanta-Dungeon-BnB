@@ -12,7 +12,6 @@ import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent } fro
 import { use } from 'react';
 import { BsJournalBookmarkFill } from 'react-icons/bs';
 import Table from '@/components/Table/Table';
-import Chart from '@/components/Chart/Chart';
 import RatingModal from '@/components/RatingModal/RatingModal';
 import BackDrop from '@/components/BackDrop/BackDrop';
 import ProfileProgress from '@/components/ProfileProgress/ProfileProgress';
@@ -242,7 +241,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
 
                 <button
                   type='button'
-                  className='text-sm font-semibold font-orbitron border-2 border-tertiary-dark px-4 py-2 rounded-lg flex justify-center hover:bg-tertiary-dark transition-colors duration-200 cursor-pointer'
+                  className='btn-tertiary-action'
                   aria-label='Select profile image'
                   onClick={() => profileInputRef.current?.click()}
                 >
@@ -264,9 +263,9 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                     type='button'
                     onClick={uploadProfileImage}
                     disabled={isUploadingImage}
-                    className='mx-auto text-sm font-semibold font-orbitron border-2 border-tertiary-dark px-4 py-2 rounded-lg mt-4 hover:bg-tertiary-dark transition-colors duration-200 cursor-pointer'>
-
-                    {isUploadingImage ? 'Uploading…' : 'Upload image'}
+                    className='btn-tertiary-action mx-auto mt-4'
+                  >
+                    {isUploadingImage ? 'Uploading…' : 'Upload profile image'}
                   </button>
                 )}
 
@@ -281,7 +280,6 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                     tabIndex={-1}
                   />
 
-
                   {selectedIdImagePreview && (
                     <div className='mx-auto my-4 w-40 h-28 overflow-hidden rounded border border-gray-200 dark:border-tertiary-dark'>
                       <img src={selectedIdImagePreview} alt='ID preview' className='h-full w-full object-cover' />
@@ -289,7 +287,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                   )}
 
                   {userData.idDocumentUrl && !selectedIdImagePreview && (
-                    <div className='mx-auto mt-4 w-48 h-32 overflow-hidden rounded-lg border-2 border-tertiary-dark'>
+                    <div className='mx-auto mt-4 w-48 h-32 overflow-hidden rounded-lg card-border'>
                       <img src={userData.idDocumentUrl} alt='Existing ID document' className='h-full w-full object-cover' />
                     </div>
                   )}
@@ -304,25 +302,23 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                       {isUploadingId ? 'Uploading…' : 'Upload ID Document'}
                     </button>
                   )}
+
+                  <button
+                    type='button'
+                    className='btn-tertiary-action mt-4'
+                    aria-label='Select ID document'
+                    onClick={() => idInputRef.current?.click()}
+                  >
+                    Select ID document
+                  </button>
                 </div>
-                <button
-                  type='button'
-                  className='font-orbitron font-semibold text-sm border-2 border-tertiary-dark px-4 py-2 rounded-lg flex justify-center mt-4 hover:bg-tertiary-dark transition-colors duration-200 cursor-pointer'
-                  aria-label='Select ID document'
-                  onClick={() => idInputRef.current?.click()}
-                >
-                  Select ID document
-                </button>
               </div>
             )}
           </div>
-          <div className='border-2 border-tertiary-dark px-4 py-2 rounded-lg flex justify-center mt-4 hover:bg-tertiary-dark transition-colors duration-200 cursor-pointer' onClick={() => signOut({ callbackUrl: '/' })}>
-            <FaSignOutAlt
-              className='text-2xl cursor-pointer'
-              onClick={() => signOut({ callbackUrl: '/' })}
-            />
+          <button type='button' className='btn-tertiary-action mt-4 flex items-center justify-center' onClick={() => signOut({ callbackUrl: '/' })}>
+            <FaSignOutAlt className='text-2xl' />
             <p className='ml-2 font-medium'>Sign out</p>
-          </div>
+          </button>
         </div>
         <div className='md:ml-6 container md:border-2 border-tertiary-dark rounded-lg items-start justify-start w-full md:w-3/4 p-2 h-full'>
             <ProfileProgress

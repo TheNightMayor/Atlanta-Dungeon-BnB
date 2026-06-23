@@ -41,13 +41,13 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className={`${exo.variable} ${orbitron.variable}`}>
+      <body className={`${exo.variable} ${orbitron.variable} min-h-screen`}>
         <NextAuthProvider>
           <ThemeProvider>
             <Toast />
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col min-h-screen">
               <Header />
-              <main className="font-normal flex-grow">
+              <main className="font-normal flex-1">
                 {children}
               </main>
               <Footer />

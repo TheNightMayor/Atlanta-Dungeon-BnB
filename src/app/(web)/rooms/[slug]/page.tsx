@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import { MdOutlineCleaningServices } from "react-icons/md";
 import { LiaFireExtinguisherSolid } from "react-icons/lia";
-import { AiOutlineMedicineBox } from "react-icons/ai";
+import { AiOutlineMedicineBox, AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import { GiSmokeBomb } from "react-icons/gi";
 import { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
@@ -39,14 +39,18 @@ const RulesSection = () => {
     if (!rulesInfo) return null;
 
     return (
-        <div className="mb-11 border-2 border-tertiary-dark rounded-lg p-4">
+        <div className="card-border-p4">
             <button
                 onClick={() => setIsOpen(prev => !prev)}
                 className="flex items-center gap-3 font-orbitron font-bold text-3xl mb-2"
                 aria-expanded={isOpen}
             >
                 <span>Rules</span>
-                <span className="text-2xl" aria-hidden>{isOpen ? '▼' : '▶'}</span>
+                {isOpen ? (
+                    <AiOutlineMinus className="text-3xl" aria-hidden="true" />
+                ) : (
+                    <AiOutlinePlus className="text-3xl" aria-hidden="true" />
+                )}
             </button>
             {isOpen ? (
                 <div>
@@ -145,10 +149,10 @@ const RoomDetails = () => {
     }
 
     return (
-        <div className="w-full overflow-x-hidden flex flex-col items-center">
+        <div className="w-full overflow-x-hidden overflow-y-visible flex flex-col items-center pb-10">
 
 
-            <div className="container mx-auto w-full px-4 py-4 md:px-10 md:py-8 mt-2 md:mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center overflow-x-hidden">
+            <div className="container mx-auto w-full px-4 py-4 md:px-10 md:py-8 mt-2 md:mt-20 rounded-2xl border-2 border-tertiary-dark md:w-3/4 flex flex-col items-center overflow-x-hidden overflow-y-visible pb-10">
                 <div className="md:grid md:grid-cols-12 gap-10 px-3 w-full room-details-grid">
                     <div className="md:col-span-8 md:w-full room-main">
                         <div>
@@ -206,7 +210,7 @@ const RoomDetails = () => {
                         </div>
                         <RulesSection />
                     </div>
-                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:sticky top-40 my-2 h-fit overflow-visible room-cta desktop-portrait-cta-hide">
+                    <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[224px] md:left-[70%] lg:left-[70%] xl:left-[65%] 2xl:left-[60%] w-[10rem] md:w-[13rem] lg:w-[16rem] xl:w-[24rem] 2xl:w-[28rem] self-start my-2 h-fit overflow-visible room-cta desktop-portrait-cta-hide">
                         <BookRoomCta
                             discount={room.discount}
                             flatFee={room.flatFee ?? 0}
@@ -229,14 +233,14 @@ const RoomDetails = () => {
                     </div>
 
                     <div className="col-span-12 md:col-start-1 md:col-span-12">
-                        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 my-6 w-full">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 my-6 w-full justify-items-center">
                             {room.offeredAmenities.map(amenity => (
                                 <div
                                     key={amenity._key}
-                                    className="text-center px-2 md:px-0 h-20 md:h-40 bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
+                                    className="text-center w-full max-w-[9rem] aspect-square bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
                                 >
-                                    <i className={`fa-solid ${amenity.icon} md:text-2xl`}></i>
-                                    <p className="text-xs md:text-base pt-3 break-words max-w-full">
+                                    <i className={`fa-solid ${amenity.icon} text-xl md:text-2xl`} />
+                                    <p className="text-[12px] md:text-sm pt-2 break-words max-w-full leading-tight">
                                         {amenity.amenity}
                                     </p>
                                 </div>

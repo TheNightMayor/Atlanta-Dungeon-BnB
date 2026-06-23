@@ -395,8 +395,11 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                 const isMultiSelected = selectedDates.includes(dateStr);
 
                 return (
-                  <div
+                  <button
                     key={day}
+                    type="button"
+                    aria-pressed={isSelected || isMultiSelected}
+                    aria-label={`Select ${date.toDateString()}`}
                     onClick={(e) => {
                         e.stopPropagation();
                         if (multiSelectMode) {
@@ -428,6 +431,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       }}
                     style={{
                       position: 'relative',
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
                       height: '100px',
                       width: '100%',
                       padding: '8px',
@@ -441,6 +447,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       minWidth: 0,
                       overflow: 'hidden',
                       boxSizing: 'border-box',
+                      textAlign: 'left',
                     }}
                     onMouseOver={(e) => {
                       if (!isSelected && !isMultiSelected) {
@@ -554,7 +561,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         <div style={{ position: 'absolute', left: '10%', right: '10%', height: 4, background: 'rgba(255,255,255,0.28)', transform: 'rotate(-45deg)', borderRadius: 2 }} />
                       </div>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>

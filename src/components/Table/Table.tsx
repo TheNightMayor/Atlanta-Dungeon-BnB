@@ -34,13 +34,14 @@ const Table: FC<Props> = ({ bookingDetails, setRoomId, toggleRatingModal }) => {
                     key={booking._id} 
                     className="bg-white border-b dark:border-2 hover:bg-gray-50 dark:bg-black dark:border-b dark:border-tertiary-dark dark:hover:bg-gray-900"
                 >
-                    <th 
-                    onClick={() =>
-                        router.push(`/rooms/${booking.hotelRoom.slug.current}`)
-                    }
-                    className="px-6 underline dark:text-tertiary-dark cursor-pointer py-4 font-medium whitespace-nowrap"
-                    >
-                        {booking.hotelRoom.name}
+                    <th className="px-6 py-4 font-medium whitespace-nowrap">
+                        <button
+                            type="button"
+                            onClick={() => router.push(`/rooms/${booking.hotelRoom.slug.current}`)}
+                            className="underline dark:text-tertiary-dark text-blue-600 hover:text-blue-800 focus:outline-none"
+                        >
+                            {booking.hotelRoom.name}
+                        </button>
                     </th>
                     {/* <td className="px-6 py-4">{booking.hotelRoom.price}</td> */}
                     <td className="px-6 py-4">{booking.totalPrice}</td>

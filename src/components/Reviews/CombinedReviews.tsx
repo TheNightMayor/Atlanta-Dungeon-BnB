@@ -13,7 +13,7 @@ const CombinedReviews: React.FC<{ reviews: Review[] }> = ({ reviews }) => {
 
   return (
     <section className="container mx-auto my-8">
-      <div className="p-6 rounded-lg border-2 border-tertiary-dark">
+      <div className="card-border p-6">
         <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {reviews.map(r => (

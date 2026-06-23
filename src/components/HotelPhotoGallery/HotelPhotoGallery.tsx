@@ -32,7 +32,19 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
     return (
         <div className="md:w-full md:py-8">
             <div className="container px-3">
-                        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black flex items-center justify-center group cursor-pointer" onClick={() => setShowModal(true)}>
+                        <div
+                    role="button"
+                    tabIndex={0}
+                    className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black flex items-center justify-center group cursor-pointer focus:outline-none"
+                    onClick={() => setShowModal(true)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setShowModal(true);
+                        }
+                    }}
+                    aria-label="Open photo gallery modal"
+                >
                             <Image
                                 src={effectivePhotos[currentPhotoIndex]?.url || placeholderImage}
                                 alt={`Room Photo ${currentPhotoIndex + 1}`}
@@ -74,8 +86,9 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
                     <div
                         className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-90"
                         onClick={() => setShowModal(false)}
+                        role="presentation"
                     >
-                        <div className="relative w-[90vw] h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative w-[90vw] h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Photo viewer modal">
                             <Image
                                 src={effectivePhotos[currentPhotoIndex]?.url || placeholderImage}
                                 alt={`Room Photo ${currentPhotoIndex + 1}`}
