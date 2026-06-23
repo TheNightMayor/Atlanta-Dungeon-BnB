@@ -29,7 +29,7 @@ export const portableTextComponents: any = {
     h2: ({ children }: any) => <h2 className="text-xl font-orbitron">{children}</h2>,
     h3: ({ children }: any) => <h3 className="text-lg font-orbitron">{children}</h3>,
     normal: ({ children }: any) => <p className="text-base leading-10">{children}</p>,
-    hr: () => <hr className="my-6 border-gray-200" />,
+    hr: () => <hr className="!mt-0 !mb-3 border-gray-200" />,
   },
   marks: {
     link: ({ children, value }: any) => {
