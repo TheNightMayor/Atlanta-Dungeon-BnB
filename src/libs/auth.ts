@@ -27,7 +27,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           return null;
         }
 
@@ -38,7 +38,41 @@ export const authOptions: NextAuthOptions = {
             { email: credentials.email }
           );
 
-          if (!user || !user.password) {
+          if (!user) {
+            return null;
+          }
+
+          if (credentials.token) {
+            const tokenDoc = await sanityClient.fetch(
+              `*[_type == "verification-token" && identifier == $email && token == $token][0]`,
+              { email: credentials.email, token: credentials.token }
+            );
+
+            if (!tokenDoc || !tokenDoc.expires || new Date(tokenDoc.expires).getTime() < Date.now()) {
+              return null;
+            }
+
+            if (!user.emailVerified) {
+              await sanityClient.patch(user._id).set({ emailVerified: new Date().toISOString() }).commit();
+            }
+
+            if (tokenDoc._id) {
+              await sanityClient.delete(tokenDoc._id);
+            }
+
+            return {
+              id: user._id,
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+          }
+
+          if (!credentials.password) {
+            return null;
+          }
+
+          if (!user.password) {
             return null;
           }
 

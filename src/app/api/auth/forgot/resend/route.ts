@@ -16,11 +16,7 @@ async function createTokenForEmail(email: string) {
     expires,
   });
 
-  try {
-    await sendResetEmail(email, token);
-  } catch (err) {
-    console.error('Failed to send reset email (resend):', err);
-  }
+  await sendResetEmail(email, token);
 
   return token;
 }
@@ -58,6 +54,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'If an account exists, reset instructions have been sent.', cooldown: COOLDOWN_SECONDS }, { status: 200 });
   } catch (err) {
     console.error('Resend forgot password error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

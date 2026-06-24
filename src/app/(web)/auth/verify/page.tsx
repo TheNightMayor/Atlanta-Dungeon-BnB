@@ -27,7 +27,8 @@ const VerifyPage = () => {
 
         if (res.ok) {
           setStatus('success');
-          setMessage(data.message || 'Your email has been verified. You can now sign in.');
+          setMessage(data.message || 'Your email has been verified.');
+          window.location.href = `/auth?verified=1&email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`;
         } else {
           setStatus('error');
           setMessage(data.error || 'Unable to verify your email.');

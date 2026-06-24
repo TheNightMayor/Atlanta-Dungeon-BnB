@@ -57,6 +57,12 @@ export async function POST(request: NextRequest) {
       await sendVerificationEmail(email, token);
     } catch (err) {
       console.error('Failed to send verification email:', err);
+      return NextResponse.json(
+        {
+          error: `Failed to send verification email: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(
