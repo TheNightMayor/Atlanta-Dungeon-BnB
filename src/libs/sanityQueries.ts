@@ -48,7 +48,11 @@ export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug][0] 
     type
 }`;
 
-export const getUserBookingsQuery = groq`*[_type == 'booking' && user._ref == $userId] {
+export const getUserBookingsQuery = groq`*[_type == 'booking' && (
+    user._ref == $userId ||
+    user->email == $userId ||
+    user->name == $userId
+  )] | order(checkinDate asc) {
     _id,
     hotelRoom -> {
         _id,
@@ -62,10 +66,43 @@ export const getUserBookingsQuery = groq`*[_type == 'booking' && user._ref == $u
     adults,
     children,
     totalPrice,
-    discount
+    discount,
+    discountCode,
+    status,
+    stripeSessionId,
+    stripePaymentIntentId,
+    customerEmail,
+    customerName
 }`;
 
-export const getUserDataQuery = groq`*[_type == 'user' && _id == $userId][0] {
+export const getBookingByIdQuery = groq`*[_type == 'booking' && _id == $bookingId][0] {
+    _id,
+    hotelRoom -> {
+        _id,
+        name,
+        slug,
+        price
+    },
+    checkinDate,
+    checkoutDate,
+    numberOfDays,
+    adults,
+    children,
+    totalPrice,
+    discount,
+    discountCode,
+    status,
+    stripeSessionId,
+    stripePaymentIntentId,
+    customerEmail,
+    customerName
+}`;
+
+export const getUserDataQuery = groq`*[_type == 'user' && (
+    _id == $userId ||
+    email == $userId ||
+    name == $userId
+  )][0] {
     _id,
     name,
     email,

@@ -132,9 +132,13 @@ export async function POST(req: Request) {
         },
       ],
       payment_method_types: ['card'],
+      payment_intent_data: {
+        capture_method: 'manual',
+      },
+      customer_email: session.user?.email ?? undefined,
       success_url: `${origin}/users/${encodeURIComponent(
         session.user?.name ?? userId
-      )}`,
+      )}?paymentSuccess=true`,
       cancel_url: `${origin}/rooms/${encodeURIComponent(hotelRoomSlug)}`,
       metadata: {
         adults,
@@ -142,8 +146,11 @@ export async function POST(req: Request) {
         checkoutDate: formattedCheckoutDate,
         children,
         hotelRoom: room._id,
+        hotelRoomName: room.name,
         numberOfDays,
         user: userId,
+        userEmail: session.user?.email ?? '',
+        customerName: session.user?.name ?? '',
         discount,
         discountCode: discountId ?? null,
         discountPerNight: discountId ? String(appliedDiscountPerNight) : '0',

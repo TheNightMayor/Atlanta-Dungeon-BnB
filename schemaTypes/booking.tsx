@@ -63,6 +63,38 @@ const booking = {
             type: "number",
             validation: Rule =>Rule.required().min(0),
         }),
+        defineField({
+            name: "status",
+            title: "Booking status",
+            type: "string",
+            initialValue: "pending approval",
+            options: {
+                list: [
+                    { title: "Pending approval", value: "pending approval" },
+                    { title: "Approved", value: "approved" },
+                    { title: "Rejected", value: "rejected" },
+                ],
+            },
+            validation: Rule => Rule.required(),
+        }),
+        defineField({
+            name: "stripePaymentIntentId",
+            title: "Stripe Payment Intent ID",
+            type: "string",
+            hidden: true,
+        }),
+        defineField({
+            name: "stripeSessionId",
+            title: "Stripe Session ID",
+            type: "string",
+            hidden: true,
+        }),
+        defineField({
+            name: "customerEmail",
+            title: "Customer Email",
+            type: "string",
+            hidden: true,
+        }),
     ],
     preview: {
         select: {

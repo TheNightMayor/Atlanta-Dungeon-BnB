@@ -89,4 +89,156 @@ export async function sendContactNotificationEmail(
   });
 }
 
+export async function sendBookingConfirmationEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Your booking is confirmed',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>Your booking for <strong>${roomName}</strong> has been approved and confirmed.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>We look forward to welcoming you.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/users">View your bookings</a></p>`,
+  });
+}
+
+export async function sendBookingApprovedEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Booking approved successfully!',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>Great news! Your booking for <strong>${roomName}</strong> has been approved successfully.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>Thanks for booking with us. We look forward to seeing you soon.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/users">View your bookings</a></p>`,
+  });
+}
+
+export async function sendBookingPendingEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Booking pending approval',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>Your booking request for <strong>${roomName}</strong> has been received.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>We will notify you when an admin approves your booking.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/users">View your bookings</a></p>`,
+  });
+}
+
+export async function sendPaymentConfirmationEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Payment received successfully',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>We received your payment for <strong>${roomName}</strong>.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total paid:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>Your booking is now pending approval and you will receive another email once approved.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/users">View your bookings</a></p>`,
+  });
+}
+
+export async function sendBookingApprovalRequestEmail(
+  to: string,
+  roomName: string,
+  userName: string | undefined,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  customerEmail: string
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'New booking waiting for approval',
+    html: `<p>Admin,</p>
+           <p>A new booking request has been received for <strong>${roomName}</strong>.</p>
+           <p><strong>Guest:</strong> ${userName ?? 'Guest'}</p>
+           <p><strong>Email:</strong> ${customerEmail}</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/studio">Review in Sanity Studio</a></p>`,
+  });
+}
+
+export async function sendBookingRejectionEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Booking request declined',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>Unfortunately your booking request for <strong>${roomName}</strong> has been declined.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>If you have questions, please contact us.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/contact">Contact us</a></p>`,
+  });
+}
+
 export default sendResetEmail;

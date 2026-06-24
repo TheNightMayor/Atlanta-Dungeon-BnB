@@ -31,13 +31,17 @@ export const createBooking = async ({
   adults,
   checkinDate,
   checkoutDate,
-  children,
   discount,
   hotelRoom,
   numberOfDays,
   totalPrice,
   user,
   discountCode,
+  status = 'pending approval',
+  stripePaymentIntentId,
+  stripeSessionId,
+  customerEmail,
+  customerName,
 }: CreateBookingDto) => {
   const mutation = {
     mutations: [
@@ -50,10 +54,50 @@ export const createBooking = async ({
           checkoutDate,
           numberOfDays,
           adults,
-          children,
           totalPrice,
           discount,
+          status,
           ...(discountCode ? { discountCode: { _type: 'reference', _ref: discountCode } } : {}),
+          ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
+          ...(stripeSessionId ? { stripeSessionId } : {}),
+          ...(customerEmail ? { customerEmail } : {}),
+          ...(customerName ? { customerName } : {}),
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const getBookingById = async (bookingId: string) => {
+  const result = await sanityClient.fetch(
+    queries.getBookingByIdQuery,
+    { bookingId },
+    { cache: 'no-cache' }
+  );
+
+  return result;
+};
+
+export const updateBookingStatus = async (
+  bookingId: string,
+  status: 'pending' | 'approved' | 'rejected'
+) => {
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            status,
+          },
         },
       },
     ],

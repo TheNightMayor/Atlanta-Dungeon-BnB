@@ -14,4 +14,9 @@ export type Booking = {
     totalPrice: number;
     discount: number;
     discountCode?: string | null;
+    status?: 'pending approval' | 'approved' | 'rejected';
+    stripePaymentIntentId?: string;
+    stripeSessionId?: string;
+    customerEmail?: string;
+    customerName?: string;
   };

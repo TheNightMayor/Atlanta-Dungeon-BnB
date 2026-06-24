@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-import { createBooking, updateHotelRoom } from "@/libs/apis";
+import { createBooking } from '@/libs/apis';
+import { sendBookingPendingEmail, sendBookingPaymentConfirmationEmail, sendBookingApprovalRequestEmail } from '@/libs/email';
 
 const checkout_session_completed = "checkout.session.completed";
 
@@ -27,51 +28,73 @@ export async function POST(req: Request) {
   // load our event
   switch (event.type) {
     case checkout_session_completed:
-      const session = event.data.object;
-      const {
-        metadata: {
-          // @ts-expect-error metadata
-          adults,
-          // @ts-expect-error metadata
+      {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const metadata = session.metadata as Record<string, string | undefined> | undefined;
+
+        const adults = metadata?.adults ?? '0';
+        const checkinDate = metadata?.checkinDate ?? '';
+        const checkoutDate = metadata?.checkoutDate ?? checkinDate;
+        const hotelRoom = metadata?.hotelRoom ?? '';
+        const numberOfDays = metadata?.numberOfDays ?? '1';
+        const user = metadata?.user ?? '';
+        const discount = metadata?.discount ?? '0';
+        const totalPrice = metadata?.totalPrice ?? '0';
+        const discountCode = metadata?.discountCode ?? null;
+        const customerName = metadata?.customerName ?? session.customer_details?.name;
+
+        const stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
+        const stripeSessionId = session.id;
+        const customerEmail = session.customer_email ?? undefined;
+        const roomName = metadata?.hotelRoomName;
+
+        await createBooking({
+          adults: Number(adults),
           checkinDate,
-          // @ts-expect-error metadata
           checkoutDate,
-          // @ts-expect-error metadata
-          children,
-          // @ts-expect-error metadata
+          children: Number(children),
           hotelRoom,
-          // @ts-expect-error metadata
-          numberOfDays,
-          // @ts-expect-error metadata
-          user,
-          // @ts-expect-error metadata
-          discount,
-          // @ts-expect-error metadata
-          totalPrice,
-          // @ts-expect-error metadata
+          numberOfDays: Number(numberOfDays),
+          discount: Number(discount),
+          totalPrice: Number(totalPrice),
           discountCode,
-        },
-      } = session;
+          user,
+          status: 'pending approval',
+          stripePaymentIntentId,
+          stripeSessionId,
+          customerEmail,
+          customerName,
+        });
 
-      await createBooking({
-        adults: Number(adults),
-        checkinDate,
-        checkoutDate,
-        children: Number(children),
-        hotelRoom,
-        numberOfDays: Number(numberOfDays),
-        discount: Number(discount),
-        totalPrice: Number(totalPrice),
-        discountCode: discountCode ?? null,
-        user,
-      });
-      
-      //   Update hotel Room
-      await updateHotelRoom(hotelRoom);
+        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.RESEND_FROM || 'admin@example.com';
 
-      return NextResponse.json("Booking Successful", {
+        if (adminEmail && roomName && customerEmail) {
+          await sendBookingApprovalRequestEmail(
+            adminEmail,
+            roomName,
+            customerName,
+            checkinDate,
+            checkoutDate,
+            Number(totalPrice),
+            customerEmail
+          );
+        }
+
+        if (customerEmail && roomName) {
+          await sendPaymentConfirmationEmail(
+            customerEmail,
+            roomName,
+            checkinDate,
+            checkoutDate,
+            Number(totalPrice),
+            customerName
+          );
+        }
+      }
+
+      return NextResponse.json('Booking pending admin approval', {
         status: 200,
-        statusText: "Booking successful",
+        statusText: 'Booking pending admin approval',
       });
 
     default:

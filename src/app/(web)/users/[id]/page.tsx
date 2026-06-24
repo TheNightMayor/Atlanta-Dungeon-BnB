@@ -5,6 +5,7 @@ import { FaSignOutAlt } from 'react-icons/fa';
 import Image from 'next/image';
 import axios from 'axios';
 import { signOut, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { getUserBookings } from '@/libs/apis';
 import LoadingSpinner from '../../loading';
@@ -17,10 +18,13 @@ import BackDrop from '@/components/BackDrop/BackDrop';
 import ProfileProgress from '@/components/ProfileProgress/ProfileProgress';
 import toast from 'react-hot-toast';
 import { User } from '@/models/user';
+import { Booking } from '@/models/booking';
 
 const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const { data: session } = useSession();
   const { id: userId } = use(props.params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [currentNav, setCurrentNav] = useState<
     'bookings' | 'amount' | 'ratings'
@@ -106,6 +110,14 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     setSelectedIdImagePreview(file ? URL.createObjectURL(file) : null);
   };
 
+  useEffect(() => {
+    if (searchParams?.get('paymentSuccess') === 'true') {
+      toast.success('Payment successful! Your booking is pending approval.');
+      const cleanUrl = window.location.pathname;
+      router.replace(cleanUrl);
+    }
+  }, [router, searchParams]);
+
   const uploadProfileImage = async () => {
     if (!selectedProfileImage) return;
 
@@ -162,13 +174,24 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     data: userBookings,
     error,
     isLoading,
-  } = useSWR('/api/userbooking', fetchUserBooking);
+  } = useSWR<Booking[]>('/api/userbooking', fetchUserBooking);
 
   const {
     data: userData,
     isLoading: loadingUserData,
     error: errorGettingUserData,
   } = useSWR('/api/users', fetchUserData);
+
+  const upcomingBookings = (userBookings ?? [])
+    .map((booking) => ({
+      ...booking,
+      checkinDateOnly: booking.checkinDate?.split('T')[0] ?? booking.checkinDate,
+    }))
+    .filter((booking) => {
+      const todayString = new Date().toISOString().split('T')[0];
+      return booking.checkinDateOnly >= todayString;
+    })
+    .sort((a, b) => a.checkinDateOnly.localeCompare(b.checkinDateOnly));
 
   if (error || errorGettingUserData) throw new Error('Cannot fetch data');
   if (typeof userBookings === 'undefined' && !isLoading)
@@ -212,7 +235,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     <div className='container mx-auto px-2 md:px-4 pt-2 md:pt-2 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
       <div className='flex flex-col-reverse md:flex-row items-start md:items-stretch justify-between mb-10'>
         <div className='flex flex-col md:w-1/4 w-full h-full'>
-          <div className='md:flex md:flex-col md:items-center top-10 bg-white text-[#1e1e1e] dark:bg-black dark:text-white rounded-lg py-8 border-2 border-gray-200 dark:border-tertiary-dark'>
+          <div className='md:flex md:flex-col md:items-center top-10 bg-white text-[#1e1e1e] dark:bg-black dark:text-white rounded-lg py-8 border-2 border-tertiary-dark'>
             <div className='py-4 flex items-center justify-center'>
               <h5 className='text-2xl font-bold mr-3'>Hello, {userData.name}</h5>
             </div>
@@ -320,13 +343,83 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
             <p className='ml-2 font-medium'>Sign out</p>
           </button>
         </div>
-        <div className='md:ml-6 container md:border-2 border-tertiary-dark rounded-lg items-start justify-start w-full md:w-3/4 p-2 h-full'>
+        <div className='md:ml-6 container rounded-lg items-start justify-start w-full md:w-3/4 p-2 h-full'>
+          <section className='p-4 bg-white dark:bg-black border-2 border-tertiary-dark rounded-lg shadow-sm'>
             <ProfileProgress
               createdAt={userData._createdAt}
               profileImageUploaded={Boolean(userData.imageUrl || userData.image)}
               idUploaded={Boolean(userData.idDocumentUrl || userData.idDocument)}
               idVerified={Boolean(userData.idVerified)}
             />
+          </section>
+
+          <section className='mt-6 p-4 bg-white dark:bg-black border-2 border-tertiary-dark rounded-lg shadow-sm'>
+            <div className='flex items-center justify-between mb-4'>
+              <div>
+                <p className='text-sm text-gray-500 dark:text-gray-300'>Upcoming booking</p>
+                <h2 className='text-xl font-semibold'>Next stay</h2>
+              </div>
+              <span className='text-xs uppercase tracking-wide text-tertiary-dark'>
+                {upcomingBookings.length} booked
+              </span>
+            </div>
+
+            {upcomingBookings.length === 0 ? (
+              <p className='text-sm text-gray-600 dark:text-gray-300'>
+                No upcoming bookings yet.
+              </p>
+            ) : (
+              <div className='space-y-4'>
+                {upcomingBookings.slice(0, 2).map((booking) => {
+                  const status = booking.status ?? 'pending approval';
+                  const statusClass =
+                    status === 'approved'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : status === 'rejected'
+                      ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                      : 'bg-tertiary-light text-white dark:bg-[#2c2734] dark:text-white border border-tertiary-dark';
+
+                  return (
+                    <div key={booking._id} className='rounded-2xl border-2 border-tertiary-dark p-4 bg-gray-50 dark:bg-slate-950'>
+                      <div className='flex items-start justify-between gap-4'>
+                        <div>
+                          <p className='text-sm text-gray-500 dark:text-gray-400'>Room</p>
+                          <p className='text-base font-semibold text-gray-900 dark:text-white'>
+                            {booking.hotelRoom.name}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                      </div>
+                      {status === 'pending approval' ? (
+                        <p className='mt-3 text-sm text-tertiary-dark dark:text-tertiary-light'>
+                          Payment pending booking approval, can take up to 24 hours.
+                        </p>
+                      ) : null}
+                      <div className='mt-3 grid gap-2 sm:grid-cols-2'>
+                        <div>
+                          <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-in</p>
+                          <p className='text-sm text-gray-900 dark:text-white'>
+                            {new Date(booking.checkinDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-out</p>
+                          <p className='text-sm text-gray-900 dark:text-white'>
+                            {new Date(booking.checkoutDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className='mt-4 flex items-center justify-between'>
+                        <p className='text-sm font-medium text-tertiary-dark'>${booking.totalPrice}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </div>
