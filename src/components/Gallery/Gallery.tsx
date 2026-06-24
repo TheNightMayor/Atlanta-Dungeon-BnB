@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { getRooms } from '@/libs/apis';
 import { Room } from '@/models/room';
 
@@ -10,6 +10,7 @@ const Gallery = () => {
   const [loading, setLoading] = useState(true);
   const [modalIndex, setModalIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -77,10 +78,11 @@ const Gallery = () => {
   // Determine how many tiles fit on one row given min tile size = 25vh
   useEffect(() => {
     const updateVisible = () => {
-      const vw = window.innerWidth;
+      const containerWidth = containerRef.current?.clientWidth ?? window.innerWidth;
       const vh = window.innerHeight;
       const minTile = vh * 0.25; // 25vh in px
-      const count = Math.max(1, Math.floor(vw / minTile));
+      const gap = 16; // same as gap-4
+      const count = Math.max(1, Math.floor((containerWidth + gap) / (minTile + gap)));
       setVisibleCount(count);
     };
 
@@ -110,10 +112,10 @@ const Gallery = () => {
 
   return (
     <div className='bg-white dark:bg-black px-4 py-4 min-h-[25vh] w-full relative'>
-      <div className='w-full'>
+      <div ref={containerRef} className='w-full overflow-x-auto'>
         <div
           className='grid gap-4'
-          style={{ gridTemplateColumns: `repeat(${Math.max(1, displayedCount)}, minmax(25vh, 1fr))` }}
+          style={{ gridAutoFlow: 'column', gridAutoColumns: 'minmax(min(25vh, 100%), 1fr)' }}
         >
           {visibleImages.map((img) => (
             <button

@@ -6,8 +6,8 @@ const Footer = () => {
     return (
         <footer>
 
-            <div className="py-14 font-orbitron bg-gradient-to-t  from-tertiary-light from-50% via-white  dark:via-black via-90% to-transparent w-full bottom-0 left-0 text-white " >
-                <h4 className="justify-self-center text-white">Contact Us</h4>
+            <div className="py-8 font-orbitron bg-gradient-to-t  from-tertiary-light from-50% via-white  dark:via-black via-90% to-transparent w-full bottom-0 left-0 text-white " >
+                <h4 className="justify-self-center text-white pt-14">Contact Us</h4>
                 <div className="flex md:flex-row flex-wrap items-center justify-evenly text-sm md:text-base gap-2 py-2 text-white">
                     <Link
                         href='/contact'
