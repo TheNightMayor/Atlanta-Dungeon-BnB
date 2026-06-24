@@ -243,6 +243,7 @@ const RoomDetails = () => {
                             setNoOfChildren={setNoOfChildren}
                             overnight={room.overnight ?? true}
                             instantBook={room.instantBook}
+                            roomId={room._id}
                             roomName={room.name}
                             handleBookNowClick={handleBookNowClick}
                         />

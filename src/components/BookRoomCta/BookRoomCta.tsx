@@ -24,6 +24,7 @@ type Props = {
     flatFee: number;
     overnight?: boolean;
     instantBook: boolean;
+    roomId: string;
     roomName?: string;
     handleBookNowClick: (discountCode?: string | null) => void
 }
@@ -44,6 +45,7 @@ const BookRoomCta: FC<Props> = props => {
         // noOfChildren,
         // setNoOfChildren,
         instantBook,
+        roomId,
         roomName,
         handleBookNowClick
     } = props;
@@ -60,6 +62,17 @@ const BookRoomCta: FC<Props> = props => {
     const [isOver18, setIsOver18] = useState(false);
     const [isLiabilityLoading, setIsLiabilityLoading] = useState(true);
     const [blockedDates, setBlockedDates] = useState<Date[]>([]);
+    const [bookedDates, setBookedDates] = useState<Date[]>([]);
+
+    const getDateRange = (startDate: Date, endDate: Date) => {
+        const dates: Date[] = [];
+        const current = new Date(startDate);
+        while (current <= endDate) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    };
 
     useEffect(() => {
         const fetchLiability = async () => {
@@ -98,8 +111,30 @@ const BookRoomCta: FC<Props> = props => {
                 console.error('Failed to load blocked dates', err);
             }
         }
+
+        async function fetchRoomBookings() {
+            try {
+                const res = await fetch(`/api/room-bookings/${roomId}`);
+                if (!res.ok) return;
+                const bookings: { checkinDate: string; checkoutDate: string }[] = await res.json();
+                const dates: Date[] = [];
+
+                bookings.forEach((booking) => {
+                    const start = new Date(booking.checkinDate);
+                    const end = new Date(booking.checkoutDate);
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
+                    getDateRange(start, end).forEach((d) => dates.push(d));
+                });
+
+                setBookedDates(dates);
+            } catch (err) {
+                console.error('Failed to load room bookings', err);
+            }
+        }
+
         fetchBlocked();
-    }, []);
+        fetchRoomBookings();
+    }, [roomId]);
 
     useEffect(() => {
         document.body.style.overflow = isLiabilityModalOpen ? 'hidden' : '';
@@ -153,7 +188,7 @@ const BookRoomCta: FC<Props> = props => {
                         onChange={date => setCheckinDate(date)}
                         dateFormat={"MM/dd/yyyy"}
                         minDate={new Date()}
-                        excludeDates={blockedDates}
+                        excludeDates={[...blockedDates, ...bookedDates]}
                         id="check-in-date"
                         className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
                 </div>
@@ -170,7 +205,7 @@ const BookRoomCta: FC<Props> = props => {
                             dateFormat={"MM/dd/yyyy"}
                             disabled={!checkinDate}
                             minDate={calcMinCheckoutDate()}
-                            excludeDates={blockedDates}
+                            excludeDates={[...blockedDates, ...bookedDates]}
                             id="check-out-date"
                             className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
                     </div>
