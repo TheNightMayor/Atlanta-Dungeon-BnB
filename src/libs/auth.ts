@@ -27,7 +27,8 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email) {
+        const { email, password, token } = credentials as { email?: string; password?: string; token?: string };
+        if (!email) {
           return null;
         }
 
@@ -35,17 +36,17 @@ export const authOptions: NextAuthOptions = {
           // Check if user exists in Sanity
           const user = await sanityClient.fetch(
             `*[_type == "user" && email == $email][0]`,
-            { email: credentials.email }
+            { email }
           );
 
           if (!user) {
             return null;
           }
 
-          if (credentials.token) {
+          if (token) {
             const tokenDoc = await sanityClient.fetch(
               `*[_type == "verification-token" && identifier == $email && token == $token][0]`,
-              { email: credentials.email, token: credentials.token }
+              { email, token }
             );
 
             if (!tokenDoc || !tokenDoc.expires || new Date(tokenDoc.expires).getTime() < Date.now()) {
@@ -68,7 +69,7 @@ export const authOptions: NextAuthOptions = {
             };
           }
 
-          if (!credentials.password) {
+          if (!password) {
             return null;
           }
 

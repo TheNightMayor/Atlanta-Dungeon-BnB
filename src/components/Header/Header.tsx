@@ -134,11 +134,11 @@ const Header = () => {
                     </Link>
                   )}
                 </li>
-                <li className='ml-2'>
+                <li className='ml-2 flex items-center'>
                   {darkTheme ? (
                     <button
                       type='button'
-                      className='text-2xl text-white focus:outline-none'
+                      className='flex h-10 w-10 items-center justify-center rounded-full text-2xl text-white focus:outline-none'
                       onClick={() => {
                         setDarkTheme(false);
                         localStorage.removeItem('hotel-theme');
@@ -150,7 +150,7 @@ const Header = () => {
                   ) : (
                     <button
                       type='button'
-                      className='text-2xl text-white focus:outline-none'
+                      className='flex h-10 w-10 items-center justify-center rounded-full text-2xl text-white focus:outline-none'
                       onClick={() => {
                         setDarkTheme(true);
                         localStorage.setItem('hotel-theme', 'true');
