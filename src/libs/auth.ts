@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           if (token) {
             const tokenDoc = await sanityClient.fetch(
               `*[_type == "verification-token" && identifier == $email && token == $token][0]`,
-              { email, token }
+              { email, token } as { email: string; token: string }
             );
 
             if (!tokenDoc || !tokenDoc.expires || new Date(tokenDoc.expires).getTime() < Date.now()) {
