@@ -44,9 +44,10 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (token) {
+            const tokenParams: Record<string, string> = { email, token };
             const tokenDoc = await sanityClient.fetch(
               `*[_type == "verification-token" && identifier == $email && token == $token][0]`,
-              { email, token } as { email: string; token: string }
+              tokenParams
             );
 
             if (!tokenDoc || !tokenDoc.expires || new Date(tokenDoc.expires).getTime() < Date.now()) {
@@ -78,7 +79,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Verify password
-          const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+          const isValidPassword = await bcrypt.compare(password, user.password);
 
           if (!isValidPassword) {
             return null;
