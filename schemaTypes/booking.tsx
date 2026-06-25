@@ -95,6 +95,12 @@ const booking = {
             type: "string",
             hidden: true,
         }),
+        defineField({
+            name: "customerName",
+            title: "Customer Name",
+            type: "string",
+            hidden: true,
+        }),
     ],
     preview: {
         select: {

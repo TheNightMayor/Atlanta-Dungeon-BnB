@@ -41,8 +41,8 @@ export async function PATCH(
     }
 
     const paymentIntentId = booking.stripePaymentIntentId;
-    const customerEmail = booking.customerEmail;
-    const customerName = booking.customerName;
+    const customerEmail = booking.customerEmail ?? booking.user?.email;
+    const customerName = booking.customerName ?? booking.user?.name;
     const roomName = booking.hotelRoom?.name;
     const checkinDate = booking.checkinDate;
     const checkoutDate = booking.checkoutDate;

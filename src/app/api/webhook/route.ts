@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
         const stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
         const stripeSessionId = session.id;
-        const customerEmail = session.customer_email ?? undefined;
+        const customerEmail = session.customer_email ?? metadata?.userEmail ?? undefined;
         const roomName = metadata?.hotelRoomName;
 
         await createBooking({
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
         const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.RESEND_FROM || 'admin@example.com';
 
-        if (adminEmail && roomName && customerEmail) {
+        if (adminEmail && roomName) {
           await sendBookingApprovalRequestEmail(
             adminEmail,
             roomName,
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
             checkinDate,
             checkoutDate,
             Number(totalPrice),
-            customerEmail
+            customerEmail ?? ''
           );
         }
 

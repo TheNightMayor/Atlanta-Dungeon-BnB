@@ -86,6 +86,7 @@ export const getBookingByIdQuery = groq`*[_type == 'booking' && _id == $bookingI
     checkoutDate,
     numberOfDays,
     adults,
+    user-> { _id, name, email },
     totalPrice,
     discount,
     discountCode,

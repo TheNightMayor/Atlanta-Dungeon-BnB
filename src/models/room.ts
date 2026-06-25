@@ -61,5 +61,4 @@ export type CreateBookingDto = {
   stripePaymentIntentId?: string;
   stripeSessionId?: string;
   customerEmail?: string;
-  customerName?: string;
 };
