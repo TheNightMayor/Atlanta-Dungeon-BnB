@@ -5,10 +5,23 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { getRoom } from '@/libs/apis';
 import sanityClient from '@/libs/sanity';
+import getImageUrl from '@/libs/imageUrl';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',
 });
+
+// Diagnostic: log masked prefix so we can confirm which key the running process sees (never log full key)
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('STRIPE_SECRET_KEY is not set in the runtime environment');
+} else {
+  try {
+    const k = process.env.STRIPE_SECRET_KEY as string;
+    console.debug('STRIPE key prefix:', k.substring(0, Math.min(8, k.length)));
+  } catch (e) {
+    // ignore
+  }
+}
 
 type RequestData = {
   checkinDate: string;
@@ -23,7 +36,8 @@ type RequestData = {
 };
 
 export async function POST(req: Request) {
-  const {
+  const rawBody = await req.json();
+  let {
     checkinDate,
     adults,
     checkoutDate,
@@ -33,18 +47,27 @@ export async function POST(req: Request) {
     flatFee,
     discount,
     discountCode,
-  }: RequestData = await req.json();
+  } = rawBody as any;
 
-  if (
-    !checkinDate ||
-    (numberOfDays > 1 && !checkoutDate) ||
-    adults == null ||
-    !hotelRoomSlug ||
-    numberOfDays == null ||
-    price == null ||
-    flatFee == null
-  ) {
-    return new NextResponse('Please all required fields are provided', { status: 400 });
+  // Coerce numeric fields and default numberOfDays to 1 for single-day stays
+  adults = adults == null ? NaN : Number(adults);
+  numberOfDays = numberOfDays == null ? 1 : Number(numberOfDays);
+  price = price == null ? NaN : Number(price);
+  flatFee = flatFee == null ? NaN : Number(flatFee);
+  discount = discount == null ? 0 : Number(discount);
+
+  // Validate required fields more strictly
+  const missing: string[] = [];
+  if (!checkinDate) missing.push('checkinDate');
+  if (numberOfDays > 1 && !checkoutDate) missing.push('checkoutDate');
+  if (!Number.isFinite(adults)) missing.push('adults');
+  if (!hotelRoomSlug) missing.push('hotelRoomSlug');
+  if (!Number.isFinite(numberOfDays)) missing.push('numberOfDays');
+  if (!Number.isFinite(price)) missing.push('price');
+  if (!Number.isFinite(flatFee)) missing.push('flatFee');
+
+  if (missing.length > 0) {
+    return NextResponse.json({ error: 'Missing or invalid fields', missing }, { status: 400 });
   }
 
   const originHeader = req.headers.get('origin');
@@ -64,6 +87,20 @@ export async function POST(req: Request) {
 
   try {
     const room = await getRoom(hotelRoomSlug);
+
+    // Build safe image list: convert Sanity refs to CDN URLs and remove falsy/empty values
+    const isNonEmptyUrl = (u: any): u is string => typeof u === 'string' && u.trim() !== '' && /^https?:\/\//.test(u);
+
+    const imageUrls: string[] = Array.isArray(room?.images)
+      ? room.images.map((img: any) => getImageUrl(img)).filter(isNonEmptyUrl)
+      : [];
+
+    if (imageUrls.length === 0 && room?.coverImage) {
+      const cover = getImageUrl(room.coverImage);
+      if (isNonEmptyUrl(cover)) imageUrls.push(cover);
+    }
+
+    // calculate totals
 
     // handle optional discount code validation and calculation
     let appliedDiscountPerNight = 0; // dollars
@@ -113,6 +150,9 @@ export async function POST(req: Request) {
     const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
     const calculatedTotal = subtotal + extraGuestCharge + flatFee;
 
+    // Stripe expects integer cents and a non-negative amount
+    const unit_amount = Math.max(0, Math.round(Number(calculatedTotal ?? 0) * 100));
+
     // Create a stripe payment
     const stripeSession = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -123,9 +163,9 @@ export async function POST(req: Request) {
             currency: 'usd',
             product_data: {
               name: room.name,
-              images: room.images.map(image => image.url),
+              ...(imageUrls.length ? { images: imageUrls } : {}),
             },
-            unit_amount: Math.round(calculatedTotal * 100),
+            unit_amount,
           },
         },
       ],
@@ -161,7 +201,7 @@ export async function POST(req: Request) {
     });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error('Payment failed', error);
-    return new NextResponse(error, { status: 500 });
+    console.error('Payment failed', error?.message ?? error);
+    return NextResponse.json({ error: error?.message ?? 'Payment failed' }, { status: 500 });
   }
 }

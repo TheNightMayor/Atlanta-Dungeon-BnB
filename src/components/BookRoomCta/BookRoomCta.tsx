@@ -1,5 +1,6 @@
-'use client'
+ 'use client'
 import Link from "next/link";
+import { useSession } from 'next-auth/react';
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import DatePicker from "react-datepicker"
 import { MdCancel } from "react-icons/md";
@@ -163,6 +164,9 @@ const BookRoomCta: FC<Props> = props => {
         return noOfDays;
     }
 
+    const { data: session } = useSession();
+    const isAuthenticated = !!session?.user?.name;
+
     const isBookNowDisabled = !instantBook || !checkinDate || (overnight && !checkoutDate) || adults < 1;
 
     return (
@@ -276,13 +280,23 @@ const BookRoomCta: FC<Props> = props => {
                     );
                 })()
             ) : (
-                <button
-                    onClick={() => setIsLiabilityModalOpen(true)}
-                    disabled={isBookNowDisabled}
-                    aria-disabled={isBookNowDisabled}
-                    className={`flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-not-allowed justify-center whitespace-nowrap ${!isBookNowDisabled ? 'hover:scale-110' : ''}`}>
-                    Book Now
-                </button>
+                !isAuthenticated ? (
+                    <Link
+                        href="/auth"
+                        className={`flex btn-primary w-full mt-6 justify-center whitespace-nowrap`}
+                        aria-label="log in to book"
+                    >
+                        log in to book
+                    </Link>
+                ) : (
+                    <button
+                        onClick={() => setIsLiabilityModalOpen(true)}
+                        disabled={isBookNowDisabled}
+                        aria-disabled={isBookNowDisabled}
+                        className={`flex btn-primary w-full mt-6 disabled:bg-gray-500 disabled:cursor-not-allowed justify-center whitespace-nowrap ${!isBookNowDisabled ? 'hover:scale-110' : ''}`}>
+                        Book Now
+                    </button>
+                )
             )}
 
             {isLiabilityModalOpen && (
