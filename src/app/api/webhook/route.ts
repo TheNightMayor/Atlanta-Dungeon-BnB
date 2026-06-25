@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { createBooking } from '@/libs/apis';
-import { sendBookingPendingEmail, sendBookingPaymentConfirmationEmail, sendBookingApprovalRequestEmail } from '@/libs/email';
+import { sendBookingPendingEmail, sendPaymentConfirmationEmail, sendBookingApprovalRequestEmail } from '@/libs/email';
 
 const checkout_session_completed = "checkout.session.completed";
 
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         const discount = metadata?.discount ?? '0';
         const totalPrice = metadata?.totalPrice ?? '0';
         const discountCode = metadata?.discountCode ?? null;
-        const customerName = metadata?.customerName ?? session.customer_details?.name;
+        const customerName = (metadata?.customerName ?? session.customer_details?.name) ?? undefined;
 
         const stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
         const stripeSessionId = session.id;
@@ -52,7 +52,6 @@ export async function POST(req: Request) {
           adults: Number(adults),
           checkinDate,
           checkoutDate,
-          children: Number(children),
           hotelRoom,
           numberOfDays: Number(numberOfDays),
           discount: Number(discount),

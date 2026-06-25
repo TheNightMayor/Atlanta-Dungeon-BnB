@@ -14,7 +14,6 @@ type RequestData = {
   checkinDate: string;
   checkoutDate: string;
   adults: number;
-  children: number;
   numberOfDays: number;
   hotelRoomSlug: string;
   price: number;
@@ -28,7 +27,6 @@ export async function POST(req: Request) {
     checkinDate,
     adults,
     checkoutDate,
-    children,
     hotelRoomSlug,
     numberOfDays,
     price,
@@ -144,7 +142,6 @@ export async function POST(req: Request) {
         adults,
         checkinDate: formattedCheckinDate,
         checkoutDate: formattedCheckoutDate,
-        children,
         hotelRoom: room._id,
         hotelRoomName: room.name,
         numberOfDays,

@@ -53,7 +53,6 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
           checkoutDate,
           numberOfDays,
           adults,
-          children,
           totalPrice,
           discount,
           hotelRoom->{
@@ -787,7 +786,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                               {booking.checkinDate} → {booking.checkoutDate}
                             </div>
                             <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '4px' }}>
-                              {booking.adults} adults {booking.children > 0 ? `+ ${booking.children} children` : ''}
+                              {booking.adults} adults
                             </div>
                             <div style={{ fontWeight: '600', color: isDarkMode ? '#4ade80' : '#28a745', fontSize: '13px' }}>
                               ${booking.totalPrice}
@@ -831,7 +830,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                           {booking.checkinDate} → {booking.checkoutDate}
                         </div>
                         <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '4px' }}>
-                          {booking.adults} adults {booking.children > 0 ? `+ ${booking.children} children` : ''}
+                          {booking.adults} adults
                         </div>
                         <div style={{ fontWeight: '600', color: isDarkMode ? '#4ade80' : '#28a745', fontSize: '13px' }}>
                           ${booking.totalPrice}

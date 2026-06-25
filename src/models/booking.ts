@@ -10,7 +10,6 @@ export type Booking = {
     checkoutDate: string;
     numberOfDays: number;
     adults: number;
-    children: number;
     totalPrice: number;
     discount: number;
     discountCode?: string | null;

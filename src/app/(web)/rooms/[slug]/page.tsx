@@ -69,7 +69,6 @@ const RoomDetails = () => {
     const [checkinDate, setCheckinDate] = useState<Date | null>(null);
     const [checkoutDate, setCheckoutDate] = useState<Date | null>(null);
     const [adults, setAdults] = useState(1);
-    const [noOfChildren, setNoOfChildren] = useState(0);
 
     const fetchRoom = async (url: string) => {
         const res = await fetch(url);
@@ -126,11 +125,10 @@ const RoomDetails = () => {
         const stripe = await getStripe();
 
         try {
-            const { data: stripeSession } = await axios.post('/api/stripe', {
+                const { data: stripeSession } = await axios.post('/api/stripe', {
                 checkinDate,
                 checkoutDate,
                 adults,
-                children: noOfChildren,
                 numberOfDays,
                 hotelRoomSlug,
                 price: room.price,
@@ -188,8 +186,7 @@ const RoomDetails = () => {
                                     calcMinCheckoutDate={calcMinCheckoutDate}
                                     adults={adults}
                                     setAdults={setAdults}
-                                    noOfChildren={noOfChildren}
-                                    setNoOfChildren={setNoOfChildren}
+                                    
                                     overnight={room.overnight ?? true}
                                     instantBook={room.instantBook}
                                     roomId={room._id}
@@ -240,8 +237,6 @@ const RoomDetails = () => {
                             calcMinCheckoutDate={calcMinCheckoutDate}
                             adults={adults}
                             setAdults={setAdults}
-                            noOfChildren={noOfChildren}
-                            setNoOfChildren={setNoOfChildren}
                             overnight={room.overnight ?? true}
                             instantBook={room.instantBook}
                             roomId={room._id}

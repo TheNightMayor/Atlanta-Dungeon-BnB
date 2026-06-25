@@ -14,12 +14,11 @@ type Props = {
     checkoutDate: Date | null;
     setCheckoutDate: Dispatch<SetStateAction<Date | null>>;
     setAdults: Dispatch<SetStateAction<number>>;
-    setNoOfChildren: Dispatch<SetStateAction<number>>;
     calcMinCheckoutDate: () => Date | undefined;
     price: number;
     discount: number;
     adults: number;
-    noOfChildren: number;
+    
     specialNote: string;
     flatFee: number;
     overnight?: boolean;
