@@ -45,9 +45,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   useEffect(() => {
     if (!client) return;
 
-    async function fetchBookings() {
+        async function fetchBookings() {
       try {
-        const query = `*[_type == "booking"] | order(checkinDate asc) {
+        const query = `*[_type == "booking" && status != "rejected" && status != "deleted"] | order(checkinDate asc) {
           _id,
           checkinDate,
           checkoutDate,

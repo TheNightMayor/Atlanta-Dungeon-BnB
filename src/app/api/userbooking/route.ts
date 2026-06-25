@@ -6,7 +6,7 @@ import { getUserBookings } from '@/libs/apis';
 export async function GET() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.name) {
+  if (!session?.user?.id && !session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 401 });
   }
 

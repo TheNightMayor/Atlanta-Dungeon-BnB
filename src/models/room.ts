@@ -57,7 +57,14 @@ export type CreateBookingDto = {
   totalPrice: number;
   discount: number;
   discountCode?: string | null;
-  status?: 'pending approval' | 'approved' | 'rejected';
+  status?:
+    | 'pending approval'
+    | 'approved'
+    | 'rejected'
+    | 'cancelled'
+    | 'refunded'
+    | 'partially_refunded'
+    | 'deleted';
   stripePaymentIntentId?: string;
   stripeSessionId?: string;
   customerEmail?: string;

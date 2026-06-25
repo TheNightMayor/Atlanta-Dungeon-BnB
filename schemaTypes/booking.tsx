@@ -1,6 +1,8 @@
+import React from 'react';
 import { Any } from "next-sanity";
 import { FaCalendarCheck } from "react-icons/fa";
 import { defineField } from "sanity";
+import ApproveBookingButton from '../studio/inputs/ApproveBookingButton';
 // import { PreviewProps } from "sanity";
 
 
@@ -64,18 +66,55 @@ const booking = {
             validation: Rule =>Rule.required().min(0),
         }),
         defineField({
+            name: 'amountPaid',
+            title: 'Amount Paid',
+            type: 'number',
+            readOnly: true,
+            hidden: true,
+        }),
+        defineField({
+            name: 'paymentReceivedAt',
+            title: 'Payment Received At',
+            type: 'datetime',
+            readOnly: true,
+            hidden: true,
+        }),
+        defineField({
+            name: 'refundedAmount',
+            title: 'Refunded Amount',
+            type: 'number',
+            readOnly: true,
+            hidden: true,
+        }),
+        defineField({
+            name: 'refundedAt',
+            title: 'Refunded At',
+            type: 'datetime',
+            readOnly: true,
+            hidden: true,
+        }),
+        defineField({
             name: "status",
             title: "Booking status",
             type: "string",
             initialValue: "pending approval",
+            readOnly: true,
+            hidden: true,
             options: {
                 list: [
                     { title: "Pending approval", value: "pending approval" },
                     { title: "Approved", value: "approved" },
-                    { title: "Rejected", value: "rejected" },
+                        { title: "Rejected", value: "rejected" },
+                        { title: "Cancelled", value: "cancelled" },
                 ],
             },
             validation: Rule => Rule.required(),
+        }),
+        defineField({
+            name: 'studioApprove',
+            title: 'Approval',
+            type: 'string',
+            components: { input: ApproveBookingButton },
         }),
         defineField({
             name: "stripePaymentIntentId",
@@ -107,15 +146,32 @@ const booking = {
             checkinDate: 'checkinDate',
             checkoutDate: 'checkoutDate',
             user: 'user.name',
-            hotelRoom: 'hotelRoom.coverImage.image',
+            status: 'status',
             type: 'hotelRoom.type',
         },
         prepare(value: Record<string, any>) {
-            const { user, checkinDate, checkoutDate, hotelRoom, type } = value;
+            const { user, checkinDate, checkoutDate, hotelRoomImageUrl, hotelRoomImageAssetUrl, type, status } = value;
+
+            // Small React component that renders a colored status dot for preview (no photo).
+            const StatusDot = ({ status }: { status?: string }) => {
+                const colorMap: Record<string, string> = {
+                    approved: '#16a34a',
+                    'pending approval': '#f59e0b',
+                    rejected: '#dc2626',
+                    cancelled: '#ef4444',
+                    refunded: '#0ea5e9',
+                    deleted: '#6b7280',
+                };
+                const bg = status ? colorMap[status] ?? '#9ca3af' : '#9ca3af';
+                return (
+                    <div style={{ width: 22, height: 22, borderRadius: 9999, background: bg, boxShadow: '0 0 0 2px rgba(255,255,255,0.8)' }} />
+                );
+            };
+
             return {
                 title: `${checkinDate} - ${checkoutDate}`,
-                subtitle: `${user ? user : 'unknown'} - ${type ? type : 'unknown'}`,
-                media: hotelRoom,
+                subtitle: `${user ? user : 'unknown'} — ${type ? type : 'unknown'}`,
+                media: <StatusDot status={status} />,
             };
         }
     }

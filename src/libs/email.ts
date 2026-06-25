@@ -241,4 +241,54 @@ export async function sendBookingRejectionEmail(
   });
 }
 
+export async function sendBookingCancellationEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Booking cancelled',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>Your booking for <strong>${roomName}</strong> has been cancelled.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>If you have questions, please contact us.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/contact">Contact us</a></p>`,
+  });
+}
+
+export async function sendBookingRefundEmail(
+  to: string,
+  roomName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName: string | undefined
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Your refund has been processed',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>We have processed a refund for your booking for <strong>${roomName}</strong>.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Amount refunded:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>If you have questions, please contact us.</p>
+           <p><a href="${appUrl.replace(/\/$/, '')}/contact">Contact us</a></p>`,
+  });
+}
+
 export default sendResetEmail;

@@ -13,9 +13,22 @@ export type Booking = {
     totalPrice: number;
     discount: number;
     discountCode?: string | null;
-    status?: 'pending approval' | 'approved' | 'rejected';
+    status?:
+      | 'pending approval'
+      | 'approved'
+      | 'rejected'
+      | 'cancelled'
+      | 'refunded'
+      | 'partially_refunded'
+      | 'deleted';
     stripePaymentIntentId?: string;
     stripeSessionId?: string;
     customerEmail?: string;
     customerName?: string;
+    amountPaid?: number;
+    paymentReceivedAt?: string;
+    refundedAmount?: number;
+    refundedAt?: string;
+    deletedAt?: string;
+    deletedBy?: string;
   };

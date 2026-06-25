@@ -49,10 +49,13 @@ export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug][0] 
 }`;
 
 export const getUserBookingsQuery = groq`*[_type == 'booking' && (
-    user._ref == $userId ||
-    user->email == $userId ||
-    user->name == $userId
-  )] | order(checkinDate asc) {
+        user._ref == $userId ||
+        user._id == $userId ||
+        user->email == $userId ||
+        user.email == $userId ||
+        user->name == $userId ||
+        user.name == $userId
+    ) && status != "deleted"] | order(checkinDate asc) {
     _id,
     hotelRoom -> {
         _id,
@@ -67,6 +70,12 @@ export const getUserBookingsQuery = groq`*[_type == 'booking' && (
     totalPrice,
     discount,
     discountCode,
+    amountPaid,
+    paymentReceivedAt,
+    refundedAmount,
+    refundedAt,
+    deletedAt,
+    deletedBy,
     status,
     stripeSessionId,
     stripePaymentIntentId,
@@ -88,6 +97,12 @@ export const getBookingByIdQuery = groq`*[_type == 'booking' && _id == $bookingI
     adults,
     user-> { _id, name, email },
     totalPrice,
+    amountPaid,
+    paymentReceivedAt,
+    refundedAmount,
+    refundedAt,
+    deletedAt,
+    deletedBy,
     discount,
     discountCode,
     status,
@@ -134,7 +149,7 @@ export const getRandomReviewsQuery = groq`*[_type == "review"] {
         hotelRoom-> {_id, name, slug}
 }`;
 
-export const getRoomBookingsQuery = groq`*[_type == "booking" && hotelRoom._ref == $roomId] {
+export const getRoomBookingsQuery = groq`*[_type == "booking" && hotelRoom._ref == $roomId && status != "rejected" && status != "deleted" && status != "cancelled" && status != "refunded"] {
     _createdAt,
     _id,
     hotelRoom -> {

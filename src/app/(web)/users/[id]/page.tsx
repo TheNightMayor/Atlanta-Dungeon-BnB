@@ -176,6 +176,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     isLoading,
   } = useSWR<Booking[]>('/api/userbooking', fetchUserBooking);
 
+
   const {
     data: userData,
     isLoading: loadingUserData,
@@ -185,13 +186,26 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const upcomingBookings = (userBookings ?? [])
     .map((booking) => ({
       ...booking,
-      checkinDateOnly: booking.checkinDate?.split('T')[0] ?? booking.checkinDate,
+      // parse YYYY-MM-DD as local date to avoid UTC parsing shifts
+      checkinDateObj: booking.checkinDate
+        ? (() => {
+            const datePart = booking.checkinDate.split('T')[0];
+            const [y, m, d] = datePart.split('-').map((s) => Number(s));
+            return new Date(y, m - 1, d);
+          })()
+        : null,
     }))
     .filter((booking) => {
-      const todayString = new Date().toISOString().split('T')[0];
-      return booking.checkinDateOnly >= todayString;
+      if (!booking.checkinDateObj) return false;
+      const checkin = new Date(booking.checkinDateObj);
+      checkin.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return checkin >= today;
     })
-    .sort((a, b) => a.checkinDateOnly.localeCompare(b.checkinDateOnly));
+    .sort((a, b) => a.checkinDateObj!.toISOString().localeCompare(b.checkinDateObj!.toISOString()));
+
+  
 
   if (error || errorGettingUserData) throw new Error('Cannot fetch data');
   if (typeof userBookings === 'undefined' && !isLoading)

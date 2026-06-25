@@ -88,7 +88,7 @@ export const getBookingById = async (bookingId: string) => {
 
 export const updateBookingStatus = async (
   bookingId: string,
-  status: 'pending' | 'approved' | 'rejected'
+  status: string
 ) => {
   const mutation = {
     mutations: [
@@ -120,6 +120,88 @@ export const updateHotelRoom = async (hotelRoomId: string) => {
           id: hotelRoomId,
           set: {
             instantBook: false,
+          },
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const deleteBooking = async (bookingId: string, deletedBy?: string) => {
+  // Soft-delete: set status to 'deleted' and record deletion metadata.
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            status: 'deleted',
+            deletedAt: new Date().toISOString(),
+            ...(deletedBy ? { deletedBy } : {}),
+          },
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const setBookingPaymentInfo = async (
+  bookingId: string,
+  amountPaid: number,
+  paymentReceivedAt: string
+) => {
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            amountPaid,
+            paymentReceivedAt,
+          },
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const setBookingRefundInfo = async (
+  bookingId: string,
+  refundedAmount: number,
+  refundedAt: string
+) => {
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            refundedAmount,
+            refundedAt,
           },
         },
       },
