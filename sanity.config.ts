@@ -17,6 +17,16 @@ const structure = (S: any) =>
       S.listItem()
         .title('Booking Calendar').icon(FaCalendarAlt)
         .child(S.component(BookingCalendarView).title('Booking Calendar')),
+      S.listItem()
+        .title('Media')
+        .child(
+          S.list()
+            .title('Media')
+            .items([
+              S.documentTypeListItem('sanity.imageAsset').title('Images'),
+              S.documentTypeListItem('sanity.fileAsset').title('Files'),
+            ])
+        ),
       S.documentTypeListItem('booking').title('Bookings'),
       ...S.documentTypeListItems().filter(
         (item: any) => !HIDDEN_DOC_TYPES.includes(item.getId()) && item.getId() !== 'booking'
