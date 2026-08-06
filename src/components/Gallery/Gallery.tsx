@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { getRooms } from '@/libs/apis';
 import { Room } from '@/models/room';
+import getImageUrl from '@/libs/imageUrl';
 
 const Gallery = () => {
   const [allImages, setAllImages] = useState<Array<{ url: string; key: string }>>([]);
@@ -35,8 +36,9 @@ const Gallery = () => {
         // Collect images from all rooms
         rooms.forEach((room: Room) => {
           // Add cover image
-          if (room.coverImage && room.coverImage.url) {
-            images.push({ url: room.coverImage.url, key: `${room._id}-cover` });
+          const coverUrl = getImageUrl(room.coverImage);
+          if (coverUrl) {
+            images.push({ url: coverUrl, key: `${room._id}-cover` });
           }
           // Add room gallery images
           if (room.images && Array.isArray(room.images)) {
