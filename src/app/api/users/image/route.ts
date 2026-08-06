@@ -44,6 +44,22 @@ export async function POST(req: Request) {
       })
       .commit();
 
+    // Create a wrapper document to mark this as a user-uploaded image (private by default)
+    try {
+      await sanityClient.create({
+        _type: 'userImage',
+        asset: {
+          _type: 'image',
+          asset: { _type: 'reference', _ref: asset._id },
+        },
+        owner: { _type: 'reference', _ref: userId },
+        visibility: 'private',
+        note: 'Profile image upload via web',
+      });
+    } catch (err) {
+      console.warn('Failed to create userImage wrapper doc:', err);
+    }
+
     return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
     console.error('Profile image upload error:', error);

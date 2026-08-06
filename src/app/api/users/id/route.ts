@@ -44,6 +44,22 @@ export async function POST(req: Request) {
       })
       .commit();
 
+    // Create a wrapper document for the uploaded ID document and keep it private
+    try {
+      await sanityClient.create({
+        _type: 'userImage',
+        asset: {
+          _type: 'image',
+          asset: { _type: 'reference', _ref: asset._id },
+        },
+        owner: { _type: 'reference', _ref: userId },
+        visibility: 'private',
+        note: 'ID document upload via web',
+      });
+    } catch (err) {
+      console.warn('Failed to create userImage wrapper doc for ID document:', err);
+    }
+
     return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
     console.error('ID document upload error:', error);
