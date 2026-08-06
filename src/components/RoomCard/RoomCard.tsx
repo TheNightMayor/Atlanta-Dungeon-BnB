@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PortableText } from "next-sanity";
 import { portableTextComponents } from '@/libs/portableTextComponents';
+import getImageUrl from '@/libs/imageUrl';
 
 type Props = {
     room: Room;
@@ -14,17 +15,23 @@ const RoomCard: FC<Props> = props => {
         room: { coverImage, name, price, type, description, slug, instantBook },
     } = props;
 
+    const baseUrl = getImageUrl(coverImage) || (coverImage && (coverImage as any).url) || '/images/default-room.jpg';
+    const assetRef = (coverImage as any)?.assetRef || (coverImage as any)?.image?.asset?._ref || (props as any)?.room?._updatedAt;
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    const src = assetRef ? `${baseUrl}${sep}v=${encodeURIComponent(String(assetRef))}` : baseUrl;
+
     return (
         <Link
             href={`/rooms/${slug.current}`}
             className='block border-2 border-tertiary-dark rounded-xl w-full max-w-screen-sm my-3 md:my-4 mx-auto md:mx-2 overflow-hidden text-black'>
             <div className='h-40 md:h-60 overflow-hidden m-3 rounded-xl'>
                 <Image
-                    src={coverImage.url}
+                    src={src}
                     alt={name}
                     width={250}
                     height={250}
                     className="img scale-animation"
+                    loading="eager"
                 />
             </div>
             <div className="p-3 bg-white dark:bg-black dark:text-gray-100">

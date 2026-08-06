@@ -1,11 +1,13 @@
 import { groq } from "next-sanity";
 
 export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == true] {
-    _id, 
+    _id,
+    _updatedAt,
         coverImage {
             "url": coalesce(image.asset->url, url),
             image,
-            url
+            url,
+            "assetRef": image.asset._ref
         },
         description,
         discount,
@@ -25,10 +27,12 @@ export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == tr
 
 export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug][0] {
     _id,
+    _updatedAt,
         coverImage {
             "url": coalesce(image.asset->url, url),
             image,
-            url
+            url,
+            "assetRef": image.asset._ref
         },
         description,
         discount,
