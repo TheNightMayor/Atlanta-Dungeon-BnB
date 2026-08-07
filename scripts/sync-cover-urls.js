@@ -9,13 +9,10 @@ const client = sanityClient({
 });
 
 async function syncAll() {
-  const docs = await client.fetch(`*[_type == "hotelRoom"]{_id, slug, coverImage{image{asset-> { _id, url }}, url}}`);
+  const docs = await client.fetch(`*[_type == "hotelRoom"]{_id, slug, coverImage{image{asset-> { _id, url }}}}`);
   for (const d of docs) {
     const assetUrl = d?.coverImage?.image?.asset?.url;
-    if (assetUrl && d.coverImage?.url !== assetUrl) {
-      console.log('Patching', d._id, '->', assetUrl);
-      await client.patch(d._id).set({ 'coverImage.url': assetUrl }).commit({ autoGenerateArrayKeys: true });
-    }
+    console.log(`${d._id} (${d.slug?.current ?? d.slug ?? 'no-slug'}) => ${assetUrl || 'NO_ASSET_URL'}`);
   }
   console.log('Done');
 }

@@ -7,7 +7,8 @@ import { Room } from '@/models/room';
 import getImageUrl from '@/libs/imageUrl';
 
 const Gallery = () => {
-  const [allImages, setAllImages] = useState<Array<{ url: string; key: string }>>([]);
+  type GalleryImage = { url: string; key: string; isCover: boolean };
+  const [allImages, setAllImages] = useState<Array<GalleryImage>>([]);
   const [loading, setLoading] = useState(true);
   const [modalIndex, setModalIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(0);
@@ -27,24 +28,55 @@ const Gallery = () => {
     };
   }, [modalIndex]);
 
+  const normalizeImageUrl = (url: string) => {
+    const normalized = url?.trim();
+    if (!normalized) return normalized;
+
+    try {
+      const parsed = new URL(normalized, 'http://localhost');
+      parsed.hash = '';
+      parsed.search = '';
+      const pathname = parsed.pathname.replace(/\/+$|^\/+/, '/');
+      return `${parsed.protocol}//${parsed.host}${pathname}`;
+    } catch {
+      return normalized;
+    }
+  };
+
+  const getDedupKey = (url: string, imageObj: any) => {
+    const ref = imageObj?.image?.asset?._ref || imageObj?.asset?._ref || imageObj?._ref;
+    if (ref) return ref;
+    return normalizeImageUrl(url);
+  };
+
   useEffect(() => {
     async function fetchRoomImages() {
       try {
         const rooms = await getRooms();
-        const images: Array<{ url: string; key: string }> = [];
+        const images: Array<GalleryImage> = [];
+        const seenKeys = new Set<string>();
+
+        const addImage = (url: string, key: string, isCover: boolean, imageObj: any) => {
+          if (!url) return;
+          const dedupKey = getDedupKey(url, imageObj);
+          if (seenKeys.has(dedupKey)) return;
+          seenKeys.add(dedupKey);
+          images.push({ url, key, isCover });
+        };
 
         // Collect images from all rooms
         rooms.forEach((room: Room) => {
-          // Add cover image
+          // Add cover image first so it can be favored later
           const coverUrl = getImageUrl(room.coverImage);
           if (coverUrl) {
-            images.push({ url: coverUrl, key: `${room._id}-cover` });
+            addImage(coverUrl, `${room._id}-cover`, true, room.coverImage);
           }
           // Add room gallery images
           if (room.images && Array.isArray(room.images)) {
             room.images.forEach((img, idx) => {
-              if (img && img.url) {
-                images.push({ url: img.url, key: `${room._id}-${idx}` });
+              const imageUrl = getImageUrl(img);
+              if (imageUrl) {
+                addImage(imageUrl, `${room._id}-${idx}`, false, img);
               }
             });
           }
@@ -61,9 +93,12 @@ const Gallery = () => {
     fetchRoomImages();
   }, []);
 
-  // Shuffle images; we'll show as many as fit while keeping min tile size
+  // Shuffle images and bias cover images upward in the order
   const randomImages = useMemo(() => {
     if (allImages.length === 0) return [];
+
+    const coverImages = allImages.filter(img => img.isCover);
+    const otherImages = allImages.filter(img => !img.isCover);
 
     const shuffleArray = (array: typeof allImages) => {
       const shuffled = [...array];
@@ -74,7 +109,11 @@ const Gallery = () => {
       return shuffled;
     };
 
-    return shuffleArray(allImages);
+    const shuffledCoverImages = shuffleArray(coverImages);
+    const shuffledOtherImages = shuffleArray(otherImages);
+
+    // Put cover images first, but still keep the rest randomized.
+    return [...shuffledCoverImages, ...shuffledOtherImages];
   }, [allImages]);
 
   // Determine how many tiles fit on one row given min tile size = 25vh
@@ -123,7 +162,7 @@ const Gallery = () => {
             <button
               key={img.key}
               type="button"
-              className='relative w-full aspect-square overflow-hidden rounded-3xl bg-gray-100 dark:bg-gray-900 shadow-sm hover:shadow-md transition focus:outline-none'
+              className={`relative w-full aspect-square overflow-hidden rounded-3xl shadow-sm hover:shadow-md transition focus:outline-none ${img.isCover ? 'bg-white dark:bg-gray-800 border-2 border-primary' : 'bg-gray-100 dark:bg-gray-900'}`}
               onClick={() => setModalIndex(allImages.findIndex(i => i.key === img.key))}
               aria-label={`Open gallery image ${img.key}`}
             >

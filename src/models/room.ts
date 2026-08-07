@@ -1,7 +1,9 @@
 import { Any } from "next-sanity";
 
 type CoverImage = {
-  url: string;
+  image?: any;
+  url?: string;
+  assetRef?: string;
 };
 
 export type Image = {
