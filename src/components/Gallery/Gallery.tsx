@@ -162,7 +162,7 @@ const Gallery = () => {
             <button
               key={img.key}
               type="button"
-              className={`relative w-full aspect-square overflow-hidden rounded-3xl shadow-sm hover:shadow-md transition focus:outline-none ${img.isCover ? 'bg-white dark:bg-gray-800 border-2 border-primary' : 'bg-gray-100 dark:bg-gray-900'}`}
+              className="relative w-full aspect-square overflow-hidden rounded-3xl shadow-sm hover:shadow-md transition focus:outline-none bg-white dark:bg-gray-800 border-2 border-primary"
               onClick={() => setModalIndex(allImages.findIndex(i => i.key === img.key))}
               aria-label={`Open gallery image ${img.key}`}
             >
