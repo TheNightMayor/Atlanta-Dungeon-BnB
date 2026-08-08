@@ -96,7 +96,7 @@ export default function CombinedReviewsRotator({ reviews }: { reviews: Review[] 
     <section className="container mx-auto my-8">
       <div className="card-border p-6">
         <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
-        <div className="mx-auto max-w-3xl relative h-auto">
+        <div className="mx-auto max-w-3xl relative h-auto overflow-hidden">
           <div style={frontStyle} className="p-6 border rounded-lg bg-white dark:bg-black">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm font-medium">{front.user?.name || 'Guest'}</div>
