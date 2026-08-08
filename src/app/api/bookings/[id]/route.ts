@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/libs/auth';
 import { getBookingById, updateBookingStatus } from '@/libs/apis';
 import { getUserData } from '@/libs/apis';
+import { getSessionUserId } from '@/libs/session';
 import { sendBookingApprovedEmail, sendBookingConfirmationEmail, sendBookingRejectionEmail, sendBookingCancellationEmail, sendBookingRefundEmail } from '@/libs/email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -206,11 +207,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const userId = getSessionUserId(session);
+  if (!userId) {
     return new NextResponse('Authentication required', { status: 401 });
   }
 
-  const userId = (session.user as any).id ?? session.user.name;
   const userData = await getUserData(userId);
   if (!userData?.isAdmin) {
     return new NextResponse('Admin access required', { status: 403 });

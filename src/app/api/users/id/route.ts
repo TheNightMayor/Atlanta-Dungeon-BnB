@@ -2,16 +2,16 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 import { authOptions } from '@/libs/auth';
+import { getSessionUserId } from '@/libs/session';
 import sanityClient from '@/libs/sanity';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
+  const userId = getSessionUserId(session);
 
-  if (!session?.user?.id) {
+  if (!userId) {
     return new NextResponse('Authentication Required', { status: 401 });
   }
-
-  const userId = (session.user as any).id ?? session.user.name;
   const formData = await req.formData();
   const imageFile = formData.get('idDocument');
 

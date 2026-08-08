@@ -35,6 +35,7 @@ export const metadata = {
 };
 
 const Home = async () => {
+  // Load CMS-managed front page content and a small random review sample for the homepage.
   const frontInfo = await getInfoPageByTitle('Front Page');
   const reviews = await getRandomReviews(6);
   const schema = [

@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 import { authOptions } from '@/libs/auth';
+import { getSessionUserId } from '@/libs/session';
 import {
   checkReviewExists,
   createReview,
@@ -11,12 +12,10 @@ import {
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
-  
-  if (!session?.user?.name) {
+  const userId = getSessionUserId(session);
+  if (!userId) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
-
-  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const data = await getUserData(userId);
@@ -28,8 +27,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-
-  if (!session?.user?.name) {
+  const userId = getSessionUserId(session);
+  if (!userId) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
 
@@ -38,8 +37,6 @@ export async function POST(req: Request) {
   if (!roomId || !reviewText || !ratingValue) {
     return new NextResponse('All fields are required', { status: 400 });
   }
-
-  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const alreadyExists = await checkReviewExists(userId, roomId);

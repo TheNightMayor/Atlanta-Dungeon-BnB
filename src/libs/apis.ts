@@ -1,3 +1,5 @@
+// Thin abstraction layer over Sanity queries and mutations.
+// Read operations use the shared client and `next-sanity` fetch helpers, while writes use Axios for direct mutation requests.
 import { CreateReviewDto, Review } from './../models/review';
 import axios from 'axios';
 
@@ -17,7 +19,11 @@ export async function getRooms() {
   return result;
 }
 
-export async function getRoom(slug: string) {
+export async function getRoom(slug?: string | null) {
+  if (!slug || typeof slug !== 'string') {
+    return null;
+  }
+
   const result = await sanityClient.fetch<Room>(
     queries.getRoom,
     { slug },
@@ -137,6 +143,7 @@ export const updateHotelRoom = async (hotelRoomId: string) => {
 
 export const deleteBooking = async (bookingId: string, deletedBy?: string) => {
   // Soft-delete: set status to 'deleted' and record deletion metadata.
+  // This preserves the booking record for audit history and avoids permanent data loss.
   const mutation = {
     mutations: [
       {
@@ -371,7 +378,8 @@ export async function getRandomReviews(limit = 5) {
 
   if (!Array.isArray(result) || result.length === 0) return [];
   const n = Math.min(limit, result.length);
-  // Fisher-Yates shuffle to pick n random items without modifying original
+  // Shuffle the result locally so the UI can display a random subset without needing a custom backend query.
+  // This keeps the query simple and avoids complexity for a small review sample.
   const items = result.slice();
   for (let i = items.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

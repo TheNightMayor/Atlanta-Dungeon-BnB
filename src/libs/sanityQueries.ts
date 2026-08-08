@@ -1,3 +1,5 @@
+// GROQ queries shared across the app. Keep these centralized so the same fields and filters are used consistently.
+// Queries should remain light and only return the fields the UI actually needs.
 import { groq } from "next-sanity";
 
 export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == true] {
@@ -48,6 +50,8 @@ export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug][0] 
     type
 }`;
 
+// Uses broad user matching for backend workflows where the caller may provide an id, email, or name.
+// Always filter out soft-deleted bookings so the user only sees active and archived records.
 export const getUserBookingsQuery = groq`*[_type == 'booking' && (
         user._ref == $userId ||
         user._id == $userId ||
@@ -149,6 +153,7 @@ export const getRandomReviewsQuery = groq`*[_type == "review"] {
         hotelRoom-> {_id, name, slug}
 }`;
 
+// Room availability lookup. Ignore bookings that are not relevant to availability, such as rejected, deleted, cancelled, or refunded records.
 export const getRoomBookingsQuery = groq`*[_type == "booking" && hotelRoom._ref == $roomId && status != "rejected" && status != "deleted" && status != "cancelled" && status != "refunded"] {
     _createdAt,
     _id,

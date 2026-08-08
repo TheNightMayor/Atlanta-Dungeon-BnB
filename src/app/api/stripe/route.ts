@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { getRoom } from '@/libs/apis';
 import sanityClient from '@/libs/sanity';
 import getImageUrl from '@/libs/imageUrl';
+import { getSessionUserId } from '@/libs/session';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',
@@ -77,11 +78,11 @@ export async function POST(req: Request) {
       : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const session = await getServerSession(authOptions);
+  const userId = getSessionUserId(session);
 
-  if (!session?.user?.name) {
+  if (!userId) {
     return new NextResponse('Authentication Required', { status: 400 });
   }
-  const userId = (session.user as any).id ?? session.user.name;
   const formattedCheckinDate = checkinDate.split('T')[0];
   const formattedCheckoutDate = checkoutDate ? checkoutDate.split('T')[0] : formattedCheckinDate;
 

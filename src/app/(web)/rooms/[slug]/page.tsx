@@ -3,8 +3,9 @@ import { getRoom } from '@/libs/apis';
 import { getRoomSchema, getRoomUrl, siteUrl } from '@/libs/seo';
 import RoomDetailsClient from '@/components/RoomDetails/RoomDetailsClient';
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const room = await getRoom(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug?: string }> }) {
+  const resolvedParams = await params;
+  const room = await getRoom(resolvedParams.slug ?? null);
 
   if (!room) {
     return {
@@ -47,8 +48,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-const RoomPage = async ({ params }: { params: { slug: string } }) => {
-  const room = await getRoom(params.slug);
+const RoomPage = async ({ params }: { params: Promise<{ slug?: string }> }) => {
+  const resolvedParams = await params;
+  const room = await getRoom(resolvedParams.slug ?? null);
   if (!room) notFound();
 
   return (
