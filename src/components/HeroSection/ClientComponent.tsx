@@ -8,7 +8,7 @@ const ClientComponent: FC = _props => {
     const [videoFailed, setVideoFailed] = useState(false)
     const videoRef = useRef<HTMLVideoElement | null>(null)
 
-    const textColorClass = videoFailed ? 'text-black' : 'text-white'
+    const textColorClass = videoFailed ? 'text-black dark:text-white' : 'text-white'
 
     const setPlaybackRate = () => {
         if (videoRef.current) {
