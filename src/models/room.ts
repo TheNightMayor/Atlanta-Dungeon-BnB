@@ -1,5 +1,9 @@
+import { Any } from "next-sanity";
+
 type CoverImage = {
-  url: string;
+  image?: any;
+  url?: string;
+  assetRef?: string;
 };
 
 export type Image = {
@@ -18,17 +22,26 @@ type Slug = {
   current: string;
 };
 
+export type PortableTextBlock = {
+  _key: string;
+  _type: 'block';
+  children: Array<{ _key: string; _type: string; text: string }>;
+  markDefs: any[];
+  style: string;
+};
+
 export type Room = {
+  bookedDates: Any[];
   _id: string;
   coverImage: CoverImage;
-  description: string;
-  dimension: string;
+  description: PortableTextBlock[];
   discount: number;
   images: Image[];
-  isBooked: boolean;
-  isFeatured: boolean;
+  flatFee?: number;
+  overnight?: boolean;
+  instantBook: boolean;
   name: string;
-  numberOfBeds: number;
+  
   offeredAmenities: Amenity[];
   price: number;
   slug: Slug;
@@ -43,7 +56,19 @@ export type CreateBookingDto = {
   checkoutDate: string;
   numberOfDays: number;
   adults: number;
-  children: number;
   totalPrice: number;
   discount: number;
+  discountCode?: string | null;
+  status?:
+    | 'pending approval'
+    | 'approved'
+    | 'rejected'
+    | 'cancelled'
+    | 'refunded'
+    | 'partially_refunded'
+    | 'deleted';
+  stripePaymentIntentId?: string;
+  stripeSessionId?: string;
+  customerEmail?: string;
+  customerName?: string;
 };

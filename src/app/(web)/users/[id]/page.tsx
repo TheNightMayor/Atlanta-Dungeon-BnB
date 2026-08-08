@@ -1,27 +1,30 @@
 'use client';
 
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { FaSignOutAlt } from 'react-icons/fa';
 import Image from 'next/image';
 import axios from 'axios';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { getUserBookings } from '@/libs/apis';
 import LoadingSpinner from '../../loading';
-import { useState } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
+import { use } from 'react';
 import { BsJournalBookmarkFill } from 'react-icons/bs';
-import { GiMoneyStack } from 'react-icons/gi';
 import Table from '@/components/Table/Table';
-import Chart from '@/components/Chart/Chart';
 import RatingModal from '@/components/RatingModal/RatingModal';
 import BackDrop from '@/components/BackDrop/BackDrop';
+import ProfileProgress from '@/components/ProfileProgress/ProfileProgress';
 import toast from 'react-hot-toast';
 import { User } from '@/models/user';
+import { Booking } from '@/models/booking';
 
-const UserDetails = (props: { params: { id: string } }) => {
-  const {
-    params: { id: userId },
-  } = props;
+const UserDetails = (props: { params: Promise<{ id: string }> }) => {
+  const { data: session } = useSession();
+  const { id: userId } = use(props.params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [currentNav, setCurrentNav] = useState<
     'bookings' | 'amount' | 'ratings'
@@ -31,6 +34,14 @@ const UserDetails = (props: { params: { id: string } }) => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [ratingValue, setRatingValue] = useState<number | null>(0);
   const [ratingText, setRatingText] = useState('');
+  const [selectedProfileImage, setSelectedProfileImage] = useState<File | null>(null);
+  const [selectedProfileImagePreview, setSelectedProfileImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [selectedIdImage, setSelectedIdImage] = useState<File | null>(null);
+  const [selectedIdImagePreview, setSelectedIdImagePreview] = useState<string | null>(null);
+  const [isUploadingId, setIsUploadingId] = useState(false);
+  const profileInputRef = useRef<HTMLInputElement | null>(null);
+  const idInputRef = useRef<HTMLInputElement | null>(null);
 
   const toggleRatingModal = () => setIsRatingVisible(prevState => !prevState);
 
@@ -43,18 +54,17 @@ const UserDetails = (props: { params: { id: string } }) => {
 
     setIsSubmittingReview(true)
 
-    try {
-      const { data } = await axios.post('/api/users', {
-        reviewText: ratingText,
-        ratingValue,
-        roomId,
-      });
-      console.log(data);
-      toast.success('Review Submitted');
-    } catch (error) {
-      console.log(error);
-      toast.error('Review Failed');
-    } finally {
+      try {
+        await axios.post('/api/users', {
+          reviewText: ratingText,
+          ratingValue,
+          roomId,
+        });
+        toast.success('Review Submitted');
+      } catch (error) {
+        console.error(error);
+        toast.error('Review Failed');
+      } finally {
       setRatingText('');
       setRatingValue(null);
       setRoomId(null);
@@ -69,17 +79,133 @@ const UserDetails = (props: { params: { id: string } }) => {
     return data;
   };
 
+  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedProfileImage(file);
+    setSelectedProfileImagePreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  const handleLabelKeyDown = (e: KeyboardEvent<HTMLLabelElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const input = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement | null;
+      input?.click();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (selectedProfileImagePreview) {
+        URL.revokeObjectURL(selectedProfileImagePreview);
+      }
+      if (selectedIdImagePreview) {
+        URL.revokeObjectURL(selectedIdImagePreview);
+      }
+    };
+  }, [selectedProfileImagePreview, selectedIdImagePreview]);
+
+  const handleIdImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedIdImage(file);
+    setSelectedIdImagePreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  useEffect(() => {
+    if (searchParams?.get('paymentSuccess') === 'true') {
+      toast.success('Payment successful! Your booking is pending approval.');
+      const cleanUrl = window.location.pathname;
+      router.replace(cleanUrl);
+    }
+  }, [router, searchParams]);
+
+  const uploadProfileImage = async () => {
+    if (!selectedProfileImage) return;
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedProfileImage);
+
+      const res = await fetch('/api/users/image', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Upload failed');
+      }
+
+      await mutate('/api/users');
+      setSelectedProfileImage(null);
+      setSelectedProfileImagePreview(null);
+      toast.success('Profile image uploaded');
+    } catch (err) {
+      console.error('Upload failed', err);
+      toast.error('Failed to upload profile image');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const uploadIdDocument = async () => {
+    if (!selectedIdImage) return;
+
+    setIsUploadingId(true);
+    try {
+      const formData = new FormData();
+      formData.append('idDocument', selectedIdImage);
+
+      const res = await fetch('/api/users/id', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Upload failed');
+      }
+
+      await mutate('/api/users');
+      setSelectedIdImage(null);
+      setSelectedIdImagePreview(null);
+      toast.success('ID document uploaded');
+    } catch (err) {
+      console.error('ID upload failed', err);
+      toast.error('Failed to upload ID document');
+    } finally {
+      setIsUploadingId(false);
+    }
+  };
+
   const {
     data: userBookings,
     error,
     isLoading,
-  } = useSWR('/api/userbooking', fetchUserBooking);
+  } = useSWR<Booking[]>('/api/userbooking', fetchUserBooking);
+
 
   const {
     data: userData,
     isLoading: loadingUserData,
     error: errorGettingUserData,
   } = useSWR('/api/users', fetchUserData);
+
+  const upcomingBookings = (userBookings ?? [])
+    .map((booking) => ({
+      ...booking,
+      // parse YYYY-MM-DD as local date to avoid UTC parsing shifts
+      checkinDateObj: booking.checkinDate
+        ? (() => {
+            const datePart = booking.checkinDate.split('T')[0];
+            const [y, m, d] = datePart.split('-').map((s) => Number(s));
+            return new Date(y, m - 1, d);
+          })()
+        : null,
+    }))
+    .filter((booking) => {
+      if (!booking.checkinDateObj) return false;
+      const checkin = new Date(booking.checkinDateObj);
+      checkin.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return checkin >= today;
+    })
+    .sort((a, b) => a.checkinDateObj!.toISOString().localeCompare(b.checkinDateObj!.toISOString()));
+
+  
 
   if (error || errorGettingUserData) throw new Error('Cannot fetch data');
   if (typeof userBookings === 'undefined' && !isLoading)
@@ -91,127 +217,225 @@ const UserDetails = (props: { params: { id: string } }) => {
   if (!userData) throw new Error('Cannot fetch data');
   if (!userData) throw new Error('Cannot fetch data');
 
+  // Prefer an explicit `imageUrl` from the API, then fallback to the stored `image` value
+  const userDataImageUrl = userData.imageUrl ?? (
+    userData.image && typeof userData.image === 'string'
+      ? userData.image
+      : (userData.image as { url?: string } | null)?.url ?? null
+  );
+
+  const sessionUserImageUrl = (() => {
+    const image = session?.user?.image;
+    if (typeof image === 'string' && image.trim().length > 0) return image;
+    const imgObj = image as { url?: string } | undefined;
+    if (imgObj && typeof imgObj.url === 'string') return imgObj.url;
+    return null;
+  })();
+
+  // Prefer the API-returned imageUrl (fresh after mutate), then session image, then default
+  const profileImage = userDataImageUrl || sessionUserImageUrl || '/images/default-user.svg';
+
+  const isCurrentUser = Boolean(
+    session && (
+      session.user?.id === userId ||
+      session.user?.name === userId ||
+      (session.user?.email && userData?.email && session.user.email === userData.email)
+    )
+  );
+
+
+
   return (
-    <div className='container mx-auto px-2 md:px-4 py10'>
-      <div className='grid md:grid-cols-12 gap-10'>
-        <div className='hidden md:block md:col-span-4 lg:col-span-3 shadow-lg h-fit sticky top-10 bg-[#eff0f2] text-black rounded-lg px-6 py-4'>
-          <div className='md:w-[143px] w-28 h-28 md:h-[143px] mx-auto mb-5 rounded-full overflow-hidden'>
-            <Image
-              src={userData.image}
-              alt={userData.name}
-              width={143}
-              height={143}
-              className='img scale-animation rounded-full'
-            />
-          </div>
-          <div className='font-normal py-4 text-left'>
-            <h6 className='text-xl font-bold pb-3'>About</h6>
-            <p className='text-sm'>{userData.about ?? ''}</p>
-          </div>
-          <div className='font-normal text-left'>
-            <h6 className='text-xl font-bold pb-3'>{userData.name}</h6>
-          </div>
-          <div className='flex items-center'>
-            <p className='mr-2'>Sign Out</p>
-            <FaSignOutAlt
-              className='text-3xl cursor-pointer'
-              onClick={() => signOut({ callbackUrl: '/' })}
-            />
-          </div>
-        </div>
-
-        <div className='md:col-span-8 lg:col-span-9'>
-          <div className='flex items-center'>
-            <h5 className='text-2xl font-bold mr-3'>Hello, {userData.name}</h5>
-          </div>
-          <div className='md:hidden w-14 h-14 rounded-l-full overflow-hidden'>
-            <Image
-              className='img scale-animation rounded-full'
-              width={56}
-              height={56}
-              src={userData.image}
-              alt='User  Name'
-            />
-          </div>
-          <p className='block w-fit md:hidden text-sm py-2'>
-            {userData.about ?? ''}
-          </p>
-
-          <p className='text-xs py-2 font-medium'>
-            Joined In {userData._createdAt.split('T')[0]}
-          </p>
-          <div className='md:hidden flex items-center my-2'>
-            <p className='mr-2'>Sign out</p>
-            <FaSignOutAlt
-              className='text-3xl cursor-pointer'
-              onClick={() => signOut({ callbackUrl: '/' })}
-            />
-          </div>
-
-          <nav className='sticky top-0 px-2 w-fit mx-auto md:w-full md:px-5 py-3 mb-8 text-gray-700 border border-gray-200 rounded-lg bg-gray-50 mt-7'>
-            <ol
-              className={`${
-                currentNav === 'bookings' ? 'text-blue-600' : 'text-gray-700'
-              } inline-flex mr-1 md:mr-5 items-center space-x-1 md:space-x-3`}
-            >
-              <li
-                onClick={() => setCurrentNav('bookings')}
-                className='inline-flex items-center cursor-pointer'
-              >
-                <BsJournalBookmarkFill />
-                <a className='inline-flex items-center mx-1 md:mx-3 text-xs md:text-sm font-medium'>
-                  Current Bookings
-                </a>
-              </li>
-            </ol>
-            <ol
-              className={`${
-                currentNav === 'amount' ? 'text-blue-600' : 'text-gray-700'
-              } inline-flex mr-1 md:mr-5 items-center space-x-1 md:space-x-3`}
-            >
-              <li
-                onClick={() => setCurrentNav('amount')}
-                className='inline-flex items-center cursor-pointer'
-              >
-                <GiMoneyStack />
-                <a className='inline-flex items-center mx-1 md:mx-3 text-xs md:text-sm font-medium'>
-                  Amount Spent
-                </a>
-              </li>
-            </ol>
-          </nav>
-
-          {currentNav === 'bookings' ? (
-            userBookings && (
-              <Table
-                bookingDetails={userBookings}
-                setRoomId={setRoomId}
-                toggleRatingModal={toggleRatingModal}
+    <div className='container mx-auto px-2 md:px-4 pt-2 md:pt-2 py-10 min-h-[67vh] bg-white text-[#1e1e1e] dark:bg-black dark:text-white'>
+      <div className='flex flex-col-reverse md:flex-row items-start md:items-stretch justify-between mb-10'>
+        <div className='flex flex-col md:w-1/4 w-full h-full'>
+          <div className='md:flex md:flex-col md:items-center top-10 bg-white text-[#1e1e1e] dark:bg-black dark:text-white rounded-lg py-8 border-2 border-tertiary-dark'>
+            <div className='py-4 flex items-center justify-center'>
+              <h5 className='text-2xl font-bold mr-3'>Hello, {userData.name}</h5>
+            </div>
+            <div className='md:w-48 w-32 h-32 md:h-48 mx-auto mb-5 rounded-full overflow-hidden border-2 border-tertiary-dark'>
+              <Image
+                src={profileImage}
+                alt={userData.name}
+                width={143}
+                height={143}
+                className='img rounded-full'
               />
-            )
-          ) : (
-            <></>
-          )}
+            </div>
 
-          {currentNav === 'amount' ? (
-            userBookings && <Chart userBookings={userBookings} />
-          ) : (
-            <></>
-          )}
+            {isCurrentUser && (
+              <div className='flex flex-col items-center'>
+                {/* Hidden input triggered by the visible button */}
+                <input
+                  ref={profileInputRef}
+                  type='file'
+                  accept='image/*'
+                  className='sr-only'
+                  onChange={handleProfileImageChange}
+                  aria-hidden
+                  tabIndex={-1}
+                />
+
+                <button
+                  type='button'
+                  className='btn-tertiary-action'
+                  aria-label='Select profile image'
+                  onClick={() => profileInputRef.current?.click()}
+                >
+                  Select profile image
+                </button>
+
+                {selectedProfileImagePreview && (
+                  <div className='mx-auto mt-4 w-24 h-24 overflow-hidden rounded-full border border-gray-200 dark:border-tertiary-dark'>
+                    <img
+                      src={selectedProfileImagePreview}
+                      alt='Profile preview'
+                      className='h-full w-full object-cover'
+                    />
+                  </div>
+                )}
+
+                {selectedProfileImage && (
+                  <button
+                    type='button'
+                    onClick={uploadProfileImage}
+                    disabled={isUploadingImage}
+                    className='btn-tertiary-action mx-auto mt-4'
+                  >
+                    {isUploadingImage ? 'Uploading…' : 'Upload profile image'}
+                  </button>
+                )}
+
+                <div className='mt-6'>
+                  <input
+                    ref={idInputRef}
+                    type='file'
+                    accept='image/*'
+                    className='sr-only'
+                    onChange={handleIdImageChange}
+                    aria-hidden
+                    tabIndex={-1}
+                  />
+
+                  {selectedIdImagePreview && (
+                    <div className='mx-auto my-4 w-40 h-28 overflow-hidden rounded border border-gray-200 dark:border-tertiary-dark'>
+                      <img src={selectedIdImagePreview} alt='ID preview' className='h-full w-full object-cover' />
+                    </div>
+                  )}
+
+                  {userData.idDocumentUrl && !selectedIdImagePreview && (
+                    <div className='mx-auto mt-4 w-48 h-32 overflow-hidden rounded-lg card-border'>
+                      <img src={userData.idDocumentUrl} alt='Existing ID document' className='h-full w-full object-cover' />
+                    </div>
+                  )}
+
+                  {selectedIdImage && (
+                    <button
+                      type='button'
+                      onClick={uploadIdDocument}
+                      disabled={isUploadingId}
+                      className='my-4 rounded-full bg-secondary px-5 py-2 text-sm font-semibold text-black transition duration-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:text-white'
+                    >
+                      {isUploadingId ? 'Uploading…' : 'Upload ID Document'}
+                    </button>
+                  )}
+
+                  <button
+                    type='button'
+                    className='btn-tertiary-action mt-4'
+                    aria-label='Select ID document'
+                    onClick={() => idInputRef.current?.click()}
+                  >
+                    Select ID document
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <button type='button' className='btn-tertiary-action mt-4 flex items-center justify-center' onClick={() => signOut({ callbackUrl: '/' })}>
+            <FaSignOutAlt className='text-2xl' />
+            <p className='ml-2 font-medium'>Sign out</p>
+          </button>
+        </div>
+        <div className='md:ml-6 container rounded-lg items-start justify-start w-full md:w-3/4 p-2 h-full'>
+          <section className='p-4 bg-white dark:bg-black border-2 border-tertiary-dark rounded-lg shadow-sm'>
+            <ProfileProgress
+              createdAt={userData._createdAt}
+              profileImageUploaded={Boolean(userData.imageUrl || userData.image)}
+              idUploaded={Boolean(userData.idDocumentUrl || userData.idDocument)}
+              idVerified={Boolean(userData.idVerified)}
+            />
+          </section>
+
+          <section className='mt-6 p-4 bg-white dark:bg-black border-2 border-tertiary-dark rounded-lg shadow-sm'>
+            <div className='flex items-center justify-between mb-4'>
+              <div>
+                <p className='text-sm text-gray-500 dark:text-gray-300'>Upcoming booking</p>
+                <h2 className='text-xl font-semibold'>Next stay</h2>
+              </div>
+              <span className='text-xs uppercase tracking-wide text-tertiary-dark'>
+                {upcomingBookings.length} booked
+              </span>
+            </div>
+
+            {upcomingBookings.length === 0 ? (
+              <p className='text-sm text-gray-600 dark:text-gray-300'>
+                No upcoming bookings yet.
+              </p>
+            ) : (
+              <div className='space-y-4'>
+                {upcomingBookings.slice(0, 2).map((booking) => {
+                  const status = booking.status ?? 'pending approval';
+                  const statusClass =
+                    status === 'approved'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : status === 'rejected'
+                      ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                      : 'bg-tertiary-light text-white dark:bg-[#2c2734] dark:text-white border border-tertiary-dark';
+
+                  return (
+                    <div key={booking._id} className='rounded-2xl border-2 border-tertiary-dark p-4 bg-gray-50 dark:bg-slate-950'>
+                      <div className='flex items-start justify-between gap-4'>
+                        <div>
+                          <p className='text-sm text-gray-500 dark:text-gray-400'>Room</p>
+                          <p className='text-base font-semibold text-gray-900 dark:text-white'>
+                            {booking.hotelRoom.name}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                      </div>
+                      {status === 'pending approval' ? (
+                        <p className='mt-3 text-sm text-tertiary-dark dark:text-tertiary-light'>
+                          Payment pending booking approval, can take up to 24 hours.
+                        </p>
+                      ) : null}
+                      <div className='mt-3 grid gap-2 sm:grid-cols-2'>
+                        <div>
+                          <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-in</p>
+                          <p className='text-sm text-gray-900 dark:text-white'>
+                            {new Date(booking.checkinDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-out</p>
+                          <p className='text-sm text-gray-900 dark:text-white'>
+                            {new Date(booking.checkoutDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className='mt-4 flex items-center justify-between'>
+                        <p className='text-sm font-medium text-tertiary-dark'>${booking.totalPrice}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       </div>
-
-      <RatingModal
-        isOpen={isRatingVisible}
-        ratingValue={ratingValue}
-        setRatingValue={setRatingValue}
-        ratingText={ratingText}
-        setRatingText={setRatingText}
-        isSubmittingReview={isSubmittingReview}
-        reviewSubmitHandler={reviewSubmitHandler}
-        toggleRatingModal={toggleRatingModal}
-      />
-      <BackDrop isOpen={isRatingVisible} />
     </div>
   );
 };

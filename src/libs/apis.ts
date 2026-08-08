@@ -6,16 +6,7 @@ import sanityClient from './sanity';
 import * as queries from './sanityQueries';
 import { Booking } from '@/models/booking';
 import { UpdateReviewDto } from '@/models/review';
-
-export async function getFeaturedRoom() {
-  const result = await sanityClient.fetch<Room>(
-    queries.getFeaturedRoomQuery,
-    {},
-    { cache: 'no-cache' }
-  );
-
-  return result;
-}
+import { CreateMessageDto } from '@/models/message';
 
 export async function getRooms() {
   const result = await sanityClient.fetch<Room[]>(
@@ -40,12 +31,17 @@ export const createBooking = async ({
   adults,
   checkinDate,
   checkoutDate,
-  children,
   discount,
   hotelRoom,
   numberOfDays,
   totalPrice,
   user,
+  discountCode,
+  status = 'pending approval',
+  stripePaymentIntentId,
+  stripeSessionId,
+  customerEmail,
+  customerName,
 }: CreateBookingDto) => {
   const mutation = {
     mutations: [
@@ -58,9 +54,50 @@ export const createBooking = async ({
           checkoutDate,
           numberOfDays,
           adults,
-          children,
           totalPrice,
           discount,
+          status,
+          ...(discountCode ? { discountCode: { _type: 'reference', _ref: discountCode } } : {}),
+          ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
+          ...(stripeSessionId ? { stripeSessionId } : {}),
+          ...(customerEmail ? { customerEmail } : {}),
+          ...(customerName ? { customerName } : {}),
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const getBookingById = async (bookingId: string) => {
+  const result = await sanityClient.fetch(
+    queries.getBookingByIdQuery,
+    { bookingId },
+    { cache: 'no-cache' }
+  );
+
+  return result;
+};
+
+export const updateBookingStatus = async (
+  bookingId: string,
+  status: string
+) => {
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            status,
+          },
         },
       },
     ],
@@ -82,7 +119,89 @@ export const updateHotelRoom = async (hotelRoomId: string) => {
         patch: {
           id: hotelRoomId,
           set: {
-            isBooked: true,
+            instantBook: false,
+          },
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const deleteBooking = async (bookingId: string, deletedBy?: string) => {
+  // Soft-delete: set status to 'deleted' and record deletion metadata.
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            status: 'deleted',
+            deletedAt: new Date().toISOString(),
+            ...(deletedBy ? { deletedBy } : {}),
+          },
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const setBookingPaymentInfo = async (
+  bookingId: string,
+  amountPaid: number,
+  paymentReceivedAt: string
+) => {
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            amountPaid,
+            paymentReceivedAt,
+          },
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+
+  return data;
+};
+
+export const setBookingRefundInfo = async (
+  bookingId: string,
+  refundedAmount: number,
+  refundedAt: string
+) => {
+  const mutation = {
+    mutations: [
+      {
+        patch: {
+          id: bookingId,
+          set: {
+            refundedAmount,
+            refundedAt,
           },
         },
       },
@@ -114,6 +233,36 @@ export async function getUserData(userId: string) {
   const result = await sanityClient.fetch(
     queries.getUserDataQuery,
     { userId },
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
+export async function getInfoPage() {
+  const result = await sanityClient.fetch(
+    queries.getInfoPageQuery,
+    {},
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
+export async function getInfoPageByInternalName(internalName: string) {
+  const result = await sanityClient.fetch(
+    queries.getInfoPageByInternalNameQuery,
+    { internalName },
+    { cache: 'no-cache' }
+  );
+
+  return result;
+}
+
+export async function getInfoPageByTitle(title: string) {
+  const result = await sanityClient.fetch(
+    queries.getInfoPageByTitleQuery,
+    { title },
     { cache: 'no-cache' }
   );
 
@@ -212,3 +361,68 @@ export async function getRoomReviews(roomId: string) {
 
   return result;
 }
+
+export async function getRandomReviews(limit = 5) {
+  const result = await sanityClient.fetch(
+    queries.getRandomReviewsQuery,
+    {},
+    { cache: 'no-cache' }
+  );
+
+  if (!Array.isArray(result) || result.length === 0) return [];
+  const n = Math.min(limit, result.length);
+  // Fisher-Yates shuffle to pick n random items without modifying original
+  const items = result.slice();
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items.slice(0, n);
+}
+
+export async function getRoomBookings(roomId: string) {
+  const result = await sanityClient.fetch<Booking[]>(
+    queries.getRoomBookingsQuery,
+    {
+      roomId,
+    },
+    { cache: 'no-cache' }
+  );
+
+    return result;
+  }
+
+
+export const createMessage = async ({
+  topic,
+  text,
+  name,
+  email,
+  userId,
+}: CreateMessageDto) => {
+  const mutation = {
+    mutations: [
+      {
+        create: {
+          _type: 'message',
+          user: {
+            _type: 'reference',
+            _ref: userId,
+          },
+          topic,
+          text,
+          name,
+          email,
+        },
+      },
+    ],
+  };
+
+  const { data } = await axios.post(
+    `https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${process.env.NEXT_PUBLIC_SANITY_DATASET}`,
+    mutation,
+    { headers: { Authorization: `Bearer ${process.env.SANITY_STUDIO_TOKEN}` } }
+  );
+  return data;
+}
+

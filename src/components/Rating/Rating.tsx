@@ -1,4 +1,4 @@
-import {FC} from 'react'
+import { FC, Fragment } from 'react';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
 
 type Props = {
@@ -9,18 +9,18 @@ const Rating: FC<Props> = ({ rating }) => {
     const fullStars = Math.floor(rating);
     const decimalPart = rating - fullStars;
 
-    const fullStarElements = Array(fullStars).fill(<FaStar />);
+    const fullStarElements = Array.from({ length: fullStars }, (_, index) => (
+        <FaStar key={`full-star-${index}`} />
+    ));
 
-    let halfStarElement = null;
+    const halfStarElement = decimalPart > 0 ? <FaStarHalf key="half-star" /> : null;
 
-    if (decimalPart > 0 ) {
-        halfStarElement = <FaStarHalf />;
-    }
-  return (
-    <>
-        {fullStarElements} {halfStarElement}
-    </>
-  );
+    return (
+        <Fragment>
+            {fullStarElements}
+            {halfStarElement}
+        </Fragment>
+    );
 };
 
-export default Rating
+export default Rating;

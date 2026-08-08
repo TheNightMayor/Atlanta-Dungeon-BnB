@@ -9,14 +9,14 @@ import {
   updateReview,
 } from '@/libs/apis';
 
-export async function GET(req: Request, res: Response) {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
-
-  if (!session) {
+  
+  if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
 
-  const userId = session.user.id;
+  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const data = await getUserData(userId);
@@ -26,10 +26,10 @@ export async function GET(req: Request, res: Response) {
   }
 }
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session?.user?.name) {
     return new NextResponse('Authentication Required', { status: 500 });
   }
 
@@ -39,7 +39,7 @@ export async function POST(req: Request, res: Response) {
     return new NextResponse('All fields are required', { status: 400 });
   }
 
-  const userId = session.user.id;
+  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const alreadyExists = await checkReviewExists(userId, roomId);
@@ -64,7 +64,7 @@ export async function POST(req: Request, res: Response) {
     return NextResponse.json(data, { status: 200, statusText: 'Successful' });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.log('Error Updating', error);
+    console.error('Error Updating', error);
     return new NextResponse('Unable to create review', { status: 400 });
   }
 }

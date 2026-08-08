@@ -1,0 +1,57 @@
+import { Any } from 'next-sanity';
+import { FaPenNib } from 'react-icons/fa';
+import { defineField } from 'sanity';
+
+const review = {
+  name: 'review',
+  title: 'Review',
+  icon: FaPenNib,
+  type: 'document',
+  fields: [
+    defineField({
+      name: 'user',
+      title: 'User',
+      type: 'reference',
+      to: [{ type: 'user' }],
+      validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'hotelRoom',
+      title: 'Hotel Room',
+      type: 'reference',
+      to: [{ type: 'hotelRoom' }],
+      validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'text',
+      title: 'Review Text',
+      type: 'text',
+      validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'userRating',
+      title: 'User Rating',
+      type: 'number',
+      validation: Rule =>
+        Rule.required().min(1).max(5).error('Rating must be between 1 and 5'),
+    }),
+  ],
+  preview: {
+    select: {
+      title: 'hotelRoom.name',
+      user: 'user.name',
+      hotelRoom: 'hotelRoom.coverImage.image',
+      rating: 'userRating',
+    },
+    prepare(value: Record<string, any>) {
+      const { hotelRoom, user, title, rating } = value;
+      return {
+        title: `${user}`,
+        subtitle: `${title} - ${rating} Stars`,
+        media: hotelRoom,
+      };
+    }
+}
+};
+
+export default review;
