@@ -26,6 +26,7 @@ const ClientComponent: FC = _props => {
             <video
                 ref={videoRef}
                 autoPlay
+                playsInline
                 muted
                 loop
                 className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
