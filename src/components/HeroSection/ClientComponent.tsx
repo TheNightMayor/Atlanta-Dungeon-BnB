@@ -37,8 +37,8 @@ const ClientComponent: FC = _props => {
                 }}
                 onPlay={() => setPlaybackRate()}
             >
-                <source src="/images/hero-tour-vid.mp4" type="video/mp4" />
-                <source src="/images/hero-tour-vid.webm" type="video/webm" />
+                <source src="/images/Hero-Tour-Vid.mp4" type="video/mp4" />
+                <source src="/images/Hero-Tour-Vid.webm" type="video/webm" />
             </video>
             <div
                 className="absolute inset-0 z-10 pointer-events-none"
