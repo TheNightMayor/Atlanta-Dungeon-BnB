@@ -7,6 +7,7 @@ import Footer from "@/components/Footer/Footer";
 import ThemeProvider from "@/components/ThemeProvider/ThemeProvider";
 import { NextAuthProvider } from "@/components/AuthProvider/AuthProvider";
 import Toast from "@/components/Toast/Toast";
+import { siteUrl, siteName, siteDescription, twitterHandle } from '@/libs/seo';
 
 const exo = Exo({
   subsets: ['latin'],
@@ -23,8 +24,34 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "Dungeon Next Door",
-  description: "Prepare for an Unforgettable Experience",
+  metadataBase: siteUrl,
+  title: {
+    default: siteName,
+    template: '%s | Dungeon Next Door',
+  },
+  description: siteDescription,
+  openGraph: {
+    title: siteName,
+    description: siteDescription,
+    url: siteUrl.href,
+    siteName,
+    type: 'website',
+    images: [
+      {
+        url: `${siteUrl.origin}/images/hero-1.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'Dungeon Next Door Atlanta immersive stay',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteName,
+    description: siteDescription,
+    creator: twitterHandle,
+    images: [`${siteUrl.origin}/images/hero-1.jpg`],
+  },
 };
 
 export default function RootLayout({

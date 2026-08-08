@@ -6,7 +6,19 @@ import { PortableText } from 'next-sanity';
 import { portableTextComponents } from '@/libs/portableTextComponents';
 import Link from 'next/link';
 import FrontPageCta from "@/components/FrontPageCta/FrontPageCta";
-
+export const metadata = {
+  title: 'About Dungeon Next Door | Atlanta Themed Stays',
+  description: 'Learn more about Dungeon Next Door, our immersive Atlanta accommodations, and what makes our rooms unforgettable.',
+  openGraph: {
+    title: 'About Dungeon Next Door | Atlanta Themed Stays',
+    description: 'Learn more about Dungeon Next Door, our immersive Atlanta accommodations, and what makes our rooms unforgettable.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Dungeon Next Door | Atlanta Themed Stays',
+    description: 'Learn more about Dungeon Next Door, our immersive Atlanta accommodations, and what makes our rooms unforgettable.',
+  },
+};
 const AboutPage = async () => {
   const aboutInfo = await getInfoPageByInternalName('about');
   const reviews = await getRandomReviews(6);
