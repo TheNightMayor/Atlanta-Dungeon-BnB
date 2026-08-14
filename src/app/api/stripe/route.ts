@@ -80,7 +80,7 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userId = getSessionUserId(session);
 
-  if (!userId) {
+  if (!userId || !session?.user) {
     return new NextResponse('Authentication Required', { status: 400 });
   }
   const formattedCheckinDate = checkinDate.split('T')[0];
@@ -88,6 +88,9 @@ export async function POST(req: Request) {
 
   try {
     const room = await getRoom(hotelRoomSlug);
+    if (!room) {
+      return new NextResponse('Room not found', { status: 400 });
+    }
 
     // Build safe image list: convert Sanity refs to CDN URLs and remove falsy/empty values
     const isNonEmptyUrl = (u: any): u is string => typeof u === 'string' && u.trim() !== '' && /^https?:\/\//.test(u);
