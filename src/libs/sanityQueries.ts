@@ -2,7 +2,7 @@
 // Queries should remain light and only return the fields the UI actually needs.
 import { groq } from "next-sanity";
 
-export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == true] {
+export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == true && !(_id in path("drafts.*"))] {
     _id,
     _updatedAt,
         coverImage {
@@ -25,7 +25,7 @@ export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == tr
     type
 }`;
 
-export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug][0] {
+export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug && !(_id in path("drafts.*"))][0] {
     _id,
     _updatedAt,
         coverImage {
