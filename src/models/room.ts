@@ -46,7 +46,6 @@ export type Room = {
   price: number;
   slug: Slug;
   specialNote: string;
-  type: string;
 };
 
 export type CreateBookingDto = {

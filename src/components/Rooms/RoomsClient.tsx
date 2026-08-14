@@ -12,28 +12,16 @@ type Props = {
 };
 
 const RoomsClient = ({ rooms }: Props) => {
-  const [roomTypeFilter, setRoomTypeFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const searchQueryParam = searchParams.get('searchQuery');
-    const roomType = searchParams.get('roomType');
-
-    if (roomType) setRoomTypeFilter(roomType);
     if (searchQueryParam) setSearchQuery(searchQueryParam);
   }, [searchParams]);
 
   const filterRooms = (roomsToFilter: Room[]) => {
     return roomsToFilter.filter(room => {
-      if (
-        roomTypeFilter &&
-        roomTypeFilter.toLowerCase() !== "all" &&
-        room.type.toLowerCase() !== roomTypeFilter.toLowerCase()
-      ) {
-        return false;
-      }
-
       if (
         searchQuery &&
         !room.name.toLowerCase().includes(searchQuery.toLowerCase())

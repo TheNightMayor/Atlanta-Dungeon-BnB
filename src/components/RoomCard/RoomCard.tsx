@@ -12,7 +12,7 @@ type Props = {
 
 const RoomCard: FC<Props> = props => {
     const {
-        room: { coverImage, name, price, type, description, slug, instantBook },
+        room: { coverImage, name, price, description, slug, instantBook },
     } = props;
 
     // Normalize the room image source and keep the browser cache fresh whenever the underlying Sanity asset changes.

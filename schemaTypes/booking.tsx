@@ -147,10 +147,10 @@ const booking = {
             checkoutDate: 'checkoutDate',
             user: 'user.name',
             status: 'status',
-            type: 'hotelRoom.type',
+            hotelRoomName: 'hotelRoom.name',
         },
         prepare(value: Record<string, any>) {
-            const { user, checkinDate, checkoutDate, hotelRoomImageUrl, hotelRoomImageAssetUrl, type, status } = value;
+            const { user, checkinDate, checkoutDate, hotelRoomImageUrl, hotelRoomImageAssetUrl, hotelRoomName, status } = value;
 
             // Small React component that renders a colored status dot for preview (no photo).
             const StatusDot = ({ status }: { status?: string }) => {
@@ -170,7 +170,7 @@ const booking = {
 
             return {
                 title: `${checkinDate} - ${checkoutDate}`,
-                subtitle: `${user ? user : 'unknown'} — ${type ? type : 'unknown'}`,
+                subtitle: `${user ? user : 'unknown'} — ${hotelRoomName ? hotelRoomName : 'unknown'}`,
                 media: <StatusDot status={status} />,
             };
         }
