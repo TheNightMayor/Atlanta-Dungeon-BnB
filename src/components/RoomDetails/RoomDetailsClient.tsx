@@ -198,7 +198,7 @@ const RoomDetailsClient = ({ room }: Props) => {
             </div>
             <RulesSection />
           </div>
-          <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[160px] md:left-[60%] md:w-[20rem] lg:w-[20rem] xl:w-[20rem] self-start my-2 h-fit overflow-visible">
+          <div className="desktop-portrait-cta-hide md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[160px] md:left-[60%] md:w-[20rem] lg:w-[20rem] xl:w-[20rem] self-start my-2 h-fit overflow-visible">
             <BookRoomCta
               discount={room.discount}
               flatFee={room.flatFee ?? 0}

@@ -169,18 +169,18 @@ const Header = () => {
               }`}>
               <ul className='flex flex-col py-4'>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
-                  <Link href='/' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Home</Link>
+                  <Link href='/' className='inline-block text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Home</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
-                  <Link href='/about' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>About Us</Link>
+                  <Link href='/about' className='inline-block text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>About Us</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
-                  <Link href='/rooms' className='inline-block transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Booking</Link>
+                  <Link href='/rooms' className='inline-block text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-105' onClick={() => setIsMenuOpen(false)}>Booking</Link>
                 </li>
                 <li className='px-8 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'>
                   <Link
                     href="/contact"
-                    className='inline-block transition-transform duration-200 transform-gpu hover:scale-105'
+                    className='inline-block text-black dark:text-white transition-transform duration-200 transform-gpu hover:scale-105'
                     onClick={() => setIsMenuOpen(false)}
                   >Contact Us</Link>
                 </li>
