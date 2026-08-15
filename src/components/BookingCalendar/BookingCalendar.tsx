@@ -10,6 +10,8 @@ type IcsEvent = {
   end?: string | null;
   allDay?: boolean;
   url?: string;
+  reserved?: boolean;
+  source?: string | null;
 };
 
 interface BookingCalendarProps {
@@ -135,14 +137,22 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     });
   };
 
+  const getIcsReservedForDate = (date: Date): IcsEvent | null => {
+    const evs = getIcsEventsForDate(date);
+    return evs.find(e => e.reserved) || null;
+  };
+
   const isBlocked = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return !!blockedMap[dateStr];
+    return !!blockedMap[dateStr] || !!getIcsReservedForDate(date);
   };
 
   const getBlockedInfo = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return blockedMap[dateStr] || null;
+    if (blockedMap[dateStr]) return blockedMap[dateStr];
+    const ics = getIcsReservedForDate(date);
+    if (ics) return { id: `ics:${ics.id}`, reason: ics.summary ? `Reserved: ${ics.summary}` : `Reserved via ${ics.source || 'iCal'}` };
+    return null;
   };
 
   const toggleBlocked = async (date: Date, reason?: string) => {
@@ -554,12 +564,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         {/* blocked badge removed - cell will show tinted background with an X overlay */}
                       </div>
                     )}
-                    {isBlocked(date) && (
-                      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ position: 'absolute', left: '10%', right: '10%', height: 4, background: 'rgba(255,255,255,0.28)', transform: 'rotate(45deg)', borderRadius: 2 }} />
-                        <div style={{ position: 'absolute', left: '10%', right: '10%', height: 4, background: 'rgba(255,255,255,0.28)', transform: 'rotate(-45deg)', borderRadius: 2 }} />
-                      </div>
-                    )}
+                    {/* blocked overlay removed: cell tint indicates blocked state */}
                   </button>
                 );
               })}
@@ -593,31 +598,31 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
               </div>
 
               {selectedDate && (() => {
-                const bd = getBlockedInfo(new Date(selectedDate));
+                const localBd = blockedMap[selectedDate];
+                const icsEv = getIcsReservedForDate(new Date(selectedDate));
                 return (
                   <div style={{ marginBottom: 12 }}>
-                    {bd ? (
+                    {localBd ? (
                       <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3b0b0b' : '#fff0f0', color: isDarkMode ? '#ffdede' : '#7a1f1f' }}>
                         <div style={{ fontWeight: 700 }}>Blocked</div>
                         {!editingReason ? (
-                          bd.reason ? <div style={{ fontSize: 13, marginTop: 6 }}>{bd.reason}</div> : <div style={{ fontSize: 13, marginTop: 6, color: isDarkMode ? '#ffdfdf' : '#8a1f1f' }}>No reason provided</div>
+                          localBd.reason ? <div style={{ fontSize: 13, marginTop: 6 }}>{localBd.reason}</div> : <div style={{ fontSize: 13, marginTop: 6, color: isDarkMode ? '#ffdfdf' : '#8a1f1f' }}>No reason provided</div>
                         ) : (
                           <textarea value={reasonInputValue} onChange={(e) => setReasonInputValue(e.target.value)} placeholder="Reason (optional)" style={{ width: '100%', minHeight: 64, padding: 8, borderRadius: 6, border: `1px solid ${colors.border}`, boxSizing: 'border-box', marginTop: 6 }} />
                         )}
                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                           {!editingReason ? (
                             <>
-                              <button onClick={() => { setEditingReason(true); setReasonInputValue(bd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Edit reason</button>
+                              <button onClick={() => { setEditingReason(true); setReasonInputValue(localBd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Edit reason</button>
                               <button onClick={() => toggleBlocked(new Date(selectedDate))} style={{ padding: '6px 8px', borderRadius: 4, background: '#7a1f1f', color: 'white', border: 'none', cursor: 'pointer' }}>Make available</button>
                             </>
                           ) : (
                             <>
                               <button disabled={reasonSaving} onClick={async () => {
-                                if (!bd) return;
                                 setReasonSaving(true);
                                 try {
-                                  await client.patch(bd.id).set({ reason: reasonInputValue || '' }).commit();
-                                  setBlockedMap(prev => ({ ...prev, [selectedDate!]: { id: bd.id, reason: reasonInputValue || '' } }));
+                                  await client.patch(localBd.id).set({ reason: reasonInputValue || '' }).commit();
+                                  setBlockedMap(prev => ({ ...prev, [selectedDate!]: { id: localBd.id, reason: reasonInputValue || '' } }));
                                   setEditingReason(false);
                                 } catch (err) {
                                   console.error('Failed to save reason', err);
@@ -634,10 +639,23 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                 ) : null}
                                 Save
                               </button>
-                              <button disabled={reasonSaving} onClick={() => { setEditingReason(false); setReasonInputValue(bd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#6c757d', color: 'white', border: 'none', cursor: reasonSaving ? 'wait' : 'pointer' }}>Cancel</button>
+                              <button disabled={reasonSaving} onClick={() => { setEditingReason(false); setReasonInputValue(localBd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#6c757d', color: 'white', border: 'none', cursor: reasonSaving ? 'wait' : 'pointer' }}>Cancel</button>
                             </>
                           )}
                         </div>
+                      </div>
+                    ) : icsEv ? (
+                      <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3a2540' : '#fff7f0', color: isDarkMode ? '#ffdede' : '#7a1f1f' }}>
+                        <div style={{ fontWeight: 700 }}>Reserved (iCal)</div>
+                        <div style={{ fontSize: 13, marginTop: 6 }}>{icsEv.summary || `Reserved via ${icsEv.source || 'iCal'}`}</div>
+                        {icsEv.start && (
+                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{new Date(icsEv.start).toLocaleString()}</div>
+                        )}
+                        {icsEv.url && (
+                          <div style={{ marginTop: 8 }}>
+                            <a href={icsEv.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', textDecoration: 'none' }}>Open source</a>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#14332b' : '#f0fff4', color: isDarkMode ? '#bfffdc' : '#0f5132' }}>

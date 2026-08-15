@@ -31,9 +31,9 @@ function parseIcsDate(value: string): string | null {
 
 export async function GET() {
   try {
-    const url = process.env.GOOGLE_ICAL_URL;
+    const url = process.env.GOOGLE_ICAL_URL || process.env.VRBO_ICAL_URL || process.env.VRBO_ICAL;
     if (!url) {
-      return NextResponse.json({ error: 'Missing GOOGLE_ICAL_URL' }, { status: 500 });
+      return NextResponse.json({ error: 'Missing iCal URL (set GOOGLE_ICAL_URL or VRBO_ICAL_URL)' }, { status: 500 });
     }
 
     const resp = await fetch(url);
@@ -76,6 +76,11 @@ export async function GET() {
         if (m) foundUrl = m[0];
       }
 
+      // Heuristic: treat events as reservations/unavailable if summary/description contains booking keywords
+      const sourceHint = (item.url || item.description || item.summary || '').toLowerCase();
+      const reservedKeywords = /reserved|booked|booking|occupied|confirmed|unavailable|blocked|reservation/i;
+      const isReserved = reservedKeywords.test(item.summary || '') || reservedKeywords.test(item.description || '') || /vrbo|airbnb|booking\.com/.test(sourceHint);
+
       events.push({
         id: item.uid || `${start}-${Math.random()}`,
         summary: item.summary || '',
@@ -84,7 +89,9 @@ export async function GET() {
         end,
         url: foundUrl || null,
         location: item.location || null,
-        allDay: !!(item.dtstart && /^\d{8}$/.test(item.dtstart))
+        allDay: !!(item.dtstart && /^\d{8}$/.test(item.dtstart)),
+        reserved: !!isReserved,
+        source: (/vrbo/.test(sourceHint) ? 'vrbo' : (/airbnb/.test(sourceHint) ? 'airbnb' : null))
       });
     }
 
