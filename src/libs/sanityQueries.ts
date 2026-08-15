@@ -20,9 +20,11 @@ export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == tr
     instantBook,
     overnight,
     name,
+    includedGuests,
+    extraGuestFee,
     price,
     slug,
-    type
+    
 }`;
 
 export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug && !(_id in path("drafts.*"))][0] {
@@ -43,11 +45,13 @@ export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug && !
     instantBook,
     overnight,
     name,
+    includedGuests,
+    extraGuestFee,
     offeredAmenities,
     price,
     slug,
     specialNote,
-    type
+    
 }`;
 
 // Uses broad user matching for backend workflows where the caller may provide an id, email, or name.

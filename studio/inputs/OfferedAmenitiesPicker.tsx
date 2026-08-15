@@ -79,8 +79,35 @@ const OfferedAmenitiesPicker: React.FC<any> = ({ value = [], onChange }: any) =>
     }
   };
 
+  const genKey = () => `k_${Math.random().toString(36).slice(2,9)}`;
+
+  const ensureKeys = (items: any[]) => {
+    return (items || []).map((it: any) => {
+      if (!it) return it;
+      // string form -> reference object
+      if (typeof it === 'string') {
+        return { _type: 'reference', _ref: it, _key: genKey() };
+      }
+      // If it's already a reference-like object ensure _type and _key
+      const isRef = Boolean(it && (it._ref || it._ref === 0));
+      if (isRef) {
+        const out = { ...it };
+        if (!out._type) out._type = 'reference';
+        if (!out._key) out._key = genKey();
+        return out;
+      }
+      // For any other object (legacy shape), try to coerce to reference
+      if (it._id) {
+        return { _type: 'reference', _ref: it._id, _key: genKey() };
+      }
+      // fallback: return as-is
+      return it;
+    });
+  };
+
   const emit = (nextRefs: any[]) => {
-    onChange(PatchEvent.from(set(nextRefs)));
+    const withKeys = ensureKeys(nextRefs);
+    onChange(PatchEvent.from(set(withKeys)));
   };
 
       const toggleAmenity = (amenityValue: string) => {

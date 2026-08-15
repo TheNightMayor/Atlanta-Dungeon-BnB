@@ -24,6 +24,8 @@ type Props = {
     flatFee: number;
     overnight?: boolean;
     instantBook: boolean;
+    includedGuests?: number;
+    extraGuestFee?: number;
     roomId: string;
     roomName?: string;
     handleBookNowClick: (discountCode?: string | null) => void
@@ -237,7 +239,9 @@ const BookRoomCta: FC<Props> = props => {
                 const nights = calcNoOfDays();
                 if (nights <= 0) return null;
                 const subtotal = nights * discountPrice;
-                const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
+                const included = props.includedGuests ?? 2;
+                const perExtra = props.extraGuestFee ?? 30;
+                const extraGuestCharge = adults > included ? (adults - included) * perExtra : 0;
                 const totalPrice = subtotal + extraGuestCharge + flatFee;
 
                 return (

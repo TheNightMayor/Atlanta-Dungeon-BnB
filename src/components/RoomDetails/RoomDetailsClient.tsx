@@ -163,6 +163,8 @@ const RoomDetailsClient = ({ room }: Props) => {
                   setAdults={setAdults}
                   overnight={room.overnight ?? true}
                   instantBook={room.instantBook}
+                    includedGuests={room.includedGuests}
+                    extraGuestFee={room.extraGuestFee}
                   roomId={room._id}
                   roomName={room.name}
                   handleBookNowClick={handleBookNowClick}
@@ -213,6 +215,8 @@ const RoomDetailsClient = ({ room }: Props) => {
               setAdults={setAdults}
               overnight={room.overnight ?? true}
               instantBook={room.instantBook}
+              includedGuests={room.includedGuests}
+              extraGuestFee={room.extraGuestFee}
               roomId={room._id}
               roomName={room.name}
               handleBookNowClick={handleBookNowClick}

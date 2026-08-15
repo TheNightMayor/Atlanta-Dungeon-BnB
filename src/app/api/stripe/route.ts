@@ -151,7 +151,9 @@ export async function POST(req: Request) {
     // fallback to numeric discount (percentage) if no code applied
     const discountPrice = discountId ? Math.max(0, price - appliedDiscountPerNight) : price - (price / 100) * discount;
     const subtotal = discountPrice * numberOfDays;
-    const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
+    const included = typeof room.includedGuests === 'number' ? Number(room.includedGuests) : 2;
+    const perExtra = typeof room.extraGuestFee === 'number' ? Number(room.extraGuestFee) : 30;
+    const extraGuestCharge = adults > included ? (adults - included) * perExtra : 0;
     const calculatedTotal = subtotal + extraGuestCharge + flatFee;
 
     // Stripe expects integer cents and a non-negative amount
