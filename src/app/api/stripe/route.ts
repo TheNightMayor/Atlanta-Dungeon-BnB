@@ -8,20 +8,22 @@ import sanityClient from '@/libs/sanity';
 import getImageUrl from '@/libs/imageUrl';
 import { getSessionUserId } from '@/libs/session';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
-});
+let stripe: Stripe | null = null;
 
-// Diagnostic: log masked prefix so we can confirm which key the running process sees (never log full key)
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.error('STRIPE_SECRET_KEY is not set in the runtime environment');
-} else {
+function getStripe(): Stripe {
+  if (stripe) return stripe;
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    console.error('STRIPE_SECRET_KEY is not set in the runtime environment');
+    throw new Error('Server misconfiguration: missing STRIPE_SECRET_KEY');
+  }
+  stripe = new Stripe(key as string, { apiVersion: '2025-02-24.acacia' });
   try {
-    const k = process.env.STRIPE_SECRET_KEY as string;
-    console.debug('STRIPE key prefix:', k.substring(0, Math.min(8, k.length)));
+    console.debug('STRIPE key prefix:', key.substring(0, Math.min(8, key.length)));
   } catch (e) {
     // ignore
   }
+  return stripe;
 }
 
 type RequestData = {
@@ -160,7 +162,8 @@ export async function POST(req: Request) {
     const unit_amount = Math.max(0, Math.round(Number(calculatedTotal ?? 0) * 100));
 
     // Create a stripe payment
-    const stripeSession = await stripe.checkout.sessions.create({
+    const stripeClient = getStripe();
+    const stripeSession = await stripeClient.checkout.sessions.create({
       mode: 'payment',
       line_items: [
         {
