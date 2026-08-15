@@ -121,9 +121,11 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   const getBookingsForDate = (date: Date): Booking[] => {
     const dateStr = date.toISOString().split('T')[0];
     return bookings.filter(booking => {
-      const checkIn = booking.checkinDate;
-      const checkOut = booking.checkoutDate;
-      return dateStr >= checkIn && dateStr <= checkOut;
+      if (!booking?.checkinDate || !booking?.checkoutDate) return false;
+      const checkInStr = new Date(booking.checkinDate).toISOString().split('T')[0];
+      const checkOutStr = new Date(booking.checkoutDate).toISOString().split('T')[0];
+      // Treat checkout day as available (exclusive end): block from checkin inclusive up to day before checkout
+      return dateStr >= checkInStr && dateStr < checkOutStr;
     });
   };
 
@@ -144,12 +146,18 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
 
   const isBlocked = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return !!blockedMap[dateStr] || !!getIcsReservedForDate(date);
+    const hasBooking = getBookingsForDate(date).length > 0;
+    return !!blockedMap[dateStr] || !!getIcsReservedForDate(date) || hasBooking;
   };
 
   const getBlockedInfo = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     if (blockedMap[dateStr]) return blockedMap[dateStr];
+    const bookingsForDate = getBookingsForDate(date);
+    if (bookingsForDate && bookingsForDate.length > 0) {
+      const b = bookingsForDate[0];
+      return { id: `booking:${b._id}`, reason: `Booked (${b.status || 'booked'}) — ${b.user?.name || 'guest'}` };
+    }
     const ics = getIcsReservedForDate(date);
     if (ics) return { id: `ics:${ics.id}`, reason: ics.summary ? `Reserved: ${ics.summary}` : `Reserved via ${ics.source || 'iCal'}` };
     return null;
@@ -600,6 +608,11 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
               {selectedDate && (() => {
                 const localBd = blockedMap[selectedDate];
                 const icsEv = getIcsReservedForDate(new Date(selectedDate));
+                const bookingsForSelected = (selectedDate && bookings && bookings.length > 0) ? bookings.filter((b: any) => {
+                  if (!b?.checkinDate || !b?.checkoutDate) return false;
+                  return selectedDate >= b.checkinDate && selectedDate < b.checkoutDate;
+                }) : [];
+                const booking = bookingsForSelected.length > 0 ? bookingsForSelected[0] : null;
                 return (
                   <div style={{ marginBottom: 12 }}>
                     {localBd ? (
@@ -642,6 +655,15 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                               <button disabled={reasonSaving} onClick={() => { setEditingReason(false); setReasonInputValue(localBd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#6c757d', color: 'white', border: 'none', cursor: reasonSaving ? 'wait' : 'pointer' }}>Cancel</button>
                             </>
                           )}
+                        </div>
+                      </div>
+                    ) : booking ? (
+                      <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3b2f1a' : '#fff8e6', color: isDarkMode ? '#ffe7b3' : '#6b4a00' }}>
+                        <div style={{ fontWeight: 700 }}>Booked</div>
+                        <div style={{ fontSize: 13, marginTop: 6 }}>{booking.hotelRoom?.name || 'Booking'}</div>
+                        <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{booking.checkinDate} → {booking.checkoutDate}</div>
+                        <div style={{ marginTop: 8 }}>
+                          <button onClick={() => handleBookingClick(booking)} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Open booking</button>
                         </div>
                       </div>
                     ) : icsEv ? (

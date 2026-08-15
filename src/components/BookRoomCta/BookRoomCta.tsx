@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useSession } from 'next-auth/react';
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+import useRoomAvailability from '@/hooks/useRoomAvailability';
 import DatePicker from "react-datepicker"
 import { MdCancel } from "react-icons/md";
 import { PortableText } from "next-sanity";
@@ -63,8 +64,7 @@ const BookRoomCta: FC<Props> = props => {
     const [hasReadStatement, setHasReadStatement] = useState(false);
     const [isOver18, setIsOver18] = useState(false);
     const [isLiabilityLoading, setIsLiabilityLoading] = useState(true);
-    const [blockedDates, setBlockedDates] = useState<Date[]>([]);
-    const [bookedDates, setBookedDates] = useState<Date[]>([]);
+    const { blockedDates: blockedKeys, isBlocked, loading: availabilityLoading } = useRoomAvailability(roomId);
 
     const getDateRange = (startDate: Date, endDate: Date) => {
         const dates: Date[] = [];
@@ -91,52 +91,13 @@ const BookRoomCta: FC<Props> = props => {
         fetchLiability();
     }, []);
 
-    useEffect(() => {
-        async function fetchBlocked() {
-            try {
-                const res = await fetch('/api/blocked-dates');
-                if (!res.ok) return;
-                const items: { date: string }[] = await res.json();
-                const dates = (items || []).map(i => {
-                    try {
-                        const dstr = (i.date || '').split('T')[0];
-                        const [y, m, d] = dstr.split('-').map(Number);
-                        if (!y || !m || !d) return null;
-                        return new Date(y, m - 1, d);
-                    } catch {
-                        const dt = new Date(i.date);
-                        return isNaN(dt.getTime()) ? null : dt;
-                    }
-                }).filter((d: Date | null): d is Date => !!d);
-                setBlockedDates(dates);
-            } catch (err) {
-                console.error('Failed to load blocked dates', err);
-            }
-        }
+    // build exclude list from room availability hook (keys are YYYY-MM-DD)
+    const keyToDate = (key: string) => {
+        const [y, m, d] = key.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    };
 
-        async function fetchRoomBookings() {
-            try {
-                const res = await fetch(`/api/room-bookings/${roomId}`);
-                if (!res.ok) return;
-                const bookings: { checkinDate: string; checkoutDate: string }[] = await res.json();
-                const dates: Date[] = [];
-
-                bookings.forEach((booking) => {
-                    const start = new Date(booking.checkinDate);
-                    const end = new Date(booking.checkoutDate);
-                    if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
-                    getDateRange(start, end).forEach((d) => dates.push(d));
-                });
-
-                setBookedDates(dates);
-            } catch (err) {
-                console.error('Failed to load room bookings', err);
-            }
-        }
-
-        fetchBlocked();
-        fetchRoomBookings();
-    }, [roomId]);
+    const excludeCombinedDates = blockedKeys.map(k => keyToDate(k));
 
     useEffect(() => {
         document.body.style.overflow = isLiabilityModalOpen ? 'hidden' : '';
@@ -188,14 +149,33 @@ const BookRoomCta: FC<Props> = props => {
                         className="block text-sm font-medium text-gray-900 dark:text-gray-400">
                         {instantBook ? 'Check In' : 'Desired date'}
                     </label>
-                    <DatePicker
-                        selected={checkinDate}
-                        onChange={date => setCheckinDate(date)}
-                        dateFormat={"MM/dd/yyyy"}
-                        minDate={new Date()}
-                        excludeDates={[...blockedDates, ...bookedDates]}
-                        id="check-in-date"
-                        className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
+                    {(() => {
+                        const excludeCombined = excludeCombinedDates;
+                        const excludeSet = new Set(blockedKeys);
+
+                        const handleCheckinChange = (date: Date | null) => {
+                            if (!date) return setCheckinDate(null);
+                                const key = date.toISOString().split('T')[0];
+                                if (excludeSet.has(key)) return;
+                            setCheckinDate(date);
+                        };
+
+                        return (
+                            <DatePicker
+                                selected={checkinDate}
+                                onChange={handleCheckinChange}
+                                filterDate={(d) => {
+                                    const key = d && d.toISOString().split('T')[0];
+                                    return !excludeSet.has(key);
+                                }}
+                                
+                                dateFormat={"MM/dd/yyyy"}
+                                minDate={new Date()}
+                                excludeDates={excludeCombined}
+                                id="check-in-date"
+                                className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
+                        );
+                    })()}
                 </div>
                 {overnight && (
                     <div className="w1/2 pl-2">
@@ -204,15 +184,34 @@ const BookRoomCta: FC<Props> = props => {
                             className="block text-sm font-medium text-gray-900 dark:text-gray-400">
                             Check Out
                         </label>
-                        <DatePicker
-                            selected={checkoutDate}
-                            onChange={date => setCheckoutDate(date)}
-                            dateFormat={"MM/dd/yyyy"}
-                            disabled={!checkinDate}
-                            minDate={calcMinCheckoutDate()}
-                            excludeDates={[...blockedDates, ...bookedDates]}
-                            id="check-out-date"
-                            className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
+                        {(() => {
+                            const excludeCombined = excludeCombinedDates;
+                            const excludeSet = new Set(blockedKeys);
+
+                            const handleCheckoutChange = (date: Date | null) => {
+                                if (!date) return setCheckoutDate(null);
+                                const key = date.toISOString().split('T')[0];
+                                if (excludeSet.has(key)) return;
+                                setCheckoutDate(date);
+                            };
+
+                            return (
+                                <DatePicker
+                                    selected={checkoutDate}
+                                    onChange={handleCheckoutChange}
+                                    filterDate={(d) => {
+                                        const key = d && d.toISOString().split('T')[0];
+                                        return !excludeSet.has(key);
+                                    }}
+                                    
+                                    dateFormat={"MM/dd/yyyy"}
+                                    disabled={!checkinDate}
+                                    minDate={calcMinCheckoutDate()}
+                                    excludeDates={excludeCombined}
+                                    id="check-out-date"
+                                    className="w-full border text-black border-gray-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary" />
+                            );
+                        })()}
                     </div>
                 )}
             </div>
