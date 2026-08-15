@@ -7,7 +7,8 @@ import { sendBookingPendingEmail, sendPaymentConfirmationEmail, sendBookingAppro
 const checkout_session_completed = "checkout.session.completed";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-02-24.acacia",
+  // @ts-ignore
+  apiVersion: '2026-07-29.dahlia',
 });
 
 export async function POST(req: Request) {

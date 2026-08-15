@@ -9,7 +9,8 @@ import getImageUrl from '@/libs/imageUrl';
 import { getSessionUserId } from '@/libs/session';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
+  // @ts-ignore
+  apiVersion: '2026-07-29.dahlia',
 });
 
 // Diagnostic: log masked prefix so we can confirm which key the running process sees (never log full key)
