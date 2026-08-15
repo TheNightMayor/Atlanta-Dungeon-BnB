@@ -169,7 +169,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     const bookingsForDate = getBookingsForDate(date);
     if (bookingsForDate && bookingsForDate.length > 0) {
       const b = bookingsForDate[0];
-      return { id: `booking:${b._id}`, reason: `Booked (${b.status || 'booked'}) — ${b.user?.name || 'guest'}` };
+      return { id: `booking:${b._id}`, reason: `Booked (${b.status || 'booked'}) — ${b.customerName || 'guest'}` };
     }
     const ics = getIcsReservedForDate(date);
     if (ics) return { id: `ics:${ics.id}`, reason: ics.summary ? `Reserved: ${ics.summary}` : `Reserved via ${ics.source || 'iCal'}` };
