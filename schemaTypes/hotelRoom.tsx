@@ -30,13 +30,28 @@ const hotelRoom = {
     }),
     defineField({
       name: "slug",
+      title: "Slug",
       type: "slug",
       fieldset: 'identity',
       options: {
         source: "name",
       },
-      description: 'URL-friendly identifier generated from the name (used in public links).',
-      validation: (Rule) => Rule.required(),
+      description: 'URL-friendly identifier generated from the name (used in public links).\n\n',
+      validation: (Rule) =>
+        Rule.required().custom(async (slug: any, context: any) => {
+          if (!slug || !slug.current) return 'Slug is required.';
+          const pat = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+          if (!pat.test(slug.current)) return 'Slug must use only lowercase letters, numbers and hyphens.';
+          try {
+            const client = context.getClient({ apiVersion: '2023-05-13' });
+            const docId = context.document?._id || '';
+            const existing = await client.fetch('*[_type == "hotelRoom" && slug.current == $slug && _id != $id][0]', { slug: slug.current, id: docId });
+            if (existing) return 'Slug is already in use by another accommodation.';
+          } catch (err) {
+            // ignore fetch errors — don't block validation on client issues
+          }
+          return true;
+        }),
     }),
     defineField({
       name: 'publicUrl',
@@ -217,7 +232,7 @@ const hotelRoom = {
     }),
   ],
   fieldsets: [
-    { name: 'identity', title: 'Identity', options: { columns: 1 } },
+    { name: 'identity', title: 'Identity', options: { columns: 2 } },
     { name: 'visibility', title: 'Visibility & Booking', options: { columns: 3 } },
     { name: 'pricing', title: 'Pricing', options: { columns: 2 } },
     { name: 'description', title: 'Description & Notes', options: { columns: 1 } },
