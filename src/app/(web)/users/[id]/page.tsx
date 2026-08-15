@@ -73,7 +73,15 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     }
   };
 
-  const fetchUserBooking = async () => getUserBookings(userId);
+  // Fetch via our server endpoint so authentication/session is respected
+  const fetchUserBooking = async () => {
+    const res = await fetch('/api/userbooking');
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`Failed to fetch user bookings: ${res.status} ${txt}`);
+    }
+    return res.json();
+  };
   const fetchUserData = async () => {
     const { data } = await axios.get<User>('/api/users');
     return data;
@@ -170,11 +178,13 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     }
   };
 
+  // Use a user-specific SWR key so cached results don't leak between profiles
+  const swrKey = userId ? ['/api/userbooking', userId] : null;
   const {
     data: userBookings,
     error,
     isLoading,
-  } = useSWR<Booking[]>('/api/userbooking', fetchUserBooking);
+  } = useSWR<Booking[]>(swrKey, fetchUserBooking);
 
 
   const {
@@ -204,6 +214,9 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
       return checkin >= today;
     })
     .sort((a, b) => a.checkinDateObj!.toISOString().localeCompare(b.checkinDateObj!.toISOString()));
+
+  // Debugging: log bookings and computed upcoming bookings to help trace missing entries
+  // This is moved below `isCurrentUser` declaration to avoid referencing uninitialized variables.
 
   
 
@@ -243,6 +256,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     )
   );
 
+    // (debug logs removed)
 
 
   return (
