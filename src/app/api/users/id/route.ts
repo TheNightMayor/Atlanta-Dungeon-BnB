@@ -5,6 +5,9 @@ import { authOptions } from '@/libs/auth';
 import { getSessionUserId } from '@/libs/session';
 import sanityClient from '@/libs/sanity';
 
+const MAX_ID_DOCUMENT_BYTES = 10 * 1024 * 1024;
+const ALLOWED_ID_DOCUMENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userId = getSessionUserId(session);
@@ -20,6 +23,13 @@ export async function POST(req: Request) {
   }
 
   const file = imageFile as any;
+  if (!ALLOWED_ID_DOCUMENT_TYPES.has(file.type)) {
+    return new NextResponse('ID documents must be JPEG, PNG, or WebP images', { status: 415 });
+  }
+  if (file.size > MAX_ID_DOCUMENT_BYTES) {
+    return new NextResponse('ID document must be 10 MB or smaller', { status: 413 });
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   try {

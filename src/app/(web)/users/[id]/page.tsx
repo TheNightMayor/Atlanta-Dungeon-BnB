@@ -20,6 +20,34 @@ import toast from 'react-hot-toast';
 import { User } from '@/models/user';
 import { Booking } from '@/models/booking';
 
+const MAX_ID_DOCUMENT_BYTES = 10 * 1024 * 1024;
+const HEIC_IMAGE_TYPES = new Set(['image/heic', 'image/heif']);
+
+const isHeicImage = (file: File) =>
+  HEIC_IMAGE_TYPES.has(file.type.toLowerCase()) || /\.hei[cf]$/i.test(file.name);
+
+const prepareIdDocumentForUpload = async (file: File) => {
+  if (file.size > MAX_ID_DOCUMENT_BYTES) {
+    throw new Error('ID document must be 10 MB or smaller.');
+  }
+
+  if (!isHeicImage(file)) return file;
+
+  const { default: heic2any } = await import('heic2any');
+  const converted = await heic2any({
+    blob: file,
+    toType: 'image/jpeg',
+    quality: 0.9,
+  });
+  const convertedBlob = Array.isArray(converted) ? converted[0] : converted;
+
+  return new File(
+    [convertedBlob],
+    `${file.name.replace(/\.hei[cf]$/i, '') || 'id-document'}.jpg`,
+    { type: 'image/jpeg' }
+  );
+};
+
 const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const { data: session } = useSession();
   const { id: userId } = use(props.params);
@@ -157,8 +185,9 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
 
     setIsUploadingId(true);
     try {
+      const idDocument = await prepareIdDocumentForUpload(selectedIdImage);
       const formData = new FormData();
-      formData.append('idDocument', selectedIdImage);
+      formData.append('idDocument', idDocument);
 
       const res = await fetch('/api/users/id', { method: 'POST', body: formData });
       if (!res.ok) {
@@ -172,7 +201,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
       toast.success('ID document uploaded');
     } catch (err) {
       console.error('ID upload failed', err);
-      toast.error('Failed to upload ID document');
+      toast.error(err instanceof Error ? err.message : 'Failed to upload ID document');
     } finally {
       setIsUploadingId(false);
     }
@@ -329,7 +358,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                   <input
                     ref={idInputRef}
                     type='file'
-                    accept='image/*'
+                    accept='image/jpeg,image/png,image/webp,image/heic,image/heif'
                     className='sr-only'
                     onChange={handleIdImageChange}
                     aria-hidden
