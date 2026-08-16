@@ -215,6 +215,11 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     })
     .sort((a, b) => a.checkinDateObj!.toISOString().localeCompare(b.checkinDateObj!.toISOString()));
 
+  const formatBookingDate = (date: string) => {
+    const [year, month, day] = date.split('T')[0].split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString();
+  };
+
   // Debugging: log bookings and computed upcoming bookings to help trace missing entries
   // This is moved below `isCurrentUser` declaration to avoid referencing uninitialized variables.
 
@@ -429,13 +434,13 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                         <div>
                           <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-in</p>
                           <p className='text-sm text-gray-900 dark:text-white'>
-                            {new Date(booking.checkinDate).toLocaleDateString()}
+                            {formatBookingDate(booking.checkinDate)}
                           </p>
                         </div>
                         <div>
                           <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-out</p>
                           <p className='text-sm text-gray-900 dark:text-white'>
-                            {new Date(booking.checkoutDate).toLocaleDateString()}
+                            {formatBookingDate(booking.checkoutDate)}
                           </p>
                         </div>
                       </div>

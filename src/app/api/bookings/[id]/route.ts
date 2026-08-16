@@ -1,29 +1,33 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/libs/auth';
 import { getBookingById, updateBookingStatus } from '@/libs/apis';
-import { getUserData } from '@/libs/apis';
-import { getSessionUserId } from '@/libs/session';
 import { sendBookingApprovedEmail, sendBookingConfirmationEmail, sendBookingRejectionEmail, sendBookingCancellationEmail, sendBookingRefundEmail } from '@/libs/email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',});
 
+async function hasSanityStudioSession(req: Request) {
+  const authorization = req.headers.get('authorization');
+  if (!authorization?.startsWith('Bearer ')) return false;
+
+  try {
+    const response = await fetch('https://api.sanity.io/v2021-06-07/users/me', {
+      headers: { Authorization: authorization },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Unable to validate Sanity Studio user:', error);
+    return false;
+  }
+}
+
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  if (!await hasSanityStudioSession(req)) {
     return new NextResponse('Authentication required', { status: 401 });
-  }
-
-  const userId = (session.user as any).id ?? session.user.name;
-  const userData = await getUserData(userId);
-  if (!userData?.isAdmin) {
-    return new NextResponse('Admin access required', { status: 403 });
   }
 
   const { id: bookingId } = await params;
@@ -51,6 +55,14 @@ export async function PATCH(
     if (action === 'approve') {
       if (!paymentIntentId) {
         return new NextResponse('Missing Stripe payment intent ID', { status: 400 });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      if (paymentIntent.status !== 'requires_capture') {
+        return new NextResponse(
+          `Payment cannot be captured because its Stripe status is ${paymentIntent.status}`,
+          { status: 409 }
+        );
       }
 
       const captured = await stripe.paymentIntents.capture(paymentIntentId);
@@ -197,7 +209,8 @@ export async function PATCH(
     return new NextResponse('No action taken', { status: 400 });
   } catch (error) {
     console.error('Booking approval error:', error);
-    return new NextResponse('Unable to update booking status', { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new NextResponse(`Unable to update booking status: ${message}`, { status: 500 });
   }
 }
 
@@ -205,15 +218,8 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  const userId = getSessionUserId(session);
-  if (!userId) {
+  if (!await hasSanityStudioSession(req)) {
     return new NextResponse('Authentication required', { status: 401 });
-  }
-
-  const userData = await getUserData(userId);
-  if (!userData?.isAdmin) {
-    return new NextResponse('Admin access required', { status: 403 });
   }
 
   const { id: bookingId } = await params;
@@ -221,7 +227,7 @@ export async function DELETE(
   try {
     // call Sanity soft-delete
     const { deleteBooking } = await import('@/libs/apis');
-    await deleteBooking(bookingId, userId);
+    await deleteBooking(bookingId);
     return NextResponse.json({ deleted: true }, { status: 200 });
   } catch (error) {
     console.error('Failed to delete booking', error);

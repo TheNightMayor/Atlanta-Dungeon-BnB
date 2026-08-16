@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { useFormValue } from 'sanity';
+import { useClient, useFormValue } from 'sanity';
 
 type Props = any;
 
 const ApproveBookingButton: React.FC<Props> = (props) => {
   const { document } = props;
   const [loading, setLoading] = useState(false);
+  const studioClient = useClient({ apiVersion: '2021-10-21' });
+  const studioToken = studioClient.config().token;
+  const studioAuthHeaders: Record<string, string> = studioToken
+    ? { Authorization: `Bearer ${studioToken}` }
+    : {};
 
   const idValue = useFormValue(['_id']);
   const statusValue = useFormValue(['status']);
@@ -44,7 +49,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const targetId = id?.toString().replace(/^drafts\./, '') || '';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...studioAuthHeaders },
         body: JSON.stringify({ action: 'approve' }),
       });
       if (!res.ok) {
@@ -70,7 +75,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const actionToSend = status === 'approved' ? 'cancel' : 'reject';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...studioAuthHeaders },
         body: JSON.stringify({ action: actionToSend }),
       });
       if (!res.ok) {
@@ -92,6 +97,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const targetId = id?.toString().replace(/^drafts\./, '') || '';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'DELETE',
+        headers: studioAuthHeaders,
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -243,7 +249,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
                 const targetId = id?.toString().replace(/^drafts\./, '') || '';
                 const res = await fetch(`/api/bookings/${targetId}`, {
                   method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...studioAuthHeaders },
                   body: JSON.stringify({ action: 'refund', amount: amt }),
                 });
                 if (!res.ok) {
