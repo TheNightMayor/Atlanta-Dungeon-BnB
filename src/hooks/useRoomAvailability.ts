@@ -87,7 +87,7 @@ export default function useRoomAvailability(roomId?: string) : UseRoomAvailabili
           const start = parseIsoToLocalKey(ev.start || ev?.dtstart || ev?.start);
           const end = parseIsoToLocalKey(ev.end || ev?.dtend || ev?.end || ev?.start);
           if (!start || !end) return;
-          const range = expandRangeToKeys(start, end);
+          const range = expandRangeToKeys(start, end, false);
           range.forEach(k => keys.add(k));
         });
 

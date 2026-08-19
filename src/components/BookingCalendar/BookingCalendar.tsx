@@ -141,8 +141,13 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   };
 
   const getIcsReservedForDate = (date: Date): IcsEvent | null => {
-    const evs = getIcsEventsForDate(date);
-    return evs.find(e => e.reserved) || null;
+    const dateStr = date.toISOString().split('T')[0];
+    return icsEvents.find(ev => {
+      if (!ev.reserved || !ev.start) return false;
+      const s = new Date(ev.start).toISOString().split('T')[0];
+      const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
+      return dateStr >= s && dateStr < e;
+    }) || null;
   };
 
   const isBlocked = (date: Date) => {
