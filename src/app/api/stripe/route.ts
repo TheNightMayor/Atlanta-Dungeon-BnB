@@ -7,6 +7,7 @@ import { getRoom } from '@/libs/apis';
 import sanityClient from '@/libs/sanity';
 import getImageUrl from '@/libs/imageUrl';
 import { getSessionUserId } from '@/libs/session';
+import { calculateListingDiscountsSavings } from '@/libs/discount';
 
 let stripe: Stripe | null = null;
 
@@ -140,19 +141,31 @@ export async function POST(req: Request) {
         if (userCount > 0) return new NextResponse('You have already used this discount code', { status: 400 });
       }
 
-      // compute per-night discount
+      // compute per-night discount from promo code
+      const rawVal = Number(discountDoc.value) || 0;
       if (discountDoc.type === 'percentage') {
-        appliedDiscountPerNight = (price * (Number(discountDoc.value) || 0)) / 100;
+        appliedDiscountPerNight = (price * rawVal) / 100;
       } else {
-        appliedDiscountPerNight = Number(discountDoc.value) || 0;
+        appliedDiscountPerNight = rawVal;
       }
+      appliedDiscountPerNight = Math.min(price, appliedDiscountPerNight);
 
       discountId = discountDoc._id;
     }
 
-    // fallback to numeric discount (percentage) if no code applied
-    const discountPrice = discountId ? Math.max(0, price - appliedDiscountPerNight) : price - (price / 100) * discount;
-    const subtotal = discountPrice * numberOfDays;
+    // Calculate listing discounts (stacking discounts configured on the room document)
+    const baseRoomSubtotal = price * numberOfDays;
+    const { totalSavings: listingSavings } = calculateListingDiscountsSavings(
+      room.discounts,
+      room.discount ?? discount,
+      price,
+      numberOfDays
+    );
+
+    // Apply promo code discount on top of listing discounts
+    const promoSavings = appliedDiscountPerNight * numberOfDays;
+    const subtotal = Math.max(0, baseRoomSubtotal - listingSavings - promoSavings);
+
     const included = typeof room.includedGuests === 'number' ? Number(room.includedGuests) : 2;
     const perExtra = typeof room.extraGuestFee === 'number' ? Number(room.extraGuestFee) : 30;
     const extraGuestCharge = adults > included ? (adults - included) * perExtra : 0;
@@ -160,6 +173,13 @@ export async function POST(req: Request) {
 
     // Stripe expects integer cents and a non-negative amount
     const unit_amount = Math.max(0, Math.round(Number(calculatedTotal ?? 0) * 100));
+
+    if (unit_amount < 50) {
+      return NextResponse.json(
+        { error: 'Total amount after discount must be at least $0.50 to process card payment.' },
+        { status: 400 }
+      );
+    }
 
     // Create a stripe payment
     const stripeClient = getStripe();

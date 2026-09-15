@@ -126,26 +126,89 @@ const hotelRoom = {
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
-      name: "discount",
-      title: "Discount",
-      type: "number",
-      fieldset: 'pricing',
-      description: 'Discount amount (absolute).',
-      initialValue: 0,
-      validation: (Rule) => Rule.required().min(0),
-    }),
-    defineField({
-      name: 'discountCodes',
-      title: 'Discount Codes',
-      type: 'array',
-      fieldset: 'pricing',
+      name: "discounts",
+      title: "Listing Discounts",
+      type: "array",
+      fieldset: "pricing",
+      description: "Add one or more stacking discounts applied directly to this room listing.",
       of: [
         {
-          type: 'reference',
-          to: [{ type: 'discountCode' }],
+          type: "object",
+          name: "listingDiscount",
+          title: "Discount",
+          fields: [
+            {
+              name: "title",
+              title: "Label / Name",
+              type: "string",
+              description: 'e.g. "Seasonal Discount", "Weekday Special"',
+              validation: (Rule: any) => Rule.required(),
+            },
+            {
+              name: "type",
+              title: "Type",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Percentage (%)", value: "percentage" },
+                  { title: "Fixed Per Night ($/night off)", value: "fixed_nightly" },
+                  { title: "Fixed Total ($ off stay)", value: "fixed_total" },
+                ],
+              },
+              initialValue: "percentage",
+              validation: (Rule: any) => Rule.required(),
+            },
+            {
+              name: "value",
+              title: "Value",
+              type: "number",
+              description: "Enter 10 for 10%, or 25 for $25 off",
+              validation: (Rule: any) =>
+                Rule.required()
+                  .min(0)
+                  .custom((val: number, context: any) => {
+                    const parent = context?.parent;
+                    if (parent?.type === "percentage" && val > 100) {
+                      return "Percentage discount cannot exceed 100%";
+                    }
+                    return true;
+                  }),
+            },
+            {
+              name: "active",
+              title: "Active",
+              type: "boolean",
+              initialValue: true,
+            },
+          ],
+          preview: {
+            select: {
+              title: "title",
+              type: "type",
+              value: "value",
+              active: "active",
+            },
+            prepare({ title, type, value, active }: any) {
+              let label = `${value ?? 0}% off`;
+              if (type === "fixed_nightly") label = `$${value ?? 0}/night off`;
+              if (type === "fixed_total") label = `$${value ?? 0} total off`;
+              return {
+                title: title || "Listing Discount",
+                subtitle: `${label} — ${active ? "Active" : "Inactive"}`,
+              };
+            },
+          },
         },
       ],
-      description: 'Applicable discount codes.',
+    }),
+    defineField({
+      name: "discount",
+      title: "Legacy Discount (%)",
+      type: "number",
+      fieldset: "pricing",
+      description: "Legacy single discount percentage (0-100). Prefer using the 'Listing Discounts' list above.",
+      initialValue: 0,
+      validation: (Rule) => Rule.min(0).max(100),
     }),
 
     // Description section

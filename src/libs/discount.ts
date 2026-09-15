@@ -1,4 +1,5 @@
 import sanityClient from './sanity';
+import { ListingDiscount } from '@/models/room';
 
 export type DiscountCodeResult = {
   _id: string;
@@ -12,6 +13,55 @@ export type DiscountCodeResult = {
   onePerUser?: boolean;
   appliesTo?: Array<{ _id: string }>;
 };
+
+/**
+ * Calculates total savings from all active listing discounts attached to a room.
+ * Supports percentage, fixed per night, and fixed total, plus legacy percentage fallback.
+ */
+export function calculateListingDiscountsSavings(
+  discounts: ListingDiscount[] | undefined,
+  legacyDiscount: number | undefined,
+  nightlyPrice: number,
+  numberOfDays: number
+): { totalSavings: number; perNightSavings: number; breakdown: Array<{ title: string; amount: number }> } {
+  const baseSubtotal = nightlyPrice * numberOfDays;
+  let totalSavings = 0;
+  const breakdown: Array<{ title: string; amount: number }> = [];
+
+  if (Array.isArray(discounts) && discounts.length > 0) {
+    for (const d of discounts) {
+      if (d.active === false) continue;
+      const val = Number(d.value) || 0;
+      let amount = 0;
+      if (d.type === 'percentage') {
+        amount = (baseSubtotal * val) / 100;
+      } else if (d.type === 'fixed_nightly') {
+        amount = val * numberOfDays;
+      } else if (d.type === 'fixed_total') {
+        amount = val;
+      } else {
+        // default fallback if type is unrecognized
+        amount = (baseSubtotal * val) / 100;
+      }
+      if (amount > 0) {
+        totalSavings += amount;
+        breakdown.push({ title: d.title || 'Discount', amount });
+      }
+    }
+  } else if (legacyDiscount && Number(legacyDiscount) > 0) {
+    // legacy percentage discount fallback
+    const val = Number(legacyDiscount);
+    const amount = (baseSubtotal * val) / 100;
+    totalSavings += amount;
+    breakdown.push({ title: `${val}% off`, amount });
+  }
+
+  // Cap total savings at the base subtotal so price cannot be negative
+  totalSavings = Math.min(baseSubtotal, totalSavings);
+  const perNightSavings = numberOfDays > 0 ? totalSavings / numberOfDays : 0;
+
+  return { totalSavings, perNightSavings, breakdown };
+}
 
 export function normalizeDiscountCode(code: string) {
   return code.trim().toUpperCase();

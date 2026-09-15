@@ -53,6 +53,13 @@ const booking = {
             validation: Rule =>Rule.required().min(0),
         }),
         defineField({
+            name: "discountCode",
+            title: "Discount Code",
+            type: "reference",
+            to: [{ type: "discountCode" }],
+            description: "The discount code applied to this booking",
+        }),
+        defineField({
             name: "adults",
             title: "Adults",
             type: "number",

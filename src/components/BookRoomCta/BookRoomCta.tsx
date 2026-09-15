@@ -8,6 +8,8 @@ import { MdCancel } from "react-icons/md";
 import { PortableText } from "next-sanity";
 import { portableTextComponents } from '@/libs/portableTextComponents';
 import { getInfoPageByInternalName } from "@/libs/apis";
+import { ListingDiscount } from "@/models/room";
+import { calculateListingDiscountsSavings } from "@/libs/discount";
 import 'react-datepicker/dist/react-datepicker.css';
 
 type Props = {
@@ -18,7 +20,8 @@ type Props = {
     setAdults: Dispatch<SetStateAction<number>>;
     calcMinCheckoutDate: () => Date | undefined;
     price: number;
-    discount: number;
+    discount?: number;
+    discounts?: ListingDiscount[];
     adults: number;
     
     specialNote: string;
@@ -37,6 +40,7 @@ const BookRoomCta: FC<Props> = props => {
         price,
         flatFee,
         discount,
+        discounts,
         specialNote,
         checkinDate,
         setCheckinDate,
@@ -107,17 +111,6 @@ const BookRoomCta: FC<Props> = props => {
         };
     }, [isLiabilityModalOpen]);
 
-    const appliedPerNight = appliedDiscount ? Number(appliedDiscount.perNight || 0) : null;
-    const discountPrice = appliedPerNight != null ? Math.max(0, price - appliedPerNight) : price - (price / 100) * discount;
-
-    const formatDisplayDate = (d: Date | null) => {
-        if (!d) return 'desired dates';
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        const yyyy = d.getFullYear();
-        return `${mm}/${dd}/${yyyy}`;
-    };
-
     const calcNoOfDays = () => {
         if (!checkinDate) return 0;
         if (!overnight) return 1;
@@ -126,6 +119,21 @@ const BookRoomCta: FC<Props> = props => {
         const noOfDays = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
         return noOfDays;
     }
+
+    const nights = calcNoOfDays();
+    const appliedPerNight = appliedDiscount ? Number(appliedDiscount.perNight || 0) : 0;
+    const { totalSavings: listingSavings, breakdown: listingDiscountsBreakdown } = calculateListingDiscountsSavings(
+        discounts,
+        discount,
+        price,
+        nights > 0 ? nights : 1
+    );
+
+    const baseRoomSubtotal = price * (nights > 0 ? nights : 1);
+    const promoCodeSavings = appliedPerNight * (nights > 0 ? nights : 1);
+    const finalSubtotal = nights > 0 ? Math.max(0, baseRoomSubtotal - listingSavings - promoCodeSavings) : 0;
+
+    const formatDisplayDate = (d: Date | null) => {
 
     const { data: session } = useSession();
     const isAuthenticated = !!session?.user?.name;
@@ -235,20 +243,45 @@ const BookRoomCta: FC<Props> = props => {
                 </div>
             </div>
             {(() => {
-                const nights = calcNoOfDays();
                 if (nights <= 0) return null;
-                const subtotal = nights * discountPrice;
                 const included = props.includedGuests ?? 2;
                 const perExtra = props.extraGuestFee ?? 30;
                 const extraGuestCharge = adults > included ? (adults - included) * perExtra : 0;
-                const totalPrice = subtotal + extraGuestCharge + flatFee;
+                const totalPrice = finalSubtotal + extraGuestCharge + flatFee;
+                const totalSavings = listingSavings + promoCodeSavings;
 
                 return (
                     <div className="mt-3">
                         <div className="flex justify-between text-sm">
                             <span>Subtotal ({nights} night{nights > 1 ? 's' : ''})</span>
-                            <span>${subtotal.toFixed(2)}</span>
+                            <span>${finalSubtotal.toFixed(2)}</span>
                         </div>
+                        {totalSavings > 0 && (
+                            <details className="text-xs my-1 group">
+                                <summary className="cursor-pointer text-green-600 dark:text-green-400 font-medium select-none hover:underline flex items-center justify-between">
+                                    <span>Discounts applied</span>
+                                    <span>- ${totalSavings.toFixed(2)} ▾</span>
+                                </summary>
+                                <div className="pl-2 mt-1 border-l-2 border-green-500/30 space-y-0.5 text-gray-600 dark:text-gray-400">
+                                    <div className="flex justify-between">
+                                        <span>Base rate ({nights} night{nights > 1 ? 's' : ''} @ ${price})</span>
+                                        <span>${baseRoomSubtotal.toFixed(2)}</span>
+                                    </div>
+                                    {listingDiscountsBreakdown.map((item, idx) => (
+                                        <div key={idx} className="flex justify-between text-green-600 dark:text-green-400">
+                                            <span>{item.title}</span>
+                                            <span>- ${item.amount.toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                    {promoCodeSavings > 0 && (
+                                        <div className="flex justify-between text-green-600 dark:text-green-400">
+                                            <span>Promo Code ({appliedDiscount?.code})</span>
+                                            <span>- ${promoCodeSavings.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </details>
+                        )}
                         {extraGuestCharge > 0 && (
                             <div className="flex justify-between text-sm">
                                 <span>Extra guests</span>
@@ -261,7 +294,7 @@ const BookRoomCta: FC<Props> = props => {
                                 <span>${flatFee.toFixed(2)}</span>
                             </div>
                         )}
-                        <div className="flex justify-between font-bold mt-1">
+                        <div className="flex justify-between font-bold mt-1 text-base border-t border-gray-300 dark:border-gray-600 pt-1">
                             <span>Total</span>
                             <span>${totalPrice.toFixed(2)}</span>
                         </div>
@@ -413,9 +446,9 @@ const BookRoomCta: FC<Props> = props => {
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ code: discountCodeInput, price }),
                                 });
-                                const data = await res.json();
+                                const data = await res.json().catch(() => null);
                                 if (!res.ok) {
-                                    setApplyError(data || 'Invalid code');
+                                    setApplyError((data && data.error) ? data.error : 'Invalid code');
                                     setAppliedDiscount(null);
                                 } else {
                                     setAppliedDiscount(data);

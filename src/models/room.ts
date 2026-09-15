@@ -30,12 +30,21 @@ export type PortableTextBlock = {
   style: string;
 };
 
+export type ListingDiscount = {
+  _key?: string;
+  title: string;
+  type: 'percentage' | 'fixed_nightly' | 'fixed_total' | string;
+  value: number;
+  active?: boolean;
+};
+
 export type Room = {
   bookedDates: Any[];
   _id: string;
   coverImage: CoverImage;
   description: PortableTextBlock[];
   discount: number;
+  discounts?: ListingDiscount[];
   images: Image[];
   flatFee?: number;
   overnight?: boolean;

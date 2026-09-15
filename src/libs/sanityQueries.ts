@@ -12,6 +12,7 @@ export const getRoomsQuery = groq`*[_type == "hotelRoom" && visibleToUsers == tr
         },
         description,
         discount,
+        discounts,
         flatFee,
         images[]{
             "url": image.asset->url,
@@ -37,6 +38,7 @@ export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug && !
         },
         description,
         discount,
+        discounts,
         flatFee,
         images[]{
             "url": image.asset->url,
