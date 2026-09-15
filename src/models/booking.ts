@@ -25,6 +25,8 @@ export type Booking = {
     stripeSessionId?: string;
     customerEmail?: string;
     customerName?: string;
+    authorizedAmount?: number;
+    authorizedAt?: string;
     amountPaid?: number;
     paymentReceivedAt?: string;
     refundedAmount?: number;

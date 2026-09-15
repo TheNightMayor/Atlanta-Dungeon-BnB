@@ -4,6 +4,7 @@ type Props = {
   value?: {
     baseRoomSubtotal?: number;
     listingDiscounts?: number;
+    appliedListingDiscounts?: { title?: string; amount?: number }[];
     discountCodeSavings?: number;
     extraGuestCharge?: number;
     flatFee?: number;
@@ -15,8 +16,6 @@ const formatCurrency = (n?: number) =>
   typeof n === 'number' ? n.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : '—';
 
 const ROWS: { key: keyof NonNullable<Props['value']>; label: string; negative?: boolean }[] = [
-  { key: 'baseRoomSubtotal', label: 'Base room subtotal' },
-  { key: 'listingDiscounts', label: 'Listing discounts', negative: true },
   { key: 'discountCodeSavings', label: 'Discount code savings', negative: true },
   { key: 'extraGuestCharge', label: 'Extra guest charge' },
   { key: 'flatFee', label: 'Flat fee' },
@@ -30,6 +29,28 @@ const PriceBreakdownView: React.FC<Props> = ({ value }) => {
 
   return (
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', fontSize: 13 }}>
+      {value.baseRoomSubtotal !== undefined && value.baseRoomSubtotal !== null && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', borderBottom: '1px solid #f3f4f6' }}>
+          <span style={{ color: '#4b5563' }}>Base room subtotal</span>
+          <span>{formatCurrency(value.baseRoomSubtotal)}</span>
+        </div>
+      )}
+
+      {(value.appliedListingDiscounts && value.appliedListingDiscounts.length > 0
+        ? value.appliedListingDiscounts
+        : value.listingDiscounts
+        ? [{ title: 'Listing discount', amount: value.listingDiscounts }]
+        : []
+      ).map((d, idx) => (
+        <div
+          key={`${d.title}-${idx}`}
+          style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', borderBottom: '1px solid #f3f4f6' }}
+        >
+          <span style={{ color: '#4b5563' }}>{d.title || 'Listing discount'}</span>
+          <span>{d.amount ? `-${formatCurrency(d.amount)}` : formatCurrency(d.amount)}</span>
+        </div>
+      ))}
+
       {ROWS.map(({ key, label, negative }) => {
         const amount = value[key];
         if (amount === undefined || amount === null) return null;

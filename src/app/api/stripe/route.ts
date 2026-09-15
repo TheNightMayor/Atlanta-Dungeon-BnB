@@ -162,7 +162,7 @@ export async function POST(req: Request) {
 
     // Calculate listing discounts (stacking discounts configured on the room document)
     const baseRoomSubtotal = price * numberOfDays;
-    const { totalSavings: listingSavings } = calculateListingDiscountsSavings(
+    const { totalSavings: listingSavings, breakdown: appliedListingDiscounts } = calculateListingDiscountsSavings(
       room.discounts,
       room.discount ?? discount,
       price,
@@ -180,6 +180,7 @@ export async function POST(req: Request) {
     const priceBreakdown = {
       baseRoomSubtotal,
       listingDiscounts: listingSavings,
+      appliedListingDiscounts,
       discountCodeSavings: promoSavings,
       extraGuestCharge,
       flatFee,

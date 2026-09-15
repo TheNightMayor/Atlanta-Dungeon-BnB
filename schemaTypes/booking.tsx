@@ -105,6 +105,14 @@ const booking = {
             description: "Amount authorized on the guest's card and awaiting capture.",
         }),
         defineField({
+            name: "authorizedAt",
+            title: "Authorized At",
+            type: "datetime",
+            readOnly: true,
+            hidden: true,
+            description: "When the guest's card was authorized at checkout.",
+        }),
+        defineField({
             name: "priceBreakdown",
             title: "Price Breakdown",
             type: "object",
@@ -115,6 +123,21 @@ const booking = {
             fields: [
                 defineField({ name: "baseRoomSubtotal", title: "Base Room Subtotal", type: "number" }),
                 defineField({ name: "listingDiscounts", title: "Listing Discounts", type: "number" }),
+                defineField({
+                    name: "appliedListingDiscounts",
+                    title: "Applied Listing Discounts",
+                    type: "array",
+                    of: [
+                        {
+                            type: "object",
+                            name: "appliedDiscount",
+                            fields: [
+                                { name: "title", title: "Title", type: "string" },
+                                { name: "amount", title: "Amount", type: "number" },
+                            ],
+                        },
+                    ],
+                }),
                 defineField({ name: "discountCodeSavings", title: "Discount Code Savings", type: "number" }),
                 defineField({ name: "extraGuestCharge", title: "Extra Guest Charge", type: "number" }),
                 defineField({ name: "flatFee", title: "Flat Fee", type: "number" }),

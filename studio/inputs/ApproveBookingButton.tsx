@@ -18,6 +18,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
   const authorizedAmount = typeof authorizedAmountValue === 'number'
     ? authorizedAmountValue
     : Number(authorizedAmountValue) || 0;
+  const authorizedAtValue = useFormValue(['authorizedAt']);
   const amountPaidValue = useFormValue(['amountPaid']);
   const amountPaid = typeof amountPaidValue === 'number' ? amountPaidValue : Number(amountPaidValue) || 0;
   const [refundAmount, setRefundAmount] = useState<number | ''>(amountPaid || '');
@@ -195,25 +196,21 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
           <div style={{ minWidth: 180 }}>
             <div style={{ fontSize: 12, color: '#6b7280' }}>Authorized amount</div>
             <div style={{ fontWeight: 600 }}>${authorizedAmount ? authorizedAmount.toFixed(2) : '0.00'}</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>Authorized at</div>
+            <div style={{ fontWeight: 600 }}>{formatDateTime(authorizedAtValue)}</div>
           </div>
 
           <div style={{ minWidth: 180 }}>
             <div style={{ fontSize: 12, color: '#6b7280' }}>Amount paid</div>
             <div style={{ fontWeight: 600 }}>${amountPaid ? amountPaid.toFixed(2) : '0.00'}</div>
-          </div>
-
-          <div style={{ minWidth: 220 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Payment received at</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>Payment received at</div>
             <div style={{ fontWeight: 600 }}>{formatDateTime(paymentReceivedAtValue)}</div>
           </div>
 
           <div style={{ minWidth: 180 }}>
             <div style={{ fontSize: 12, color: '#6b7280' }}>Refunded amount</div>
             <div style={{ fontWeight: 600 }}>${refundedAmountValue ? Number(refundedAmountValue).toFixed(2) : '0.00'}</div>
-          </div>
-
-          <div style={{ minWidth: 220 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Refunded at</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>Refunded at</div>
             <div style={{ fontWeight: 600 }}>{formatDateTime(refundedAtValue)}</div>
           </div>
         </div>
