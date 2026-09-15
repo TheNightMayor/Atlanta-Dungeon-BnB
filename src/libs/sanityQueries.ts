@@ -49,7 +49,11 @@ export const getRoom = groq`*[_type == "hotelRoom" && slug.current == $slug && !
     name,
     includedGuests,
     extraGuestFee,
-    offeredAmenities,
+    offeredAmenities[] {
+        _key,
+        "amenity": coalesce(@->title, title, amenity),
+        "icon": coalesce(@->icon, icon)
+    },
     price,
     slug,
     specialNote,

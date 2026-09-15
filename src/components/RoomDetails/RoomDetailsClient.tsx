@@ -224,21 +224,23 @@ const RoomDetailsClient = ({ room }: Props) => {
               handleBookNowClick={handleBookNowClick}
             />
           </div>
-          <div className="col-span-12 md:col-start-1 md:col-span-8">
-            <div className={`grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 ${getAmenityGridClass(room.offeredAmenities.length)} gap-1 my-6 w-full justify-items-center`}>
-              {room.offeredAmenities.map(amenity => (
-                <div
-                  key={amenity._key}
-                  className="text-center w-full max-w-[9rem] aspect-square bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
-                >
-                  <i className={`fa-solid ${amenity.icon} text-xl md:text-2xl`} />
-                  <p className="text-[12px] md:text-sm pt-2 break-words max-w-full leading-tight">
-                    {amenity.amenity}
-                  </p>
-                </div>
-              ))}
+          {Array.isArray(room?.offeredAmenities) && room.offeredAmenities.length > 0 && (
+            <div className="col-span-12 md:col-start-1 md:col-span-8">
+              <div className={`grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 ${getAmenityGridClass(room.offeredAmenities.length)} gap-1 my-6 w-full justify-items-center`}>
+                {room.offeredAmenities.map((amenity, idx) => (
+                  <div
+                    key={amenity._key || `${amenity.amenity}-${idx}`}
+                    className="text-center w-full max-w-[9rem] aspect-square bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
+                  >
+                    {amenity.icon && <i className={`fa-solid ${amenity.icon} text-xl md:text-2xl`} />}
+                    <p className="text-[12px] md:text-sm pt-2 break-words max-w-full leading-tight">
+                      {amenity.amenity}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
