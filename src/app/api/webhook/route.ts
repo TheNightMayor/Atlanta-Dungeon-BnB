@@ -40,7 +40,14 @@ export async function POST(req: Request) {
         const user = metadata?.user ?? '';
         const discount = metadata?.discount ?? '0';
         const totalPrice = metadata?.totalPrice ?? '0';
+        const authorizedAmount = metadata?.authorizedAmount ?? totalPrice;
         const discountCode = metadata?.discountCode ?? null;
+        let priceBreakdown;
+        try {
+          priceBreakdown = metadata?.priceBreakdown ? JSON.parse(metadata.priceBreakdown) : undefined;
+        } catch {
+          priceBreakdown = undefined;
+        }
         const customerName = (metadata?.customerName ?? session.customer_details?.name) ?? undefined;
 
         const stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
@@ -56,6 +63,8 @@ export async function POST(req: Request) {
           numberOfDays: Number(numberOfDays),
           discount: Number(discount),
           totalPrice: Number(totalPrice),
+          authorizedAmount: Number(authorizedAmount),
+          priceBreakdown,
           discountCode,
           user,
           status: 'pending approval',

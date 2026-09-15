@@ -67,6 +67,15 @@ export type CreateBookingDto = {
   numberOfDays: number;
   adults: number;
   totalPrice: number;
+  authorizedAmount?: number;
+  priceBreakdown?: {
+    baseRoomSubtotal: number;
+    listingDiscounts: number;
+    discountCodeSavings: number;
+    extraGuestCharge: number;
+    flatFee: number;
+    total: number;
+  };
   discount: number;
   discountCode?: string | null;
   status?:

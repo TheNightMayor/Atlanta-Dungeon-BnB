@@ -177,6 +177,14 @@ export async function POST(req: Request) {
     const perExtra = typeof room.extraGuestFee === 'number' ? Number(room.extraGuestFee) : 30;
     const extraGuestCharge = adults > included ? (adults - included) * perExtra : 0;
     const calculatedTotal = subtotal + extraGuestCharge + flatFee;
+    const priceBreakdown = {
+      baseRoomSubtotal,
+      listingDiscounts: listingSavings,
+      discountCodeSavings: promoSavings,
+      extraGuestCharge,
+      flatFee,
+      total: calculatedTotal,
+    };
 
     // Stripe expects integer cents and a non-negative amount
     const unit_amount = Math.max(0, Math.round(Number(calculatedTotal ?? 0) * 100));
@@ -227,7 +235,9 @@ export async function POST(req: Request) {
         discount,
         discountCode: discountId ?? null,
         discountPerNight: discountId ? String(appliedDiscountPerNight) : '0',
-        totalPrice: calculatedTotal,
+        totalPrice: String(calculatedTotal),
+        authorizedAmount: String(calculatedTotal),
+        priceBreakdown: JSON.stringify(priceBreakdown),
       },
     });
 
