@@ -15,7 +15,9 @@ type Props = {
 const formatCurrency = (n?: number) =>
   typeof n === 'number' ? n.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : '—';
 
-const ROWS: { key: keyof NonNullable<Props['value']>; label: string; negative?: boolean }[] = [
+type NumericField = 'discountCodeSavings' | 'extraGuestCharge' | 'flatFee';
+
+const ROWS: { key: NumericField; label: string; negative?: boolean }[] = [
   { key: 'discountCodeSavings', label: 'Discount code savings', negative: true },
   { key: 'extraGuestCharge', label: 'Extra guest charge' },
   { key: 'flatFee', label: 'Flat fee' },
