@@ -81,7 +81,8 @@ const booking = {
             name: "totalPrice",
             title: "Total Price",
             type: "number",
-            readOnly: true,
+            // TEMP: unlocked to correct a bad manual edit — revert to readOnly: true after fixing.
+            readOnly: false,
             description: "Amount to be charged to guest's card after applying all fees and discounts.",
             validation: Rule =>Rule.required().min(0),
         }),
