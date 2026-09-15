@@ -3,6 +3,7 @@ import { Any } from "next-sanity";
 import { FaCalendarCheck } from "react-icons/fa";
 import { defineField } from "sanity";
 import ApproveBookingButton from '../studio/inputs/ApproveBookingButton';
+import PriceBreakdownView from '../studio/inputs/PriceBreakdownView';
 // import { PreviewProps } from "sanity";
 
 
@@ -86,6 +87,7 @@ const booking = {
             type: "object",
             readOnly: true,
             description: "Snapshot of the calculation used to determine the total price at checkout.",
+            components: { input: PriceBreakdownView },
             fields: [
                 defineField({ name: "baseRoomSubtotal", title: "Base Room Subtotal", type: "number" }),
                 defineField({ name: "listingDiscounts", title: "Listing Discounts", type: "number" }),
