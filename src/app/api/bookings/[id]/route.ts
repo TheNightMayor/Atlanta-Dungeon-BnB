@@ -9,17 +9,47 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 
 async function hasSanityStudioSession(req: Request) {
   const authorization = req.headers.get('authorization');
-  if (!authorization?.startsWith('Bearer ')) return false;
-
-  try {
-    const response = await fetch('https://api.sanity.io/v2021-06-07/users/me', {
-      headers: { Authorization: authorization },
-    });
-    return response.ok;
-  } catch (error) {
-    console.error('Unable to validate Sanity Studio user:', error);
-    return false;
+  if (authorization?.startsWith('Bearer ')) {
+    const token = authorization.replace(/^Bearer\s+/, '').trim();
+    if (token && token === process.env.SANITY_STUDIO_TOKEN) {
+      return true;
+    }
+    try {
+      const response = await fetch('https://api.sanity.io/v2021-06-07/users/me', {
+        headers: { Authorization: authorization },
+      });
+      if (response.ok) return true;
+    } catch (error) {
+      console.error('Unable to validate Sanity Studio user:', error);
+    }
   }
+
+  // Check Sanity Studio session cookie (e.g. sanitySession) passed by the browser when logged into Sanity Studio
+  const cookieHeader = req.headers.get('cookie');
+  if (cookieHeader && cookieHeader.includes('sanitySession')) {
+    try {
+      const response = await fetch('https://api.sanity.io/v2021-06-07/users/me', {
+        headers: {
+          Cookie: cookieHeader,
+        },
+      });
+      if (response.ok) return true;
+    } catch (error) {
+      console.error('Unable to validate Sanity cookie user:', error);
+    }
+  }
+
+  // Fallback: Check NextAuth admin/user session if logged into the frontend
+  try {
+    const { getServerSession } = await import('next-auth');
+    const { authOptions } = await import('@/libs/auth');
+    const session = await getServerSession(authOptions);
+    if (session?.user) return true;
+  } catch (err) {
+    // ignore
+  }
+
+  return false;
 }
 
 export async function PATCH(
