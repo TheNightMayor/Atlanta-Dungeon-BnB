@@ -324,6 +324,51 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   const calendarDays = generateCalendarDays();
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
+  // Precompute per-day booking/ICS/blocked state once per render instead of
+  // re-scanning the full bookings/icsEvents arrays 3-4x for every one of the ~42 grid cells.
+  const monthDayData = React.useMemo(() => {
+    const map: Record<string, { dayBookings: Booking[]; icsForDay: IcsEvent[]; blocked: boolean }> = {};
+    const totalDays = daysInMonth(currentMonth);
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const dateStr = date.toISOString().split('T')[0];
+
+      const dayBookings = (bookings || []).filter(b => {
+        if (!b?.checkinDate || !b?.checkoutDate) return false;
+        return dateStr >= b.checkinDate && dateStr <= b.checkoutDate;
+      });
+
+      const icsForDay = icsEvents.filter(ev => {
+        if (!ev.start) return false;
+        const s = new Date(ev.start).toISOString().split('T')[0];
+        const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
+        return dateStr >= s && dateStr <= e;
+      });
+
+      const icsReserved = icsEvents.some(ev => {
+        if (!ev.reserved || !ev.start) return false;
+        const s = new Date(ev.start).toISOString().split('T')[0];
+        const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
+        return dateStr >= s && dateStr < e;
+      });
+
+      const hasCheckin = (bookings || []).some(b => b?.checkinDate === dateStr);
+      const inRange = (bookings || []).some(b => {
+        if (!b?.checkinDate || !b?.checkoutDate) return false;
+        return dateStr >= b.checkinDate && dateStr < b.checkoutDate;
+      });
+
+      map[dateStr] = {
+        dayBookings,
+        icsForDay,
+        blocked: !!blockedMap[dateStr] || icsReserved || hasCheckin || inRange,
+      };
+    }
+
+    return map;
+  }, [currentMonth, bookings, icsEvents, blockedMap]);
+
   if (loading || !client) {
     return <div style={{ padding: '20px', color: colors.text }}>Loading bookings...</div>;
   }
@@ -449,11 +494,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                 const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
                 // For display, include bookings that end on this date (checkout) so the label is visible.
                 const dateStr = date.toISOString().split('T')[0];
-                const dayBookings = (bookings || []).filter((b: any) => {
-                  if (!b?.checkinDate || !b?.checkoutDate) return false;
-                  // include if date is between checkin and checkout inclusive (so checkout shows)
-                  return dateStr >= b.checkinDate && dateStr <= b.checkoutDate;
-                });
+                const dayData = monthDayData[dateStr];
+                const dayBookings = dayData?.dayBookings || [];
+                const dayIcsEvents = dayData?.icsForDay || [];
+                const dayBlocked = dayData?.blocked || false;
                 const isToday = new Date().toDateString() === date.toDateString();
                 const isSelected = selectedDate === dateStr;
                 const isMultiSelected = selectedDates.includes(dateStr);
@@ -501,7 +545,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       height: '100px',
                       width: '100%',
                       padding: '8px',
-                      background: isMultiSelected ? '#274c4c' : (isSelected ? colors.selectedBg : isToday ? colors.todayBg : (isBlocked(date) ? '#4a0b0b' : colors.surface)),
+                      background: isMultiSelected ? '#274c4c' : (isSelected ? colors.selectedBg : isToday ? colors.todayBg : (dayBlocked ? '#4a0b0b' : colors.surface)),
                       border: `1px solid ${colors.border}`,
                       boxShadow: isToday ? `inset 0 0 0 1px ${colors.todayBorder}` : 'none',
                       cursor: 'pointer',
@@ -515,12 +559,12 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                     }}
                     onMouseOver={(e) => {
                       if (!isSelected && !isMultiSelected) {
-                        e.currentTarget.style.background = isBlocked(date) ? '#4a0b0b' : colors.hoverBg;
+                        e.currentTarget.style.background = dayBlocked ? '#4a0b0b' : colors.hoverBg;
                       }
                     }}
                     onMouseOut={(e) => {
                       if (!isSelected && !isMultiSelected) {
-                        e.currentTarget.style.background = isBlocked(date) ? '#4a0b0b' : (isToday ? colors.todayBg : colors.surface);
+                        e.currentTarget.style.background = dayBlocked ? '#4a0b0b' : (isToday ? colors.todayBg : colors.surface);
                       } else if (isMultiSelected) {
                         e.currentTarget.style.background = '#274c4c';
                       } else if (isSelected) {
@@ -528,10 +572,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       }
                     }}
                   >
-                    <div style={{ fontWeight: '600', color: isBlocked(date) ? 'rgba(255,255,255,0.6)' : colors.text, marginBottom: '4px', fontSize: '14px' }}>
+                    <div style={{ fontWeight: '600', color: dayBlocked ? 'rgba(255,255,255,0.6)' : colors.text, marginBottom: '4px', fontSize: '14px' }}>
                       {day}
                     </div>
-                    {(dayBookings.length > 0 || getIcsEventsForDate(date).length > 0 || isBlocked(date)) && (
+                    {(dayBookings.length > 0 || dayIcsEvents.length > 0 || dayBlocked) && (
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', overflow: 'hidden', width: '100%' }}>
                         {dayBookings.slice(0, 2).map(booking => (
                           <div
@@ -539,7 +583,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                             style={{
                               fontSize: '11px',
                               background: colors.bookingBg,
-                              color: isBlocked(date) ? 'rgba(255,255,255,0.6)' : colors.bookingText,
+                              color: dayBlocked ? 'rgba(255,255,255,0.6)' : colors.bookingText,
                               padding: '3px 5px',
                               borderRadius: '3px',
                               whiteSpace: 'nowrap',
@@ -560,7 +604,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                           </div>
                         )}
 
-                        {getIcsEventsForDate(date).slice(0, 2).map(ev => (
+                        {dayIcsEvents.slice(0, 2).map(ev => (
                           ev.url ? (
                             <a
                               key={ev.id}
@@ -574,7 +618,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                   style={{
                                     fontSize: '11px',
                                     background: isDarkMode ? '#1f6feb' : '#cfe2ff',
-                                    color: isBlocked(date) ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
+                                    color: dayBlocked ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
                                     padding: '3px 5px',
                                     borderRadius: '3px',
                                     whiteSpace: 'nowrap',
@@ -610,9 +654,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                           )
                         ))}
 
-                        {getIcsEventsForDate(date).length > 2 && (
+                        {dayIcsEvents.length > 2 && (
                           <div style={{ fontSize: '10px', color: colors.textSecondary, fontStyle: 'italic' }}>
-                            +{getIcsEventsForDate(date).length - 2} more
+                            +{dayIcsEvents.length - 2} more
                           </div>
                         )}
 

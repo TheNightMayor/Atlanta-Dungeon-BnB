@@ -13,11 +13,14 @@ const booking = {
     icon: FaCalendarCheck,
     type: "document",
     fields: [
+        // Checkout snapshot — captured at booking time; editing here does not
+        // re-authorize payment, re-check availability, or resend emails.
         defineField({
             name: "user",
             title: "User",
             type: "reference",
             to: [{type: 'user' }],
+            readOnly: true,
             validation: Rule => Rule.required(),
         }),
         defineField({
@@ -25,18 +28,21 @@ const booking = {
             title: "Hotel Room",
             type: "reference",
             to: [{ type: "hotelRoom" }],
+            readOnly: true,
             validation: Rule =>Rule.required(),
         }),
         defineField({
             name: "checkinDate",
             title: "Check-in Date",
             type: "date",
+            readOnly: true,
             validation: Rule =>Rule.required(),
         }),
         defineField({
             name: "checkoutDate",
             title: "Check-out Date",
             type: "date",
+            readOnly: true,
             validation: Rule =>Rule.required(),
         }),
         defineField({
@@ -44,6 +50,7 @@ const booking = {
             title: "Number of Days",
             type: "number",
             initialValue: 1,
+            readOnly: true,
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
@@ -51,6 +58,7 @@ const booking = {
             title: "Discount",
             type: "number",
             initialValue: 0,
+            readOnly: true,
             validation: Rule =>Rule.required().min(0),
         }),
         defineField({
@@ -58,6 +66,7 @@ const booking = {
             title: "Discount Code",
             type: "reference",
             to: [{ type: "discountCode" }],
+            readOnly: true,
             description: "The discount code applied to this booking",
         }),
         defineField({
@@ -65,20 +74,25 @@ const booking = {
             title: "Adults",
             type: "number",
             initialValue: 1,
+            readOnly: true,
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
             name: "totalPrice",
             title: "Total Price",
             type: "number",
+            readOnly: true,
             description: "Amount to be charged to guest's card after applying all fees and discounts.",
             validation: Rule =>Rule.required().min(0),
         }),
+
+        // Payment/lifecycle data — informational only, surfaced in the Approval panel below.
         defineField({
             name: "authorizedAmount",
             title: "Authorized Amount",
             type: "number",
             readOnly: true,
+            hidden: true,
             description: "Amount authorized on the guest's card and awaiting capture.",
         }),
         defineField({
@@ -148,28 +162,34 @@ const booking = {
             type: 'string',
             components: { input: ApproveBookingButton },
         }),
+
+        // Internal identifiers — never edited by hand, only read by API routes.
         defineField({
             name: "stripePaymentIntentId",
             title: "Stripe Payment Intent ID",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
         defineField({
             name: "stripeSessionId",
             title: "Stripe Session ID",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
         defineField({
             name: "customerEmail",
             title: "Customer Email",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
         defineField({
             name: "customerName",
             title: "Customer Name",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
     ],
