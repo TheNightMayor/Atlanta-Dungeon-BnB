@@ -4,12 +4,13 @@ import sanityClient from '@/libs/sanity';
 type Body = {
   code?: string | null;
   price?: number;
+  numberOfDays?: number;
   hotelRoomId?: string | null;
 };
 
 export async function POST(req: Request) {
   try {
-    const { code, price, hotelRoomId }: Body = await req.json();
+    const { code, price, numberOfDays = 1, hotelRoomId }: Body = await req.json();
 
     if (!code || typeof code !== 'string' || code.trim().length === 0) {
       return NextResponse.json({ error: 'Code is required' }, { status: 400 });
@@ -37,15 +38,23 @@ export async function POST(req: Request) {
       }
     }
 
-    // compute per-night discount using provided price when possible
-    let appliedDiscountPerNight = 0;
+    // compute discount amounts
     const basePrice = Number(price) || 0;
+    const days = Math.max(1, Number(numberOfDays) || 1);
     const rawVal = Number(discountDoc.value) || 0;
+    let totalDiscount = 0;
+    let appliedDiscountPerNight = 0;
 
     if (discountDoc.type === 'percentage') {
       appliedDiscountPerNight = (basePrice * rawVal) / 100;
+      totalDiscount = appliedDiscountPerNight * days;
+    } else if (discountDoc.type === 'fixed_total') {
+      totalDiscount = rawVal;
+      appliedDiscountPerNight = rawVal / days;
     } else {
+      // 'fixed' / per-night
       appliedDiscountPerNight = rawVal;
+      totalDiscount = rawVal * days;
     }
 
     return NextResponse.json({
@@ -55,6 +64,7 @@ export async function POST(req: Request) {
       type: discountDoc.type,
       value: rawVal,
       perNight: appliedDiscountPerNight,
+      totalDiscount,
     });
   } catch (error) {
     console.error('Discount validate error', error);

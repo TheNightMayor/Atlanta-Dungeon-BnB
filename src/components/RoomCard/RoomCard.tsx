@@ -16,7 +16,7 @@ const RoomCard: FC<Props> = props => {
     } = props;
 
     // Normalize the room image source and keep the browser cache fresh whenever the underlying Sanity asset changes.
-    const baseUrl = getImageUrl(coverImage) || '/images/default-room.jpg';
+    const baseUrl = getImageUrl(coverImage) || '/images/hero-1.jpg';
     const assetRef = (coverImage as any)?.assetRef || (coverImage as any)?.image?.asset?._ref || (props as any)?.room?._updatedAt;
     const sep = baseUrl.includes('?') ? '&' : '?';
     const src = assetRef ? `${baseUrl}${sep}v=${encodeURIComponent(String(assetRef))}` : baseUrl;

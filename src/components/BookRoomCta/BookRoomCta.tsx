@@ -422,7 +422,7 @@ const BookRoomCta: FC<Props> = props => {
                                                         const res = await fetch('/api/discounts/validate', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({ code: discountCodeInput, price }),
+                                                            body: JSON.stringify({ code: discountCodeInput, price, numberOfDays: nights > 0 ? nights : 1 }),
                                                         });
                                                         const data = await res.json().catch(() => null);
                                                         if (!res.ok) {
@@ -452,9 +452,11 @@ const BookRoomCta: FC<Props> = props => {
                                             <div className="mt-2 flex items-center justify-between bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 px-2.5 py-1.5 rounded-lg">
                                                 <div className="text-xs text-green-800 dark:text-green-300">
                                                     <span className="font-semibold">Applied:</span> {appliedDiscount.code}
-                                                    {appliedDiscount.perNight != null && (
+                                                    {appliedDiscount.totalDiscount != null ? (
+                                                        <span className="ml-1.5">(-${Number(appliedDiscount.totalDiscount).toFixed(2)} total)</span>
+                                                    ) : appliedDiscount.perNight != null ? (
                                                         <span className="ml-1.5">(-${Number(appliedDiscount.perNight).toFixed(2)}/night)</span>
-                                                    )}
+                                                    ) : null}
                                                 </div>
                                                 <button
                                                     type="button"

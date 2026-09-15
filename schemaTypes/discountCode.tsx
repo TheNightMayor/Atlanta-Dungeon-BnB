@@ -29,7 +29,8 @@ const discountCode = defineType({
       options: {
         list: [
           { title: 'Percentage (%)', value: 'percentage' },
-          { title: 'Fixed Amount ($)', value: 'fixed' },
+          { title: 'Fixed Total ($ off whole stay)', value: 'fixed_total' },
+          { title: 'Fixed Per Night ($/night off)', value: 'fixed' },
         ],
       },
       initialValue: 'percentage',
@@ -39,7 +40,7 @@ const discountCode = defineType({
       name: 'value',
       title: 'Value',
       type: 'number',
-      description: 'If percentage, enter 10 for 10% (0-100); if fixed, enter dollar amount per night (e.g. 25 for $25 off)',
+      description: 'If percentage, enter 10 for 10% (0-100); if fixed total/nightly, enter dollar amount (e.g. 50 for $50 off)',
       validation: (Rule) =>
         Rule.required()
           .min(0)
@@ -106,7 +107,12 @@ const discountCode = defineType({
       active: 'active',
     },
     prepare({ title, type, value, active }) {
-      const typeLabel = type === 'percentage' ? `${value}% off` : `$${value} off/night`;
+      let typeLabel = `${value}% off`;
+      if (type === 'fixed_total') {
+        typeLabel = `$${value} total off`;
+      } else if (type === 'fixed') {
+        typeLabel = `$${value} off/night`;
+      }
       return {
         title: title || 'Untitled Code',
         subtitle: `${typeLabel} — ${active ? 'Active' : 'Inactive'}`,

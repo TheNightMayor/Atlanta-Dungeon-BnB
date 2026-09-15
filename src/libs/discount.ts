@@ -67,14 +67,41 @@ export function normalizeDiscountCode(code: string) {
   return code.trim().toUpperCase();
 }
 
+export function calculatePromoCodeSavings(
+  discountDoc: DiscountCodeResult,
+  price: number,
+  numberOfDays: number
+): { totalSavings: number; perNightSavings: number } {
+  const days = Math.max(1, numberOfDays || 1);
+  const rawVal = Number(discountDoc.value) || 0;
+  let totalSavings = 0;
+  let perNightSavings = 0;
+
+  if (discountDoc.type === 'percentage') {
+    perNightSavings = (price * rawVal) / 100;
+    totalSavings = perNightSavings * days;
+  } else if (discountDoc.type === 'fixed_total') {
+    totalSavings = rawVal;
+    perNightSavings = rawVal / days;
+  } else {
+    // 'fixed' / per-night
+    perNightSavings = rawVal;
+    totalSavings = rawVal * days;
+  }
+
+  const baseSubtotal = price * days;
+  totalSavings = Math.min(baseSubtotal, totalSavings);
+  perNightSavings = days > 0 ? totalSavings / days : 0;
+
+  return { totalSavings, perNightSavings };
+}
+
 export function calculateDiscountPerNight(
   discountDoc: DiscountCodeResult,
-  price: number
+  price: number,
+  numberOfDays: number = 1
 ): number {
-  if (discountDoc.type === 'percentage') {
-    return (price * (Number(discountDoc.value) || 0)) / 100;
-  }
-  return Number(discountDoc.value) || 0;
+  return calculatePromoCodeSavings(discountDoc, price, numberOfDays).perNightSavings;
 }
 
 export async function loadDiscountCode(code: string) {

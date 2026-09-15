@@ -74,10 +74,10 @@ const hotelRoom = {
     }),
     defineField({
       name: "visibleToUsers",
-      title: "Visible to users",
+      title: "Publicly Listed",
       type: "boolean",
       fieldset: 'visibility',
-      description: "Controls whether this accommodation is visible to site users",
+      description: "When ON (true), this listing appears publicly in search and on the rooms page. When OFF (false), it is unlisted and only accessible to users with the direct link.",
       initialValue: true,
     }),
     defineField({
@@ -226,6 +226,7 @@ const hotelRoom = {
       title: "Images",
       type: "array",
       fieldset: 'photos',
+      description: "Optional. If left empty, default showcase photos will be used automatically.",
       of: [
         {
           type: "object",
@@ -235,18 +236,16 @@ const hotelRoom = {
           preview: {select: {media: 'image', title: 'image.asset.originalFilename'}}
         },
       ],
-      validation: (Rule) =>
-        Rule.required().min(3).error("Minimum of 3 images required"),
     }),
     defineField({
       name: "coverImage",
       title: "Cover Image",
       type: "object",
       fieldset: 'photos',
+      description: "Optional. If left empty, a default cover photo will be used automatically.",
       fields: [
         { name: "image", type: "image", title: "Image" },
       ],
-      validation: (Rule) => Rule.required().error("Cover Image is required"),
     }),
     // `type` field removed — use `instantBook`, `visibleToUsers`, and `overnight` instead
     defineField({

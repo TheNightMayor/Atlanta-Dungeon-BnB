@@ -107,6 +107,10 @@ export async function POST(req: Request) {
       if (isNonEmptyUrl(cover)) imageUrls.push(cover);
     }
 
+    if (imageUrls.length === 0) {
+      imageUrls.push(`${origin}/images/hero-1.jpg`);
+    }
+
     // calculate totals
 
     // handle optional discount code validation and calculation
@@ -141,11 +145,14 @@ export async function POST(req: Request) {
         if (userCount > 0) return new NextResponse('You have already used this discount code', { status: 400 });
       }
 
-      // compute per-night discount from promo code
+      // compute discount from promo code
       const rawVal = Number(discountDoc.value) || 0;
       if (discountDoc.type === 'percentage') {
         appliedDiscountPerNight = (price * rawVal) / 100;
+      } else if (discountDoc.type === 'fixed_total') {
+        appliedDiscountPerNight = rawVal / numberOfDays;
       } else {
+        // fixed per night
         appliedDiscountPerNight = rawVal;
       }
       appliedDiscountPerNight = Math.min(price, appliedDiscountPerNight);
@@ -163,7 +170,7 @@ export async function POST(req: Request) {
     );
 
     // Apply promo code discount on top of listing discounts
-    const promoSavings = appliedDiscountPerNight * numberOfDays;
+    const promoSavings = Math.min(baseRoomSubtotal - listingSavings, appliedDiscountPerNight * numberOfDays);
     const subtotal = Math.max(0, baseRoomSubtotal - listingSavings - promoSavings);
 
     const included = typeof room.includedGuests === 'number' ? Number(room.includedGuests) : 2;

@@ -171,7 +171,7 @@ const RoomDetailsClient = ({ room }: Props) => {
                   handleBookNowClick={handleBookNowClick}
                 />
               </div>
-              <HotelPhotoGallery photos={room.images} />
+              <HotelPhotoGallery photos={Array.isArray(room.images) && room.images.length > 0 ? room.images : (room.coverImage ? [room.coverImage as any] : [])} />
               <div>
                 <PortableText value={room.description} components={portableTextComponents} />
               </div>
