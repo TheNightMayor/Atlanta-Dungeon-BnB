@@ -1,4 +1,5 @@
- 'use client'
+'use client';
+
 import Link from "next/link";
 import { useSession } from 'next-auth/react';
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
@@ -495,4 +496,4 @@ const BookRoomCta: FC<Props> = props => {
     );
 };
 
-export default BookRoomCta
+export default BookRoomCta;
