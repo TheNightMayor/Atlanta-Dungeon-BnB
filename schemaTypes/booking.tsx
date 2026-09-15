@@ -21,6 +21,7 @@ const booking = {
             type: "reference",
             to: [{type: 'user' }],
             readOnly: true,
+            fieldset: 'stay',
             validation: Rule => Rule.required(),
         }),
         defineField({
@@ -29,6 +30,7 @@ const booking = {
             type: "reference",
             to: [{ type: "hotelRoom" }],
             readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required(),
         }),
         defineField({
@@ -36,6 +38,7 @@ const booking = {
             title: "Check-in Date",
             type: "date",
             readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required(),
         }),
         defineField({
@@ -43,6 +46,7 @@ const booking = {
             title: "Check-out Date",
             type: "date",
             readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required(),
         }),
         defineField({
@@ -51,6 +55,7 @@ const booking = {
             type: "number",
             initialValue: 1,
             readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
@@ -59,6 +64,7 @@ const booking = {
             type: "number",
             initialValue: 0,
             readOnly: true,
+            fieldset: 'pricing',
             validation: Rule =>Rule.required().min(0),
         }),
         defineField({
@@ -67,6 +73,7 @@ const booking = {
             type: "reference",
             to: [{ type: "discountCode" }],
             readOnly: true,
+            fieldset: 'pricing',
             description: "The discount code applied to this booking",
         }),
         defineField({
@@ -75,14 +82,15 @@ const booking = {
             type: "number",
             initialValue: 1,
             readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
             name: "totalPrice",
             title: "Total Price",
             type: "number",
-            // TEMP: unlocked to correct a bad manual edit — revert to readOnly: true after fixing.
-            readOnly: false,
+            readOnly: true,
+            fieldset: 'pricing',
             description: "Amount to be charged to guest's card after applying all fees and discounts.",
             validation: Rule =>Rule.required().min(0),
         }),
@@ -101,6 +109,7 @@ const booking = {
             title: "Price Breakdown",
             type: "object",
             readOnly: true,
+            fieldset: 'pricing',
             description: "Snapshot of the calculation used to determine the total price at checkout.",
             components: { input: PriceBreakdownView },
             fields: [
@@ -193,6 +202,10 @@ const booking = {
             readOnly: true,
             hidden: true,
         }),
+    ],
+    fieldsets: [
+        { name: 'stay', title: 'Stay Details', options: { columns: 2 } },
+        { name: 'pricing', title: 'Pricing Snapshot', options: { columns: 2, collapsible: true, collapsed: true } },
     ],
     preview: {
         select: {
