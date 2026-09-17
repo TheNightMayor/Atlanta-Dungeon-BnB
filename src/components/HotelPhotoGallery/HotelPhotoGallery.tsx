@@ -28,10 +28,16 @@ const HotelPhotoGallery: FC<{ photos: ImageType[] }> = ({ photos }) => {
         };
     }, [showModal]);
 
-    // Filter photos to those with a usable url to avoid Next/Image errors
-    const usablePhotos = Array.isArray(photos) ? photos.map(p => ({ ...p, url: getImageUrl(p) || '' })) : [];
+    const DEFAULT_ROOM_PHOTOS = [
+        { _key: 'default-1', url: '/images/hero-1.jpg' },
+        { _key: 'default-2', url: '/images/hero-2.jpg' },
+        { _key: 'default-3', url: '/images/hero-3.jpg' },
+    ];
+
+    // Filter photos to those with a usable url to avoid Next/Image errors, falling back to default photos
+    const usablePhotos = Array.isArray(photos) ? photos.map(p => ({ ...p, url: getImageUrl(p) || (p as any)?.url || '' })) : [];
     const displayedPhotos = usablePhotos.filter(p => !!p.url);
-    const effectivePhotos = displayedPhotos.length > 0 ? displayedPhotos : usablePhotos;
+    const effectivePhotos = displayedPhotos.length > 0 ? displayedPhotos : DEFAULT_ROOM_PHOTOS;
     const photoCount = effectivePhotos.length;
 
     const handlePrevious = () => {

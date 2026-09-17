@@ -116,12 +116,11 @@ const Gallery = () => {
     return [...shuffledCoverImages, ...shuffledOtherImages];
   }, [allImages]);
 
-  // Determine how many tiles fit on one row given min tile size = 25vh
+  // Determine how many tiles fit on one row using a stable width-based minimum tile size.
   useEffect(() => {
     const updateVisible = () => {
       const containerWidth = containerRef.current?.clientWidth ?? window.innerWidth;
-      const vh = window.innerHeight;
-      const minTile = vh * 0.25; // 25vh in px
+      const minTile = 180; // fixed minimum width for stable mobile behavior
       const gap = 16; // same as gap-4
       const count = Math.max(1, Math.floor((containerWidth + gap) / (minTile + gap)));
       setVisibleCount(count);
@@ -156,7 +155,7 @@ const Gallery = () => {
       <div ref={containerRef} className='w-full overflow-x-auto'>
         <div
           className='grid gap-4'
-          style={{ gridAutoFlow: 'column', gridAutoColumns: 'minmax(min(25vh, 100%), 1fr)' }}
+          style={{ gridAutoFlow: 'column', gridAutoColumns: 'minmax(180px, 1fr)' }}
         >
           {visibleImages.map((img) => (
             <button

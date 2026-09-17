@@ -5,45 +5,12 @@ import IconGridPicker from "../studio/inputs/IconGridPicker";
 import PublicUrlInput from "../studio/inputs/PublicUrlInput";
 import ICONS from "../studio/inputs/iconList";
 import AMENITY_ICON_MAP from "../studio/inputs/amenityIconMap";
-const roomTypes = [
-  { title: "Private", value: "private" },
-  { title: "Content", value: "content" },
-  { title: "Event", value: "event" },
-];
+import AmenityGridPicker from "../studio/inputs/AmenityGridPicker";
+import OfferedAmenitiesPicker from "../studio/inputs/OfferedAmenitiesPicker";
 
-const amenities = [
-  {title: "Sunshine", value: "sunshine", icon: "GiSunbeams"},
-  {title: "Haunted", value: "haunted"},
-  {title: "Central Air Conditioning", value: "ac"},
-  {title: "Central Heating", value: "heat"},
-  {title: "WiFi", value: "wifi"},
-  {title: "Kitchen", value: "kitchen"},
-  {title: "Refrigerator", value: "fridge"},
-  {title: "Microwave", value: "microwave"},
-  {title: "Cooking Basics", value: "cooking"},
-  {title: "Dishes and Silverware", value: "dishes"},
-  {title: "Dishwasher", value: "dishwasher"},
-  {title: "Stove", value: "stove"},
-  {title: "Oven", value: "oven"},
-  {title: "Keurig", value: "keurig"},
-  {title: "Wine Glasses", value: "glasses"},
-  {title: "Dining Table", value: "table"},
-  {title: "Shared Backyard", value: "yard"},
-  {title: "Fire Pit", value: "fire"},
-  {title: "On-Site Parking", value: "onsiteparking"},
-  {title: "Street Parking", value: "streetparking"},
-  {title: "Self check-in", value: "selfcheckin"},
-  {title: "Keypad", value: "keypad"},
-  {title: "Outdoor Security Cameras", value: "cameras"},
-  {title: "Smoke Alarm", value: "smokealarm"},
-  {title: "Carbon Monoxide Alarm", value: "coalarm"},
-  {title: "Fire Extinguisher", value: "fireextinguisher"},
-  {title: "First Ait Kit", value: "firstaid"},
-  {title: "Bed Linens", value: "linens"},
-  {title: "Blackout Curtains", value: "curtains"},
-  {title: "Hair Dryer", value: "hairdryer"},
-  {title: "Hot Water", value: "hotwater"},
-];
+// room type removed — visibility toggles now replace this field
+
+// amenities list moved to studio/inputs/amenities.ts as AMENITIES
 
 const hotelRoom = {
   name: "hotelRoom",
@@ -51,73 +18,215 @@ const hotelRoom = {
   type: "document",
   icon: FaBed,
   fields: [
+    // Identity section
     defineField({
       name: "name",
       title: "Name",
       type: "string",
+      description: 'Public display name for the accommodation (shown on listings and pages).',
+      fieldset: 'identity',
       validation: (Rule) =>
         Rule.required().max(50).error("Maximum 50 Characters"),
     }),
     defineField({
       name: "slug",
+      title: "Slug",
       type: "slug",
+      fieldset: 'identity',
       options: {
         source: "name",
       },
-      validation: (Rule) => Rule.required(),
+      description: 'URL-friendly identifier generated from the name (used in public links).\n\n',
+      validation: (Rule) =>
+        Rule.required().custom(async (slug: any, context: any) => {
+          if (!slug || !slug.current) return 'Slug is required.';
+          const pat = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+          if (!pat.test(slug.current)) return 'Slug must use only lowercase letters, numbers and hyphens.';
+          try {
+            const client = context.getClient({ apiVersion: '2023-05-13' });
+            const docId = context.document?._id || '';
+            const existing = await client.fetch('*[_type == "hotelRoom" && slug.current == $slug && _id != $id][0]', { slug: slug.current, id: docId });
+            if (existing) return 'Slug is already in use by another accommodation.';
+          } catch (err) {
+            // ignore fetch errors — don't block validation on client issues
+          }
+          return true;
+        }),
     }),
     defineField({
       name: 'publicUrl',
       title: 'Public URL',
       type: 'url',
+      fieldset: 'identity',
       description: 'Read-only link to the front-end page for this accommodation',
       readOnly: true,
       components: { input: PublicUrlInput },
     }),
+
+    // Visibility / booking toggles
     defineField({
-      name: "description",
-      title: "Description",
-      type: "array",
-      of: [{ type: "block" }],
-      validation: (Rule) => Rule.required().min(1).error("Please provide a description."),
+      name: "instantBook",
+      title: "Instant Book",
+      type: "boolean",
+      fieldset: 'visibility',
+      description: "Enable to allow users to instantly book this accommodation",
+      initialValue: true,
     }),
+    defineField({
+      name: "visibleToUsers",
+      title: "Publicly Listed",
+      type: "boolean",
+      fieldset: 'visibility',
+      description: "When ON (true), this listing appears publicly in search and on the rooms page. When OFF (false), it is unlisted and only accessible to users with the direct link.",
+      initialValue: true,
+    }),
+    defineField({
+      name: "overnight",
+      title: "Overnight?",
+      type: "boolean",
+      fieldset: 'visibility',
+      description: "Indicates whether this accommodation allows overnight stays",
+      initialValue: true,
+    }),
+
+    // Pricing section (placed above description)
     defineField({
       name: "price",
       title: "Price",
       type: "number",
+      fieldset: 'pricing',
+      description: 'Base nightly price.',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "discount",
-      title: "Discount",
-      type: "number",
-      initialValue: 0,
+      name: 'includedGuests',
+      title: 'Included Guests',
+      type: 'number',
+      fieldset: 'pricing',
+      description: 'Guests included in base price.',
+      initialValue: 2,
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
-      name: 'discountCodes',
-      title: 'Discount Codes',
-      type: 'array',
-      of: [
-        {
-          type: 'reference',
-          to: [{ type: 'discountCode' }],
-        },
-      ],
-      description: 'Reference discount codes that apply to this accommodation',
+      name: 'extraGuestFee',
+      title: 'Extra Guest Fee',
+      type: 'number',
+      fieldset: 'pricing',
+      description: 'Per-guest fee above included guests.',
+      initialValue: 30,
+      validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
       name: "flatFee",
       title: "Flat Fee",
       type: "number",
-      description: "One-time flat fee added to each booking (e.g. cleaning or service fee)",
+      fieldset: 'pricing',
+      description: "One-time flat fee per booking.",
       initialValue: 0,
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
+      name: "discounts",
+      title: "Listing Discounts",
+      type: "array",
+      fieldset: "pricing",
+      description: "Add one or more stacking discounts applied directly to this room listing.",
+      of: [
+        {
+          type: "object",
+          name: "listingDiscount",
+          title: "Discount",
+          fields: [
+            {
+              name: "title",
+              title: "Label / Name",
+              type: "string",
+              description: 'e.g. "Seasonal Discount", "Weekday Special"',
+              validation: (Rule: any) => Rule.required(),
+            },
+            {
+              name: "type",
+              title: "Type",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Percentage (%)", value: "percentage" },
+                  { title: "Fixed Per Night ($/night off)", value: "fixed_nightly" },
+                  { title: "Fixed Total ($ off stay)", value: "fixed_total" },
+                ],
+              },
+              initialValue: "percentage",
+              validation: (Rule: any) => Rule.required(),
+            },
+            {
+              name: "value",
+              title: "Value",
+              type: "number",
+              description: "Enter 10 for 10%, or 25 for $25 off",
+              validation: (Rule: any) =>
+                Rule.required()
+                  .min(0)
+                  .custom((val: number, context: any) => {
+                    const parent = context?.parent;
+                    if (parent?.type === "percentage" && val > 100) {
+                      return "Percentage discount cannot exceed 100%";
+                    }
+                    return true;
+                  }),
+            },
+            {
+              name: "active",
+              title: "Active",
+              type: "boolean",
+              initialValue: true,
+            },
+          ],
+          preview: {
+            select: {
+              title: "title",
+              type: "type",
+              value: "value",
+              active: "active",
+            },
+            prepare({ title, type, value, active }: any) {
+              let label = `${value ?? 0}% off`;
+              if (type === "fixed_nightly") label = `$${value ?? 0}/night off`;
+              if (type === "fixed_total") label = `$${value ?? 0} total off`;
+              return {
+                title: title || "Listing Discount",
+                subtitle: `${label} — ${active ? "Active" : "Inactive"}`,
+              };
+            },
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: "discount",
+      title: "Legacy Discount (%)",
+      type: "number",
+      fieldset: "pricing",
+      description: "Legacy single discount percentage (0-100). Prefer using the 'Listing Discounts' list above.",
+      initialValue: 0,
+      validation: (Rule) => Rule.min(0).max(100),
+    }),
+
+    // Description section
+    defineField({
+      name: "description",
+      title: "Description",
+      type: "array",
+      fieldset: 'description',
+      of: [{ type: "block" }],
+      validation: (Rule) => Rule.required().min(1).error("Please provide a description."),
+    }),
+    // Photos section
+    defineField({
       name: "images",
       title: "Images",
       type: "array",
+      fieldset: 'photos',
+      description: "Optional. If left empty, default showcase photos will be used automatically.",
       of: [
         {
           type: "object",
@@ -127,94 +236,42 @@ const hotelRoom = {
           preview: {select: {media: 'image', title: 'image.asset.originalFilename'}}
         },
       ],
-      validation: (Rule) =>
-        Rule.required().min(3).error("Minimum of 3 images required"),
     }),
     defineField({
       name: "coverImage",
       title: "Cover Image",
       type: "object",
+      fieldset: 'photos',
+      description: "Optional. If left empty, a default cover photo will be used automatically.",
       fields: [
         { name: "image", type: "image", title: "Image" },
       ],
-      validation: (Rule) => Rule.required().error("Cover Image is required"),
     }),
-    defineField({
-      name: "type",
-      title: "Room Type",
-      type: "string",
-      options: {
-        list: roomTypes,
-      },
-      validation: (Rule) => Rule.required(),
-      initialValue: "basic",
-    }),
+    // `type` field removed — use `instantBook`, `visibleToUsers`, and `overnight` instead
     defineField({
       name: "specialNote",
       title: "Special Note",
       type: "text",
+      fieldset: 'description',
+      description: 'Short note for staff or guests (check-in/check-out instructions, important notices).',
       validation: (Rule) => Rule.required(),
       initialValue:
         "Check-in time is noon, checkout is at midnight. If any items are left behind, contact management",
     }),
     
+    // Amenities section
     defineField({
       name: "offeredAmenities",
       title: "Offered Amenities",
       type: "array",
+      fieldset: 'amenities',
+      components: { input: OfferedAmenitiesPicker },
       of: [
         {
-          type: "object",
-          fields: [
-            { name: "amenity", title: "Amenity", type: "string", options: { list: amenities} },
-            {
-              name: "icon",
-              title: "Icon",
-              type: "string",
-              components: { input: IconGridPicker },
-            },
-          ],
-          preview: {
-            select: { title: 'amenity', icon: 'icon' },
-            prepare(selection: any) {
-              const { title, icon } = selection;
-              let iconValue = icon;
-              if (!iconValue && title) {
-                // try to map from amenity key (title may be the display value or key)
-                const key = String(title).toLowerCase().replace(/\s+/g, '');
-                iconValue = AMENITY_ICON_MAP[key] || iconValue;
-              }
-              const found = ICONS.find((c: any) => c.value === iconValue);
-              const Media = found ? found.Icon : null;
-              return {
-                title: title || 'Amenity',
-                media: Media ? <Media /> : null,
-              };
-            },
-          },
+          type: 'reference',
+          to: [{ type: 'amenity' }],
         },
       ],
-    }),
-    defineField({
-      name: "instantBook",
-      title: "Instant Book",
-      type: "boolean",
-      description: "Enable to allow users to instantly book this accommodation",
-      initialValue: true,
-    }),
-    defineField({
-      name: "visibleToUsers",
-      title: "Visible to users",
-      type: "boolean",
-      description: "Controls whether this accommodation is visible to site users",
-      initialValue: true,
-    }),
-    defineField({
-      name: "overnight",
-      title: "Overnight?",
-      type: "boolean",
-      description: "Indicates whether this accommodation allows overnight stays",
-      initialValue: true,
     }),
     defineField({
       name: "reviews",
@@ -235,6 +292,14 @@ const hotelRoom = {
          },
         ],
     }),
+  ],
+  fieldsets: [
+    { name: 'identity', title: 'Identity', options: { columns: 2 } },
+    { name: 'visibility', title: 'Visibility & Booking', options: { columns: 3 } },
+    { name: 'pricing', title: 'Pricing', options: { columns: 2 } },
+    { name: 'description', title: 'Description & Notes', options: { columns: 1 } },
+    { name: 'photos', title: 'Photos', options: { columns: 2 } },
+    { name: 'amenities', title: 'Amenities', options: { columns: 1 } },
   ],
 };
 

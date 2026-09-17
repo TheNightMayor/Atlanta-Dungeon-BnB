@@ -8,7 +8,7 @@ import sanityClient from '@/libs/sanity';
 const checkout_session_completed = "checkout.session.completed";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-02-24.acacia",
+  apiVersion: '2025-02-24.acacia',
 });
 
 export async function POST(req: Request) {
@@ -42,6 +42,12 @@ export async function POST(req: Request) {
         const discount = metadata?.discount ?? '0';
         const totalPrice = metadata?.totalPrice ?? '0';
         const discountCode = metadata?.discountCode ?? null;
+        let priceBreakdown;
+        try {
+          priceBreakdown = metadata?.priceBreakdown ? JSON.parse(metadata.priceBreakdown) : undefined;
+        } catch {
+          priceBreakdown = undefined;
+        }
         const customerName = (metadata?.customerName ?? session.customer_details?.name) ?? undefined;
         const authorizedAmount = metadata?.authorizedAmount ?? totalPrice;
         const authorizedAt = metadata?.authorizedAt ?? new Date().toISOString();
@@ -109,6 +115,9 @@ export async function POST(req: Request) {
           numberOfDays: Number(numberOfDays),
           discount: Number(discount),
           totalPrice: Number(totalPrice),
+          authorizedAmount: Number(authorizedAmount),
+          authorizedAt,
+          priceBreakdown,
           discountCode,
           user,
           status: 'pending approval',

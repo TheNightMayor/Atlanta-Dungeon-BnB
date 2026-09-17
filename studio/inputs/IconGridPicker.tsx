@@ -1,5 +1,5 @@
 import React from 'react';
-import { PatchEvent, set, unset } from 'sanity';
+import { PatchEvent, set } from 'sanity';
 import ICONS, { ICONS as ICON_LIST } from './iconList';
 
 type Props = {
@@ -12,9 +12,7 @@ const IconGridPicker: React.FC<Props> = ({ value, onChange }) => {
     onChange(PatchEvent.from(set(val)));
   };
 
-  const handleClear = () => {
-    onChange(PatchEvent.from(unset()));
-  };
+  
 
   return (
     <div>
@@ -62,9 +60,7 @@ const IconGridPicker: React.FC<Props> = ({ value, onChange }) => {
           );
         })}
       </div>
-      <div className="mt-2">
-        <button type="button" onClick={handleClear} className="text-sm text-red-500">Clear</button>
-      </div>
+      
     </div>
   );
 };

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useFormValue } from 'sanity';
+import { useClient, useFormValue } from 'sanity';
 
 type Props = any;
 
 const ApproveBookingButton: React.FC<Props> = (props) => {
   const { document } = props;
   const [loading, setLoading] = useState(false);
+  const studioClient = useClient({ apiVersion: '2021-10-21' });
 
   const idValue = useFormValue(['_id']);
   const statusValue = useFormValue(['status']);
@@ -13,6 +14,11 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
   const status = statusValue ?? document?.status;
   const id = idValue ?? document?._id;
   const stripePaymentIntent = useFormValue(['stripePaymentIntentId']);
+  const authorizedAmountValue = useFormValue(['authorizedAmount']);
+  const authorizedAmount = typeof authorizedAmountValue === 'number'
+    ? authorizedAmountValue
+    : Number(authorizedAmountValue) || 0;
+  const authorizedAtValue = useFormValue(['authorizedAt']);
   const amountPaidValue = useFormValue(['amountPaid']);
   const amountPaid = typeof amountPaidValue === 'number' ? amountPaidValue : Number(amountPaidValue) || 0;
   const [refundAmount, setRefundAmount] = useState<number | ''>(amountPaid || '');
@@ -44,6 +50,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const targetId = id?.toString().replace(/^drafts\./, '') || '';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
       });
@@ -70,6 +77,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const actionToSend = status === 'approved' ? 'cancel' : 'reject';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: actionToSend }),
       });
@@ -92,6 +100,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const targetId = id?.toString().replace(/^drafts\./, '') || '';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -188,22 +197,23 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 180 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Amount paid</div>
-            <div style={{ fontWeight: 600 }}>${amountPaid ? amountPaid.toFixed(2) : '0.00'}</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Authorized amount</div>
+            <div style={{ fontWeight: 600 }}>${authorizedAmount ? authorizedAmount.toFixed(2) : '0.00'}</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>Authorized at</div>
+            <div style={{ fontWeight: 600 }}>{formatDateTime(authorizedAtValue)}</div>
           </div>
 
-          <div style={{ minWidth: 220 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Payment received at</div>
+          <div style={{ minWidth: 180 }}>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Amount paid</div>
+            <div style={{ fontWeight: 600 }}>${amountPaid ? amountPaid.toFixed(2) : '0.00'}</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>Payment received at</div>
             <div style={{ fontWeight: 600 }}>{formatDateTime(paymentReceivedAtValue)}</div>
           </div>
 
           <div style={{ minWidth: 180 }}>
             <div style={{ fontSize: 12, color: '#6b7280' }}>Refunded amount</div>
             <div style={{ fontWeight: 600 }}>${refundedAmountValue ? Number(refundedAmountValue).toFixed(2) : '0.00'}</div>
-          </div>
-
-          <div style={{ minWidth: 220 }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Refunded at</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>Refunded at</div>
             <div style={{ fontWeight: 600 }}>{formatDateTime(refundedAtValue)}</div>
           </div>
         </div>
@@ -243,6 +253,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
                 const targetId = id?.toString().replace(/^drafts\./, '') || '';
                 const res = await fetch(`/api/bookings/${targetId}`, {
                   method: 'PATCH',
+                  credentials: 'include',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ action: 'refund', amount: amt }),
                 });

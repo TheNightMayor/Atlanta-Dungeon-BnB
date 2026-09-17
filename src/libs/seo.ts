@@ -1,3 +1,5 @@
+// Shared SEO constants and structured-data helpers used across pages.
+// Keep the metadata definitions simple and reusable for both Open Graph and JSON-LD rendering.
 export const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://example.com');
 export const siteName = 'Dungeon Next Door';
 export const siteDescription = 'Escape into a unique Atlanta stay with immersive rooms, quirky decor, and easy booking.';

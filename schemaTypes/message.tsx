@@ -1,5 +1,5 @@
 import { Any } from 'next-sanity';
-import { FaPenSquare } from "react-icons/fa";
+import { FaPenSquare, FaCheckCircle } from "react-icons/fa";
 import { defineField } from "sanity";
 
 const message = {
@@ -52,12 +52,14 @@ const message = {
             user: 'user.name',
             email: 'email',
             topic: 'topic',
+            responded: 'responded',
         },
         prepare(value: Record<string, any>) {
-            const { user, email, topic } = value;
+            const { user, email, topic, responded } = value;
             return {
                 title: `${topic}`,
                 subtitle: `${user ? user : 'unknown'} - ${email ? email : 'unknown'}`,
+                media: responded ? <FaCheckCircle style={{ color: 'green' }} /> : <FaPenSquare />,
             };
         }
     }

@@ -6,21 +6,25 @@ import { NextResponse } from 'next/server';
 import { getRoom } from '@/libs/apis';
 import sanityClient from '@/libs/sanity';
 import getImageUrl from '@/libs/imageUrl';
+import { getSessionUserId } from '@/libs/session';
+import { calculateListingDiscountsSavings } from '@/libs/discount';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
-});
+let stripe: Stripe | null = null;
 
-// Diagnostic: log masked prefix so we can confirm which key the running process sees (never log full key)
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.error('STRIPE_SECRET_KEY is not set in the runtime environment');
-} else {
+function getStripe(): Stripe {
+  if (stripe) return stripe;
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    console.error('STRIPE_SECRET_KEY is not set in the runtime environment');
+    throw new Error('Server misconfiguration: missing STRIPE_SECRET_KEY');
+  }
+  stripe = new Stripe(key as string, { apiVersion: '2025-02-24.acacia' });
   try {
-    const k = process.env.STRIPE_SECRET_KEY as string;
-    console.debug('STRIPE key prefix:', k.substring(0, Math.min(8, k.length)));
+    console.debug('STRIPE key prefix:', key.substring(0, Math.min(8, key.length)));
   } catch (e) {
     // ignore
   }
+  return stripe;
 }
 
 type RequestData = {
@@ -77,16 +81,19 @@ export async function POST(req: Request) {
       : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const session = await getServerSession(authOptions);
+  const userId = getSessionUserId(session);
 
-  if (!session?.user?.name) {
+  if (!userId || !session?.user) {
     return new NextResponse('Authentication Required', { status: 400 });
   }
-  const userId = (session.user as any).id ?? session.user.name;
   const formattedCheckinDate = checkinDate.split('T')[0];
   const formattedCheckoutDate = checkoutDate ? checkoutDate.split('T')[0] : formattedCheckinDate;
 
   try {
     const room = await getRoom(hotelRoomSlug);
+    if (!room) {
+      return new NextResponse('Room not found', { status: 400 });
+    }
 
     // Build safe image list: convert Sanity refs to CDN URLs and remove falsy/empty values
     const isNonEmptyUrl = (u: any): u is string => typeof u === 'string' && u.trim() !== '' && /^https?:\/\//.test(u);
@@ -98,6 +105,10 @@ export async function POST(req: Request) {
     if (imageUrls.length === 0 && room?.coverImage) {
       const cover = getImageUrl(room.coverImage);
       if (isNonEmptyUrl(cover)) imageUrls.push(cover);
+    }
+
+    if (imageUrls.length === 0) {
+      imageUrls.push(`${origin}/images/hero-1.jpg`);
     }
 
     // calculate totals
@@ -134,27 +145,61 @@ export async function POST(req: Request) {
         if (userCount > 0) return new NextResponse('You have already used this discount code', { status: 400 });
       }
 
-      // compute per-night discount
+      // compute discount from promo code
+      const rawVal = Number(discountDoc.value) || 0;
       if (discountDoc.type === 'percentage') {
-        appliedDiscountPerNight = (price * (Number(discountDoc.value) || 0)) / 100;
+        appliedDiscountPerNight = (price * rawVal) / 100;
+      } else if (discountDoc.type === 'fixed_total') {
+        appliedDiscountPerNight = rawVal / numberOfDays;
       } else {
-        appliedDiscountPerNight = Number(discountDoc.value) || 0;
+        // fixed per night
+        appliedDiscountPerNight = rawVal;
       }
+      appliedDiscountPerNight = Math.min(price, appliedDiscountPerNight);
 
       discountId = discountDoc._id;
     }
 
-    // fallback to numeric discount (percentage) if no code applied
-    const discountPrice = discountId ? Math.max(0, price - appliedDiscountPerNight) : price - (price / 100) * discount;
-    const subtotal = discountPrice * numberOfDays;
-    const extraGuestCharge = adults > 2 ? (adults - 2) * 30 : 0;
+    // Calculate listing discounts (stacking discounts configured on the room document)
+    const baseRoomSubtotal = price * numberOfDays;
+    const { totalSavings: listingSavings, breakdown: appliedListingDiscounts } = calculateListingDiscountsSavings(
+      room.discounts,
+      room.discount ?? discount,
+      price,
+      numberOfDays
+    );
+
+    // Apply promo code discount on top of listing discounts
+    const promoSavings = Math.min(baseRoomSubtotal - listingSavings, appliedDiscountPerNight * numberOfDays);
+    const subtotal = Math.max(0, baseRoomSubtotal - listingSavings - promoSavings);
+
+    const included = typeof room.includedGuests === 'number' ? Number(room.includedGuests) : 2;
+    const perExtra = typeof room.extraGuestFee === 'number' ? Number(room.extraGuestFee) : 30;
+    const extraGuestCharge = adults > included ? (adults - included) * perExtra : 0;
     const calculatedTotal = subtotal + extraGuestCharge + flatFee;
+    const priceBreakdown = {
+      baseRoomSubtotal,
+      listingDiscounts: listingSavings,
+      appliedListingDiscounts,
+      discountCodeSavings: promoSavings,
+      extraGuestCharge,
+      flatFee,
+      total: calculatedTotal,
+    };
 
     // Stripe expects integer cents and a non-negative amount
     const unit_amount = Math.max(0, Math.round(Number(calculatedTotal ?? 0) * 100));
 
+    if (unit_amount < 50) {
+      return NextResponse.json(
+        { error: 'Total amount after discount must be at least $0.50 to process card payment.' },
+        { status: 400 }
+      );
+    }
+
     // Create a stripe payment
-    const stripeSession = await stripe.checkout.sessions.create({
+    const stripeClient = getStripe();
+    const stripeSession = await stripeClient.checkout.sessions.create({
       mode: 'payment',
       line_items: [
         {
@@ -191,7 +236,9 @@ export async function POST(req: Request) {
         discount,
         discountCode: discountId ?? null,
         discountPerNight: discountId ? String(appliedDiscountPerNight) : '0',
-        totalPrice: calculatedTotal,
+        totalPrice: String(calculatedTotal),
+        authorizedAmount: String(calculatedTotal),
+        priceBreakdown: JSON.stringify(priceBreakdown),
       },
     });
 

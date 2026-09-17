@@ -151,6 +151,7 @@ const RoomDetailsClient = ({ room }: Props) => {
               <div className="desktop-portrait-cta-show hidden mb-6 portrait-cta-wrapper">
                 <BookRoomCta
                   discount={room.discount}
+                  discounts={room.discounts}
                   flatFee={room.flatFee ?? 0}
                   price={room.price}
                   specialNote={room.specialNote}
@@ -163,12 +164,14 @@ const RoomDetailsClient = ({ room }: Props) => {
                   setAdults={setAdults}
                   overnight={room.overnight ?? true}
                   instantBook={room.instantBook}
+                    includedGuests={room.includedGuests}
+                    extraGuestFee={room.extraGuestFee}
                   roomId={room._id}
                   roomName={room.name}
                   handleBookNowClick={handleBookNowClick}
                 />
               </div>
-              <HotelPhotoGallery photos={room.images} />
+              <HotelPhotoGallery photos={Array.isArray(room.images) && room.images.length > 0 ? room.images : (room.coverImage ? [room.coverImage as any] : [])} />
               <div>
                 <PortableText value={room.description} components={portableTextComponents} />
               </div>
@@ -198,9 +201,10 @@ const RoomDetailsClient = ({ room }: Props) => {
             </div>
             <RulesSection />
           </div>
-          <div className="md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[160px] md:left-[60%] md:w-[20rem] lg:w-[20rem] xl:w-[20rem] self-start my-2 h-fit overflow-visible">
+          <div className="desktop-portrait-cta-hide md:col-span-4 z-20 rounded-xl border-2 border-tertiary-dark md:fixed md:top-[160px] md:left-[60%] md:w-[20rem] lg:w-[20rem] xl:w-[20rem] self-start my-2 h-fit overflow-visible">
             <BookRoomCta
               discount={room.discount}
+              discounts={room.discounts}
               flatFee={room.flatFee ?? 0}
               price={room.price}
               specialNote={room.specialNote}
@@ -213,26 +217,30 @@ const RoomDetailsClient = ({ room }: Props) => {
               setAdults={setAdults}
               overnight={room.overnight ?? true}
               instantBook={room.instantBook}
+              includedGuests={room.includedGuests}
+              extraGuestFee={room.extraGuestFee}
               roomId={room._id}
               roomName={room.name}
               handleBookNowClick={handleBookNowClick}
             />
           </div>
-          <div className="col-span-12 md:col-start-1 md:col-span-8">
-            <div className={`grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 ${getAmenityGridClass(room.offeredAmenities.length)} gap-1 my-6 w-full justify-items-center`}>
-              {room.offeredAmenities.map(amenity => (
-                <div
-                  key={amenity._key}
-                  className="text-center w-full max-w-[9rem] aspect-square bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
-                >
-                  <i className={`fa-solid ${amenity.icon} text-xl md:text-2xl`} />
-                  <p className="text-[12px] md:text-sm pt-2 break-words max-w-full leading-tight">
-                    {amenity.amenity}
-                  </p>
-                </div>
-              ))}
+          {Array.isArray(room?.offeredAmenities) && room.offeredAmenities.length > 0 && (
+            <div className="col-span-12 md:col-start-1 md:col-span-8">
+              <div className={`grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 ${getAmenityGridClass(room.offeredAmenities.length)} gap-1 my-6 w-full justify-items-center`}>
+                {room.offeredAmenities.map((amenity, idx) => (
+                  <div
+                    key={amenity._key || `${amenity.amenity}-${idx}`}
+                    className="text-center w-full max-w-[9rem] aspect-square bg-[#eff0f2] dark:bg-gray-800 rounded-lg grid place-content-center"
+                  >
+                    {amenity.icon && <i className={`fa-solid ${amenity.icon} text-xl md:text-2xl`} />}
+                    <p className="text-[12px] md:text-sm pt-2 break-words max-w-full leading-tight">
+                      {amenity.amenity}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

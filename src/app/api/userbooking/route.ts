@@ -2,15 +2,15 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/libs/auth';
 import { getUserBookings } from '@/libs/apis';
+import { getSessionUserId } from '@/libs/session';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id && !session?.user?.name) {
+  const userId = getSessionUserId(session);
+  if (!userId) {
     return new NextResponse('Authentication Required', { status: 401 });
   }
-
-  const userId = (session.user as any).id ?? session.user.name;
 
   try {
     const bookings = await getUserBookings(userId);

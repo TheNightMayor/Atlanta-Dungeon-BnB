@@ -10,6 +10,8 @@ type IcsEvent = {
   end?: string | null;
   allDay?: boolean;
   url?: string;
+  reserved?: boolean;
+  source?: string | null;
 };
 
 interface BookingCalendarProps {
@@ -32,6 +34,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   const [reasonSaving, setReasonSaving] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [focusBookingId, setFocusBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('bookingCalendarDarkMode') === 'true';
@@ -45,9 +48,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   useEffect(() => {
     if (!client) return;
 
-        async function fetchBookings() {
-      try {
-        const query = `*[_type == "booking" && status != "rejected" && status != "deleted"] | order(checkinDate asc) {
+    let mounted = true;
+
+    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted"] | order(checkinDate asc) [0...500] {
           _id,
           checkinDate,
           checkoutDate,
@@ -68,45 +71,32 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
           }
         }`;
 
-        const result = await client.fetch(query);
-        setBookings(result);
-      } catch (error) {
-        console.error('Failed to fetch bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchBookings();
-    // fetch ICS events from server proxy
-    async function fetchIcs() {
-      try {
-        const res = await fetch('/api/calendar-ics');
-        if (!res.ok) {
-          console.warn('Failed to fetch ICS events', await res.text());
-          return;
-        }
-        const items: IcsEvent[] = await res.json();
-        setIcsEvents(items || []);
-      } catch (err) {
-        console.error('Error fetching ICS events', err);
-      }
-    }
-
-    fetchIcs();
-    // fetch blocked dates
-    async function fetchBlocked() {
-      try {
-        const res = await client.fetch(`*[_type == "blockedDate"]{_id, date, reason}`);
+    Promise.all([
+      client.fetch(bookingsQuery),
+      client.fetch(`*[_type == "blockedDate"]{_id, date, reason}`),
+      fetch('/api/calendar-ics').then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json() as Promise<IcsEvent[]>;
+      }),
+    ])
+      .then(([bookingResult, blockedResult, icsResult]) => {
+        if (!mounted) return;
+        setBookings(bookingResult || []);
         const map: Record<string, { id: string; reason?: string }> = {};
-        (res || []).forEach((b: any) => { if (b?.date) map[b.date] = { id: b._id, reason: b.reason }; });
+        (blockedResult || []).forEach((blocked: any) => {
+          if (blocked?.date) map[blocked.date] = { id: blocked._id, reason: blocked.reason };
+        });
         setBlockedMap(map);
-      } catch (err) {
-        console.error('Failed to fetch blocked dates', err);
-      }
-    }
+        setIcsEvents(icsResult || []);
+      })
+      .catch((error) => {
+        if (mounted) console.error('Failed to load booking calendar data:', error);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
-    fetchBlocked();
+    return () => { mounted = false; };
   }, [client]);
 
   useEffect(() => {
@@ -119,9 +109,11 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   const getBookingsForDate = (date: Date): Booking[] => {
     const dateStr = date.toISOString().split('T')[0];
     return bookings.filter(booking => {
-      const checkIn = booking.checkinDate;
-      const checkOut = booking.checkoutDate;
-      return dateStr >= checkIn && dateStr <= checkOut;
+      if (!booking?.checkinDate || !booking?.checkoutDate) return false;
+      const checkInStr = new Date(booking.checkinDate).toISOString().split('T')[0];
+      const checkOutStr = new Date(booking.checkoutDate).toISOString().split('T')[0];
+      // Treat checkout day as available (exclusive end): block from checkin inclusive up to day before checkout
+      return dateStr >= checkInStr && dateStr < checkOutStr;
     });
   };
 
@@ -135,14 +127,45 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     });
   };
 
+  const getIcsReservedForDate = (date: Date): IcsEvent | null => {
+    const dateStr = date.toISOString().split('T')[0];
+    return icsEvents.find(ev => {
+      if (!ev.reserved || !ev.start) return false;
+      const s = new Date(ev.start).toISOString().split('T')[0];
+      const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
+      return dateStr >= s && dateStr < e;
+    }) || null;
+  };
+
   const isBlocked = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return !!blockedMap[dateStr];
+    // Explicit blocked date or iCal reserved always block
+    if (blockedMap[dateStr]) return true;
+    if (getIcsReservedForDate(date)) return true;
+
+    // If any booking starts on this date, it's blocked (someone checks in)
+    const hasCheckin = bookings.some(b => b?.checkinDate === dateStr);
+    if (hasCheckin) return true;
+
+    // Otherwise, check if any booking covers this date (checkin <= date < checkout)
+    const inRange = bookings.some(b => {
+      if (!b?.checkinDate || !b?.checkoutDate) return false;
+      return dateStr >= b.checkinDate && dateStr < b.checkoutDate;
+    });
+    return inRange;
   };
 
   const getBlockedInfo = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return blockedMap[dateStr] || null;
+    if (blockedMap[dateStr]) return blockedMap[dateStr];
+    const bookingsForDate = getBookingsForDate(date);
+    if (bookingsForDate && bookingsForDate.length > 0) {
+      const b = bookingsForDate[0];
+      return { id: `booking:${b._id}`, reason: `Booked (${b.status || 'booked'}) — ${b.customerName || 'guest'}` };
+    }
+    const ics = getIcsReservedForDate(date);
+    if (ics) return { id: `ics:${ics.id}`, reason: ics.summary ? `Reserved: ${ics.summary}` : `Reserved via ${ics.source || 'iCal'}` };
+    return null;
   };
 
   const toggleBlocked = async (date: Date, reason?: string) => {
@@ -220,6 +243,30 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     const bookingDate = new Date(booking.checkinDate);
     setSelectedDate(booking.checkinDate);
     setCurrentMonth(new Date(bookingDate.getFullYear(), bookingDate.getMonth()));
+    // focus the booking card in the detailed list
+    setFocusBookingId(booking._id);
+    setTimeout(() => {
+      try {
+        const el = document.getElementById(`booking-card-${booking._id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.animate([{ boxShadow: '0 0 0 0 rgba(255,255,0,0.0)' }, { boxShadow: '0 0 10px 4px rgba(255,255,0,0.6)' }, { boxShadow: '0 0 0 0 rgba(255,255,0,0.0)' }], { duration: 1200 });
+        }
+      } catch (e) { /* ignore */ }
+    }, 150);
+  };
+
+  const openBookingEditor = (bookingId: string) => {
+    try {
+      const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+      // Prefer direct document URL—some Studio setups resolve desk intents differently.
+      const docUrl = `${origin}/studio/desk/document/booking;${encodeURIComponent(bookingId)}`;
+      // Open the exact Studio structure path the user requested
+      const exactUrl = `${origin}/studio/structure/scheduling;booking;${encodeURIComponent(bookingId)}`;
+      window.open(exactUrl, '_blank');
+    } catch (e) {
+      console.error('Failed to open booking editor', e);
+    }
   };
 
   // Theme colors
@@ -263,6 +310,51 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
 
   const calendarDays = generateCalendarDays();
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  // Precompute per-day booking/ICS/blocked state once per render instead of
+  // re-scanning the full bookings/icsEvents arrays 3-4x for every one of the ~42 grid cells.
+  const monthDayData = React.useMemo(() => {
+    const map: Record<string, { dayBookings: Booking[]; icsForDay: IcsEvent[]; blocked: boolean }> = {};
+    const totalDays = daysInMonth(currentMonth);
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const dateStr = date.toISOString().split('T')[0];
+
+      const dayBookings = (bookings || []).filter(b => {
+        if (!b?.checkinDate || !b?.checkoutDate) return false;
+        return dateStr >= b.checkinDate && dateStr <= b.checkoutDate;
+      });
+
+      const icsForDay = icsEvents.filter(ev => {
+        if (!ev.start) return false;
+        const s = new Date(ev.start).toISOString().split('T')[0];
+        const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
+        return dateStr >= s && dateStr <= e;
+      });
+
+      const icsReserved = icsEvents.some(ev => {
+        if (!ev.reserved || !ev.start) return false;
+        const s = new Date(ev.start).toISOString().split('T')[0];
+        const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
+        return dateStr >= s && dateStr < e;
+      });
+
+      const hasCheckin = (bookings || []).some(b => b?.checkinDate === dateStr);
+      const inRange = (bookings || []).some(b => {
+        if (!b?.checkinDate || !b?.checkoutDate) return false;
+        return dateStr >= b.checkinDate && dateStr < b.checkoutDate;
+      });
+
+      map[dateStr] = {
+        dayBookings,
+        icsForDay,
+        blocked: !!blockedMap[dateStr] || icsReserved || hasCheckin || inRange,
+      };
+    }
+
+    return map;
+  }, [currentMonth, bookings, icsEvents, blockedMap]);
 
   if (loading || !client) {
     return <div style={{ padding: '20px', color: colors.text }}>Loading bookings...</div>;
@@ -387,9 +479,13 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                 }
 
                 const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                const dayBookings = getBookingsForDate(date);
-                const isToday = new Date().toDateString() === date.toDateString();
+                // For display, include bookings that end on this date (checkout) so the label is visible.
                 const dateStr = date.toISOString().split('T')[0];
+                const dayData = monthDayData[dateStr];
+                const dayBookings = dayData?.dayBookings || [];
+                const dayIcsEvents = dayData?.icsForDay || [];
+                const dayBlocked = dayData?.blocked || false;
+                const isToday = new Date().toDateString() === date.toDateString();
                 const isSelected = selectedDate === dateStr;
                 const isMultiSelected = selectedDates.includes(dateStr);
 
@@ -436,7 +532,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       height: '100px',
                       width: '100%',
                       padding: '8px',
-                      background: isMultiSelected ? '#274c4c' : (isSelected ? colors.selectedBg : isToday ? colors.todayBg : (isBlocked(date) ? '#4a0b0b' : colors.surface)),
+                      background: isMultiSelected ? '#274c4c' : (isSelected ? colors.selectedBg : isToday ? colors.todayBg : (dayBlocked ? '#4a0b0b' : colors.surface)),
                       border: `1px solid ${colors.border}`,
                       boxShadow: isToday ? `inset 0 0 0 1px ${colors.todayBorder}` : 'none',
                       cursor: 'pointer',
@@ -450,12 +546,12 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                     }}
                     onMouseOver={(e) => {
                       if (!isSelected && !isMultiSelected) {
-                        e.currentTarget.style.background = isBlocked(date) ? '#4a0b0b' : colors.hoverBg;
+                        e.currentTarget.style.background = dayBlocked ? '#4a0b0b' : colors.hoverBg;
                       }
                     }}
                     onMouseOut={(e) => {
                       if (!isSelected && !isMultiSelected) {
-                        e.currentTarget.style.background = isBlocked(date) ? '#4a0b0b' : (isToday ? colors.todayBg : colors.surface);
+                        e.currentTarget.style.background = dayBlocked ? '#4a0b0b' : (isToday ? colors.todayBg : colors.surface);
                       } else if (isMultiSelected) {
                         e.currentTarget.style.background = '#274c4c';
                       } else if (isSelected) {
@@ -463,10 +559,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       }
                     }}
                   >
-                    <div style={{ fontWeight: '600', color: isBlocked(date) ? 'rgba(255,255,255,0.6)' : colors.text, marginBottom: '4px', fontSize: '14px' }}>
+                    <div style={{ fontWeight: '600', color: dayBlocked ? 'rgba(255,255,255,0.6)' : colors.text, marginBottom: '4px', fontSize: '14px' }}>
                       {day}
                     </div>
-                    {(dayBookings.length > 0 || getIcsEventsForDate(date).length > 0 || isBlocked(date)) && (
+                    {(dayBookings.length > 0 || dayIcsEvents.length > 0 || dayBlocked) && (
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', overflow: 'hidden', width: '100%' }}>
                         {dayBookings.slice(0, 2).map(booking => (
                           <div
@@ -474,7 +570,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                             style={{
                               fontSize: '11px',
                               background: colors.bookingBg,
-                              color: isBlocked(date) ? 'rgba(255,255,255,0.6)' : colors.bookingText,
+                              color: dayBlocked ? 'rgba(255,255,255,0.6)' : colors.bookingText,
                               padding: '3px 5px',
                               borderRadius: '3px',
                               whiteSpace: 'nowrap',
@@ -495,7 +591,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                           </div>
                         )}
 
-                        {getIcsEventsForDate(date).slice(0, 2).map(ev => (
+                        {dayIcsEvents.slice(0, 2).map(ev => (
                           ev.url ? (
                             <a
                               key={ev.id}
@@ -509,7 +605,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                   style={{
                                     fontSize: '11px',
                                     background: isDarkMode ? '#1f6feb' : '#cfe2ff',
-                                    color: isBlocked(date) ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
+                                    color: dayBlocked ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
                                     padding: '3px 5px',
                                     borderRadius: '3px',
                                     whiteSpace: 'nowrap',
@@ -545,21 +641,16 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                           )
                         ))}
 
-                        {getIcsEventsForDate(date).length > 2 && (
+                        {dayIcsEvents.length > 2 && (
                           <div style={{ fontSize: '10px', color: colors.textSecondary, fontStyle: 'italic' }}>
-                            +{getIcsEventsForDate(date).length - 2} more
+                            +{dayIcsEvents.length - 2} more
                           </div>
                         )}
 
                         {/* blocked badge removed - cell will show tinted background with an X overlay */}
                       </div>
                     )}
-                    {isBlocked(date) && (
-                      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ position: 'absolute', left: '10%', right: '10%', height: 4, background: 'rgba(255,255,255,0.28)', transform: 'rotate(45deg)', borderRadius: 2 }} />
-                        <div style={{ position: 'absolute', left: '10%', right: '10%', height: 4, background: 'rgba(255,255,255,0.28)', transform: 'rotate(-45deg)', borderRadius: 2 }} />
-                      </div>
-                    )}
+                    {/* blocked overlay removed: cell tint indicates blocked state */}
                   </button>
                 );
               })}
@@ -593,31 +684,42 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
               </div>
 
               {selectedDate && (() => {
-                const bd = getBlockedInfo(new Date(selectedDate));
+                const localBd = blockedMap[selectedDate];
+                const icsEv = getIcsReservedForDate(new Date(selectedDate));
+                const bookingsForSelectedInclusive = (selectedDate && bookings && bookings.length > 0) ? bookings.filter((b: any) => {
+                  if (!b?.checkinDate || !b?.checkoutDate) return false;
+                  // inclusive: include bookings where selected date is between checkin and checkout (checkout included for display)
+                  return selectedDate >= b.checkinDate && selectedDate <= b.checkoutDate;
+                }) : [];
+                const bookingsBlockingSelected = (selectedDate && bookings && bookings.length > 0) ? bookings.filter((b: any) => {
+                  if (!b?.checkinDate || !b?.checkoutDate) return false;
+                  // exclusive checkout: booking actually blocks the day if selectedDate < checkout
+                  return selectedDate >= b.checkinDate && selectedDate < b.checkoutDate;
+                }) : [];
+                const bookingBlocking = bookingsBlockingSelected.length > 0 ? bookingsBlockingSelected[0] : null;
                 return (
                   <div style={{ marginBottom: 12 }}>
-                    {bd ? (
+                    {localBd ? (
                       <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3b0b0b' : '#fff0f0', color: isDarkMode ? '#ffdede' : '#7a1f1f' }}>
                         <div style={{ fontWeight: 700 }}>Blocked</div>
                         {!editingReason ? (
-                          bd.reason ? <div style={{ fontSize: 13, marginTop: 6 }}>{bd.reason}</div> : <div style={{ fontSize: 13, marginTop: 6, color: isDarkMode ? '#ffdfdf' : '#8a1f1f' }}>No reason provided</div>
+                          localBd.reason ? <div style={{ fontSize: 13, marginTop: 6 }}>{localBd.reason}</div> : <div style={{ fontSize: 13, marginTop: 6, color: isDarkMode ? '#ffdfdf' : '#8a1f1f' }}>No reason provided</div>
                         ) : (
                           <textarea value={reasonInputValue} onChange={(e) => setReasonInputValue(e.target.value)} placeholder="Reason (optional)" style={{ width: '100%', minHeight: 64, padding: 8, borderRadius: 6, border: `1px solid ${colors.border}`, boxSizing: 'border-box', marginTop: 6 }} />
                         )}
                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                           {!editingReason ? (
                             <>
-                              <button onClick={() => { setEditingReason(true); setReasonInputValue(bd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Edit reason</button>
+                              <button onClick={() => { setEditingReason(true); setReasonInputValue(localBd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Edit reason</button>
                               <button onClick={() => toggleBlocked(new Date(selectedDate))} style={{ padding: '6px 8px', borderRadius: 4, background: '#7a1f1f', color: 'white', border: 'none', cursor: 'pointer' }}>Make available</button>
                             </>
                           ) : (
                             <>
                               <button disabled={reasonSaving} onClick={async () => {
-                                if (!bd) return;
                                 setReasonSaving(true);
                                 try {
-                                  await client.patch(bd.id).set({ reason: reasonInputValue || '' }).commit();
-                                  setBlockedMap(prev => ({ ...prev, [selectedDate!]: { id: bd.id, reason: reasonInputValue || '' } }));
+                                  await client.patch(localBd.id).set({ reason: reasonInputValue || '' }).commit();
+                                  setBlockedMap(prev => ({ ...prev, [selectedDate!]: { id: localBd.id, reason: reasonInputValue || '' } }));
                                   setEditingReason(false);
                                 } catch (err) {
                                   console.error('Failed to save reason', err);
@@ -634,10 +736,32 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                 ) : null}
                                 Save
                               </button>
-                              <button disabled={reasonSaving} onClick={() => { setEditingReason(false); setReasonInputValue(bd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#6c757d', color: 'white', border: 'none', cursor: reasonSaving ? 'wait' : 'pointer' }}>Cancel</button>
+                              <button disabled={reasonSaving} onClick={() => { setEditingReason(false); setReasonInputValue(localBd.reason || ''); }} style={{ padding: '6px 8px', borderRadius: 4, background: '#6c757d', color: 'white', border: 'none', cursor: reasonSaving ? 'wait' : 'pointer' }}>Cancel</button>
                             </>
                           )}
                         </div>
+                      </div>
+                    ) : bookingBlocking ? (
+                      <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3b2f1a' : '#fff8e6', color: isDarkMode ? '#ffe7b3' : '#6b4a00' }}>
+                        <div style={{ fontWeight: 700 }}>Booked</div>
+                        <div style={{ fontSize: 13, marginTop: 6 }}>{bookingBlocking.hotelRoom?.name || 'Booking'}</div>
+                        <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{bookingBlocking.checkinDate} → {bookingBlocking.checkoutDate}</div>
+                        <div style={{ marginTop: 8 }}>
+                          <button onClick={() => openBookingEditor(bookingBlocking._id)} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Open booking</button>
+                        </div>
+                      </div>
+                    ) : icsEv ? (
+                      <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3a2540' : '#fff7f0', color: isDarkMode ? '#ffdede' : '#7a1f1f' }}>
+                        <div style={{ fontWeight: 700 }}>Reserved (iCal)</div>
+                        <div style={{ fontSize: 13, marginTop: 6 }}>{icsEv.summary || `Reserved via ${icsEv.source || 'iCal'}`}</div>
+                        {icsEv.start && (
+                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{new Date(icsEv.start).toLocaleString()}</div>
+                        )}
+                        {icsEv.url && (
+                          <div style={{ marginTop: 8 }}>
+                            <a href={icsEv.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', textDecoration: 'none' }}>Open source</a>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#14332b' : '#f0fff4', color: isDarkMode ? '#bfffdc' : '#0f5132' }}>
@@ -719,9 +843,14 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
               <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {selectedDate ? (
                   (() => {
-                    const dateObj = new Date(selectedDate);
-                    const ics = getIcsEventsForDate(dateObj);
-                    const bks = getBookingsForDate(dateObj);
+                        const dateObj = new Date(selectedDate);
+                        const ics = getIcsEventsForDate(dateObj);
+                        // include bookings where selected date is between checkin and checkout inclusive
+                        const dateKey = selectedDate;
+                        const bks = (bookings || []).filter((b: any) => {
+                          if (!b?.checkinDate || !b?.checkoutDate) return false;
+                          return dateKey >= b.checkinDate && dateKey <= b.checkoutDate;
+                        });
                     if (ics.length === 0 && bks.length === 0) return <p style={{ fontSize: '14px', color: colors.textSecondary }}>No events or bookings</p>;
 
                     return (
@@ -758,11 +887,12 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
 
                         {bks.map(booking => (
                           <div
+                            id={`booking-card-${booking._id}`}
                             key={booking._id}
                             onClick={() => handleBookingClick(booking)}
                             style={{
                               padding: '10px',
-                              background: isDarkMode ? '#3d3d3d' : '#f8f9fa',
+                              background: focusBookingId === booking._id ? (isDarkMode ? '#505050' : '#eef6ff') : (isDarkMode ? '#3d3d3d' : '#f8f9fa'),
                               borderRadius: '4px',
                               marginBottom: '0',
                               border: `1px solid ${colors.border}`,
@@ -775,7 +905,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                               e.currentTarget.style.transform = 'translateY(-2px)';
                             }}
                             onMouseOut={(e) => {
-                              e.currentTarget.style.background = isDarkMode ? '#3d3d3d' : '#f8f9fa';
+                              e.currentTarget.style.background = focusBookingId === booking._id ? (isDarkMode ? '#505050' : '#eef6ff') : (isDarkMode ? '#3d3d3d' : '#f8f9fa');
                               e.currentTarget.style.transform = 'translateY(0)';
                             }}
                           >

@@ -22,19 +22,20 @@ type Slug = {
   current: string;
 };
 
-export type ListingDiscount = {
-  title?: string;
-  type?: string;
-  value?: number | string;
-  active?: boolean;
-};
-
 export type PortableTextBlock = {
   _key: string;
   _type: 'block';
   children: Array<{ _key: string; _type: string; text: string }>;
   markDefs: any[];
   style: string;
+};
+
+export type ListingDiscount = {
+  _key?: string;
+  title: string;
+  type: 'percentage' | 'fixed_nightly' | 'fixed_total' | string;
+  value: number;
+  active?: boolean;
 };
 
 export type Room = {
@@ -56,7 +57,6 @@ export type Room = {
   extraGuestFee?: number;
   slug: Slug;
   specialNote: string;
-  type: string;
 };
 
 export type CreateBookingDto = {
@@ -69,7 +69,14 @@ export type CreateBookingDto = {
   totalPrice: number;
   authorizedAmount?: number;
   authorizedAt?: string;
-  priceBreakdown?: Record<string, unknown>;
+  priceBreakdown?: {
+    baseRoomSubtotal: number;
+    listingDiscounts: number;
+    discountCodeSavings: number;
+    extraGuestCharge: number;
+    flatFee: number;
+    total: number;
+  };
   discount: number;
   discountCode?: string | null;
   invoiceBooking?: boolean;

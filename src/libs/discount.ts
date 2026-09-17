@@ -14,6 +14,10 @@ export type DiscountCodeResult = {
   appliesTo?: Array<{ _id: string }>;
 };
 
+/**
+ * Calculates total savings from all active listing discounts attached to a room.
+ * Supports percentage, fixed per night, and fixed total, plus legacy percentage fallback.
+ */
 export function calculateListingDiscountsSavings(
   discounts: ListingDiscount[] | undefined,
   legacyDiscount: number | undefined,

@@ -11,10 +11,12 @@ const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
 
 
 const HIDDEN_DOC_TYPES = ['account', 'verification-token'];
+
 const structure = (S: any) =>
   S.list()
     .title('Content')
     .items([
+      // Scheduling group: calendar, blocked dates, bookings
       S.listItem()
         .title('Scheduling')
         .icon(FaCalendarAlt)
@@ -24,6 +26,7 @@ const structure = (S: any) =>
             .items([
               S.listItem()
                 .title('Booking Calendar')
+                .icon(FaCalendarAlt)
                 .child(S.component(BookingCalendarView).title('Booking Calendar')),
               S.listItem()
                 .title('Create Listing Invoice')

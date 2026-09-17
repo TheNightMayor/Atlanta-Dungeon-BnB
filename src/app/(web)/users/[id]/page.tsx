@@ -20,6 +20,34 @@ import toast from 'react-hot-toast';
 import { User } from '@/models/user';
 import { Booking } from '@/models/booking';
 
+const MAX_ID_DOCUMENT_BYTES = 10 * 1024 * 1024;
+const HEIC_IMAGE_TYPES = new Set(['image/heic', 'image/heif']);
+
+const isHeicImage = (file: File) =>
+  HEIC_IMAGE_TYPES.has(file.type.toLowerCase()) || /\.hei[cf]$/i.test(file.name);
+
+const prepareIdDocumentForUpload = async (file: File) => {
+  if (file.size > MAX_ID_DOCUMENT_BYTES) {
+    throw new Error('ID document must be 10 MB or smaller.');
+  }
+
+  if (!isHeicImage(file)) return file;
+
+  const { default: heic2any } = await import('heic2any');
+  const converted = await heic2any({
+    blob: file,
+    toType: 'image/jpeg',
+    quality: 0.9,
+  });
+  const convertedBlob = Array.isArray(converted) ? converted[0] : converted;
+
+  return new File(
+    [convertedBlob],
+    `${file.name.replace(/\.hei[cf]$/i, '') || 'id-document'}.jpg`,
+    { type: 'image/jpeg' }
+  );
+};
+
 const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const { data: session } = useSession();
   const { id: userId } = use(props.params);
@@ -74,7 +102,15 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     }
   };
 
-  const fetchUserBooking = async () => getUserBookings(userId);
+  // Fetch via our server endpoint so authentication/session is respected
+  const fetchUserBooking = async () => {
+    const res = await fetch('/api/userbooking');
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`Failed to fetch user bookings: ${res.status} ${txt}`);
+    }
+    return res.json();
+  };
   const fetchUserData = async () => {
     const { data } = await axios.get<User>('/api/users');
     return data;
@@ -165,8 +201,9 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
 
     setIsUploadingId(true);
     try {
+      const idDocument = await prepareIdDocumentForUpload(selectedIdImage);
       const formData = new FormData();
-      formData.append('idDocument', selectedIdImage);
+      formData.append('idDocument', idDocument);
 
       const res = await fetch('/api/users/id', { method: 'POST', body: formData });
       if (!res.ok) {
@@ -180,17 +217,19 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
       toast.success('ID document uploaded');
     } catch (err) {
       console.error('ID upload failed', err);
-      toast.error('Failed to upload ID document');
+      toast.error(err instanceof Error ? err.message : 'Failed to upload ID document');
     } finally {
       setIsUploadingId(false);
     }
   };
 
+  // Use a user-specific SWR key so cached results don't leak between profiles
+  const swrKey = userId ? ['/api/userbooking', userId] : null;
   const {
     data: userBookings,
     error,
     isLoading,
-  } = useSWR<Booking[]>('/api/userbooking', fetchUserBooking);
+  } = useSWR<Booking[]>(swrKey, fetchUserBooking);
 
 
   const {
@@ -220,6 +259,14 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
       return checkin >= today;
     })
     .sort((a, b) => a.checkinDateObj!.toISOString().localeCompare(b.checkinDateObj!.toISOString()));
+
+  const formatBookingDate = (date: string) => {
+    const [year, month, day] = date.split('T')[0].split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString();
+  };
+
+  // Debugging: log bookings and computed upcoming bookings to help trace missing entries
+  // This is moved below `isCurrentUser` declaration to avoid referencing uninitialized variables.
 
   
 
@@ -259,6 +306,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     )
   );
 
+    // (debug logs removed)
 
 
   return (
@@ -326,7 +374,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                   <input
                     ref={idInputRef}
                     type='file'
-                    accept='image/*'
+                    accept='image/jpeg,image/png,image/webp,image/heic,image/heif'
                     className='sr-only'
                     onChange={handleIdImageChange}
                     aria-hidden
@@ -441,13 +489,13 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                         <div>
                           <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-in</p>
                           <p className='text-sm text-gray-900 dark:text-white'>
-                            {new Date(booking.checkinDate).toLocaleDateString()}
+                            {formatBookingDate(booking.checkinDate)}
                           </p>
                         </div>
                         <div>
                           <p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Check-out</p>
                           <p className='text-sm text-gray-900 dark:text-white'>
-                            {new Date(booking.checkoutDate).toLocaleDateString()}
+                            {formatBookingDate(booking.checkoutDate)}
                           </p>
                         </div>
                       </div>

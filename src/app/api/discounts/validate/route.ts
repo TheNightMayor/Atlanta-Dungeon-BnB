@@ -4,41 +4,57 @@ import sanityClient from '@/libs/sanity';
 type Body = {
   code?: string | null;
   price?: number;
+  numberOfDays?: number;
   hotelRoomId?: string | null;
 };
 
 export async function POST(req: Request) {
   try {
-    const { code, price, hotelRoomId }: Body = await req.json();
+    const { code, price, numberOfDays = 1, hotelRoomId }: Body = await req.json();
 
     if (!code || typeof code !== 'string' || code.trim().length === 0) {
-      return new NextResponse('Code is required', { status: 400 });
+      return NextResponse.json({ error: 'Code is required' }, { status: 400 });
     }
 
     const normalized = code.trim().toUpperCase();
     const discountQuery = `*[_type == 'discountCode' && code == $code][0]{_id, code, type, value, active, startDate, endDate, maxUses, onePerUser, appliesTo[]->{_id}}`;
     const discountDoc: any = await sanityClient.fetch(discountQuery, { code: normalized });
 
-    if (!discountDoc) return new NextResponse('Invalid discount code', { status: 400 });
-    if (!discountDoc.active) return new NextResponse('Discount code is not active', { status: 400 });
+    if (!discountDoc) return NextResponse.json({ error: 'Invalid discount code' }, { status: 400 });
+    if (!discountDoc.active) return NextResponse.json({ error: 'Discount code is not active' }, { status: 400 });
 
     const today = new Date();
-    if (discountDoc.startDate && new Date(discountDoc.startDate) > today) return new NextResponse('Discount code not yet active', { status: 400 });
-    if (discountDoc.endDate && new Date(discountDoc.endDate) < today) return new NextResponse('Discount code expired', { status: 400 });
+    if (discountDoc.startDate && new Date(discountDoc.startDate) > today) {
+      return NextResponse.json({ error: 'Discount code not yet active' }, { status: 400 });
+    }
+    if (discountDoc.endDate && new Date(discountDoc.endDate) < today) {
+      return NextResponse.json({ error: 'Discount code expired' }, { status: 400 });
+    }
 
     if (Array.isArray(discountDoc.appliesTo) && discountDoc.appliesTo.length > 0 && hotelRoomId) {
       const appliesToIds = discountDoc.appliesTo.map((d: any) => d._id);
-      if (!appliesToIds.includes(hotelRoomId)) return new NextResponse('Discount code does not apply to this accommodation', { status: 400 });
+      if (!appliesToIds.includes(hotelRoomId)) {
+        return NextResponse.json({ error: 'Discount code does not apply to this accommodation' }, { status: 400 });
+      }
     }
 
-    // compute per-night discount using provided price when possible
+    // compute discount amounts
+    const basePrice = Number(price) || 0;
+    const days = Math.max(1, Number(numberOfDays) || 1);
+    const rawVal = Number(discountDoc.value) || 0;
+    let totalDiscount = 0;
     let appliedDiscountPerNight = 0;
-    if (price != null) {
-      if (discountDoc.type === 'percentage') {
-        appliedDiscountPerNight = (price * (Number(discountDoc.value) || 0)) / 100;
-      } else {
-        appliedDiscountPerNight = Number(discountDoc.value) || 0;
-      }
+
+    if (discountDoc.type === 'percentage') {
+      appliedDiscountPerNight = (basePrice * rawVal) / 100;
+      totalDiscount = appliedDiscountPerNight * days;
+    } else if (discountDoc.type === 'fixed_total') {
+      totalDiscount = rawVal;
+      appliedDiscountPerNight = rawVal / days;
+    } else {
+      // 'fixed' / per-night
+      appliedDiscountPerNight = rawVal;
+      totalDiscount = rawVal * days;
     }
 
     return NextResponse.json({
@@ -46,11 +62,12 @@ export async function POST(req: Request) {
       _id: discountDoc._id,
       code: discountDoc.code,
       type: discountDoc.type,
-      value: discountDoc.value,
+      value: rawVal,
       perNight: appliedDiscountPerNight,
+      totalDiscount,
     });
   } catch (error) {
     console.error('Discount validate error', error);
-    return new NextResponse('Server error', { status: 500 });
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

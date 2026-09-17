@@ -6,8 +6,7 @@ import { sendBookingApprovedEmail, sendBookingConfirmationEmail, sendBookingReje
 import { hasSanityStudioSession } from '@/libs/studioAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
-});
+  apiVersion: '2025-02-24.acacia',});
 
 export async function PATCH(
   req: Request,
@@ -42,6 +41,14 @@ export async function PATCH(
     if (action === 'approve') {
       if (!paymentIntentId) {
         return new NextResponse('Missing Stripe payment intent ID', { status: 400 });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      if (paymentIntent.status !== 'requires_capture') {
+        return new NextResponse(
+          `Payment cannot be captured because its Stripe status is ${paymentIntent.status}`,
+          { status: 409 }
+        );
       }
 
       const captured = await stripe.paymentIntents.capture(paymentIntentId);
@@ -188,7 +195,8 @@ export async function PATCH(
     return new NextResponse('No action taken', { status: 400 });
   } catch (error) {
     console.error('Booking approval error:', error);
-    return new NextResponse('Unable to update booking status', { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new NextResponse(`Unable to update booking status: ${message}`, { status: 500 });
   }
 }
 

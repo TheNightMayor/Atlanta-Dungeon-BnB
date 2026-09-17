@@ -1,13 +1,18 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { useClient } from 'sanity'
-import { BookingCalendar } from '../../components/BookingCalendar'
+
+const BookingCalendar = lazy(() =>
+  import('../../components/BookingCalendar').then(({ BookingCalendar: Component }) => ({ default: Component }))
+)
 
 export default function BookingCalendarView() {
   const client = useClient({apiVersion: '2021-10-21'})
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'auto' }}>
-      <BookingCalendar client={client} />
+      <Suspense fallback={<div style={{ padding: 20 }}>Loading calendar...</div>}>
+        <BookingCalendar client={client} />
+      </Suspense>
     </div>
   )
 }

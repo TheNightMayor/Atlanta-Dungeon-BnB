@@ -1,3 +1,5 @@
+// Build an absolute Sanity CDN URL from an asset reference string.
+// This is useful when the image object is stored as a reference instead of a direct URL.
 export function urlFromAssetRef(ref?: string) {
   if (!ref || typeof ref !== 'string') return null;
   // ref format: image-<id>-<size>-<ext> or image-<id>-<ext>
@@ -11,7 +13,8 @@ export function urlFromAssetRef(ref?: string) {
   return `https://cdn.sanity.io/images/${projectId}/${dataset}/${id}.${ext}`;
 }
 
-// Accepts a photo object (may have `url` or `image.asset._ref`) or a raw ref string
+// Accepts a photo object (may have `url` or `image.asset._ref`) or a raw ref string.
+// Normalizes the value so the calling component can always render a valid image source if one exists.
 export default function getImageUrl(source: any): string | null {
   if (!source) return null;
   if (typeof source === 'string') return source;

@@ -3,6 +3,7 @@ import { Any } from "next-sanity";
 import { FaCalendarCheck } from "react-icons/fa";
 import { defineField } from "sanity";
 import ApproveBookingButton from '../studio/inputs/ApproveBookingButton';
+import PriceBreakdownView from '../studio/inputs/PriceBreakdownView';
 // import { PreviewProps } from "sanity";
 
 
@@ -12,11 +13,15 @@ const booking = {
     icon: FaCalendarCheck,
     type: "document",
     fields: [
+        // Checkout snapshot — captured at booking time; editing here does not
+        // re-authorize payment, re-check availability, or resend emails.
         defineField({
             name: "user",
             title: "User",
             type: "reference",
             to: [{type: 'user' }],
+            readOnly: true,
+            fieldset: 'stay',
             validation: Rule => Rule.required(),
         }),
         defineField({
@@ -24,18 +29,24 @@ const booking = {
             title: "Hotel Room",
             type: "reference",
             to: [{ type: "hotelRoom" }],
+            readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required(),
         }),
         defineField({
             name: "checkinDate",
             title: "Check-in Date",
             type: "date",
+            readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required(),
         }),
         defineField({
             name: "checkoutDate",
             title: "Check-out Date",
             type: "date",
+            readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required(),
         }),
         defineField({
@@ -43,6 +54,8 @@ const booking = {
             title: "Number of Days",
             type: "number",
             initialValue: 1,
+            readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
@@ -50,20 +63,86 @@ const booking = {
             title: "Discount",
             type: "number",
             initialValue: 0,
+            readOnly: true,
+            fieldset: 'pricing',
             validation: Rule =>Rule.required().min(0),
+        }),
+        defineField({
+            name: "discountCode",
+            title: "Discount Code",
+            type: "reference",
+            to: [{ type: "discountCode" }],
+            readOnly: true,
+            fieldset: 'pricing',
+            description: "The discount code applied to this booking",
         }),
         defineField({
             name: "adults",
             title: "Adults",
             type: "number",
             initialValue: 1,
+            readOnly: true,
+            fieldset: 'stay',
             validation: Rule =>Rule.required().min(1),
         }),
         defineField({
             name: "totalPrice",
             title: "Total Price",
             type: "number",
+            readOnly: true,
+            fieldset: 'pricing',
+            description: "Amount to be charged to guest's card after applying all fees and discounts.",
             validation: Rule =>Rule.required().min(0),
+        }),
+
+        // Payment/lifecycle data — informational only, surfaced in the Approval panel below.
+        defineField({
+            name: "authorizedAmount",
+            title: "Authorized Amount",
+            type: "number",
+            readOnly: true,
+            hidden: true,
+            description: "Amount authorized on the guest's card and awaiting capture.",
+        }),
+        defineField({
+            name: "authorizedAt",
+            title: "Authorized At",
+            type: "datetime",
+            readOnly: true,
+            hidden: true,
+            description: "When the guest's card was authorized at checkout.",
+        }),
+        defineField({
+            name: "priceBreakdown",
+            title: "Price Breakdown",
+            type: "object",
+            readOnly: true,
+            fieldset: 'pricing',
+            description: "Snapshot of the calculation used to determine the total price at checkout.",
+            components: { input: PriceBreakdownView },
+            fields: [
+                defineField({ name: "baseRoomSubtotal", title: "Base Room Subtotal", type: "number" }),
+                defineField({ name: "listingDiscounts", title: "Listing Discounts", type: "number" }),
+                defineField({
+                    name: "appliedListingDiscounts",
+                    title: "Applied Listing Discounts",
+                    type: "array",
+                    of: [
+                        {
+                            type: "object",
+                            name: "appliedDiscount",
+                            fields: [
+                                { name: "title", title: "Title", type: "string" },
+                                { name: "amount", title: "Amount", type: "number" },
+                            ],
+                        },
+                    ],
+                }),
+                defineField({ name: "discountCodeSavings", title: "Discount Code Savings", type: "number" }),
+                defineField({ name: "extraGuestCharge", title: "Extra Guest Charge", type: "number" }),
+                defineField({ name: "flatFee", title: "Flat Fee", type: "number" }),
+                defineField({ name: "total", title: "Calculated Total", type: "number" }),
+            ],
         }),
         defineField({
             name: 'amountPaid',
@@ -141,30 +220,40 @@ const booking = {
             type: 'string',
             components: { input: ApproveBookingButton },
         }),
+
+        // Internal identifiers — never edited by hand, only read by API routes.
         defineField({
             name: "stripePaymentIntentId",
             title: "Stripe Payment Intent ID",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
         defineField({
             name: "stripeSessionId",
             title: "Stripe Session ID",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
         defineField({
             name: "customerEmail",
             title: "Customer Email",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
         defineField({
             name: "customerName",
             title: "Customer Name",
             type: "string",
+            readOnly: true,
             hidden: true,
         }),
+    ],
+    fieldsets: [
+        { name: 'stay', title: 'Stay Details', options: { columns: 2 } },
+        { name: 'pricing', title: 'Pricing Snapshot', options: { columns: 2, collapsible: true, collapsed: true } },
     ],
     preview: {
         select: {
@@ -172,10 +261,10 @@ const booking = {
             checkoutDate: 'checkoutDate',
             user: 'user.name',
             status: 'status',
-            type: 'hotelRoom.type',
+            hotelRoomName: 'hotelRoom.name',
         },
         prepare(value: Record<string, any>) {
-            const { user, checkinDate, checkoutDate, hotelRoomImageUrl, hotelRoomImageAssetUrl, type, status } = value;
+            const { user, checkinDate, checkoutDate, hotelRoomImageUrl, hotelRoomImageAssetUrl, hotelRoomName, status } = value;
 
             // Small React component that renders a colored status dot for preview (no photo).
             const StatusDot = ({ status }: { status?: string }) => {
@@ -195,7 +284,7 @@ const booking = {
 
             return {
                 title: `${checkinDate} - ${checkoutDate}`,
-                subtitle: `${user ? user : 'unknown'} — ${type ? type : 'unknown'}`,
+                subtitle: `${user ? user : 'unknown'} — ${hotelRoomName ? hotelRoomName : 'unknown'}`,
                 media: <StatusDot status={status} />,
             };
         }
