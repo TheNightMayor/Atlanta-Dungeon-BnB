@@ -40,16 +40,6 @@ async function hasSanityStudioSession(req: Request) {
     }
   }
 
-  // Fallback: Check NextAuth admin/user session if logged into the frontend
-  try {
-    const { getServerSession } = await import('next-auth');
-    const { authOptions } = await import('@/libs/auth');
-    const session = await getServerSession(authOptions);
-    if (session?.user) return true;
-  } catch (err) {
-    // ignore
-  }
-
   return false;
 }
 
