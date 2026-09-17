@@ -36,7 +36,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Missing iCal URL (set GOOGLE_ICAL_URL or VRBO_ICAL_URL)' }, { status: 500 });
     }
 
-    const resp = await fetch(url);
+    const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!resp.ok) {
       const text = await resp.text();
       return NextResponse.json({ error: 'Failed to fetch ics', detail: text }, { status: resp.status });

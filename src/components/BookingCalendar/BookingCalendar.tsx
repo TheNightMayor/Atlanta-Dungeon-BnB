@@ -48,9 +48,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   useEffect(() => {
     if (!client) return;
 
-        async function fetchBookings() {
-      try {
-        const query = `*[_type == "booking" && status != "rejected" && status != "deleted"] | order(checkinDate asc) {
+    let mounted = true;
+
+    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted"] | order(checkinDate asc) [0...500] {
           _id,
           checkinDate,
           checkoutDate,
@@ -71,45 +71,32 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
           }
         }`;
 
-        const result = await client.fetch(query);
-        setBookings(result);
-      } catch (error) {
-        console.error('Failed to fetch bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchBookings();
-    // fetch ICS events from server proxy
-    async function fetchIcs() {
-      try {
-        const res = await fetch('/api/calendar-ics');
-        if (!res.ok) {
-          console.warn('Failed to fetch ICS events', await res.text());
-          return;
-        }
-        const items: IcsEvent[] = await res.json();
-        setIcsEvents(items || []);
-      } catch (err) {
-        console.error('Error fetching ICS events', err);
-      }
-    }
-
-    fetchIcs();
-    // fetch blocked dates
-    async function fetchBlocked() {
-      try {
-        const res = await client.fetch(`*[_type == "blockedDate"]{_id, date, reason}`);
+    Promise.all([
+      client.fetch(bookingsQuery),
+      client.fetch(`*[_type == "blockedDate"]{_id, date, reason}`),
+      fetch('/api/calendar-ics').then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json() as Promise<IcsEvent[]>;
+      }),
+    ])
+      .then(([bookingResult, blockedResult, icsResult]) => {
+        if (!mounted) return;
+        setBookings(bookingResult || []);
         const map: Record<string, { id: string; reason?: string }> = {};
-        (res || []).forEach((b: any) => { if (b?.date) map[b.date] = { id: b._id, reason: b.reason }; });
+        (blockedResult || []).forEach((blocked: any) => {
+          if (blocked?.date) map[blocked.date] = { id: blocked._id, reason: blocked.reason };
+        });
         setBlockedMap(map);
-      } catch (err) {
-        console.error('Failed to fetch blocked dates', err);
-      }
-    }
+        setIcsEvents(icsResult || []);
+      })
+      .catch((error) => {
+        if (mounted) console.error('Failed to load booking calendar data:', error);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
-    fetchBlocked();
+    return () => { mounted = false; };
   }, [client]);
 
   useEffect(() => {
