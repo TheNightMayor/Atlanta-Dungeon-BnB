@@ -114,6 +114,34 @@ export async function sendBookingConfirmationEmail(
   });
 }
 
+export async function sendInvoiceBookingEmail(
+  to: string,
+  userId: string,
+  listingName: string,
+  checkinDate: string,
+  checkoutDate: string,
+  totalPrice: number,
+  userName?: string
+) {
+  const from = process.env.RESEND_FROM || 'no-reply@example.com';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const returnTo = `/users/${userId}`;
+  const signInUrl = `${appUrl.replace(/\/$/, '')}/auth?mode=signin&returnTo=${encodeURIComponent(returnTo)}`;
+
+  await sendResendRequest({
+    from,
+    to,
+    subject: 'Your listing invoice is ready',
+    html: `<p>Hi ${userName ?? 'Guest'},</p>
+           <p>Your invoice for <strong>${listingName}</strong> is ready.</p>
+           <p><strong>Check-in:</strong> ${checkinDate}</p>
+           <p><strong>Check-out:</strong> ${checkoutDate}</p>
+           <p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>
+           <p>Sign in to your account to review the reservation and pay securely:</p>
+           <p><a href="${signInUrl}">View and pay your invoice</a></p>`,
+  });
+}
+
 export async function sendBookingApprovedEmail(
   to: string,
   roomName: string,

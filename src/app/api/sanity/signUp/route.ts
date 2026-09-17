@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       { email }
     );
 
-    if (existingUser) {
+    if (existingUser?.password) {
       return NextResponse.json(
         { error: 'User already exists' },
         { status: 400 }
@@ -32,16 +32,22 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user in Sanity
-    const user = await sanityClient.create({
-      _type: 'user',
-      email,
-      name,
-      password: hashedPassword, // In a real app, you'd store this securely
-      emailVerified: null,
-      // Note: Storing passwords in Sanity is not recommended for production
-      // Consider using a proper user management system
-    });
+    // Claim the placeholder user created for an admin invoice, or create a new account.
+    const user = existingUser
+      ? await sanityClient.patch(existingUser._id).set({
+          name,
+          password: hashedPassword,
+          emailVerified: null,
+        }).commit()
+      : await sanityClient.create({
+          _type: 'user',
+          email,
+          name,
+          password: hashedPassword, // In a real app, you'd store this securely
+          emailVerified: null,
+          // Note: Storing passwords in Sanity is not recommended for production
+          // Consider using a proper user management system
+        });
 
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();

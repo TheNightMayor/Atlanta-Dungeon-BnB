@@ -16,6 +16,11 @@ const defaultFormData = {
 const confirmationMessage = 'Confirmation email sent. Please check your inbox.';
 const emailNotVerifiedError = 'Please confirm your email before signing in.';
 
+const getSafeReturnTo = (value: string | null | undefined) => {
+    if (!value || !value.startsWith('/') || value.startsWith('//')) return '/auth/redirect';
+    return value;
+};
+
 
 const Auth = () => {
     const [formData, setFormData] = useState(defaultFormData);
@@ -69,7 +74,7 @@ const Auth = () => {
                 }
 
                 if ((res as any)?.ok) {
-                    router.push('/auth/redirect');
+                    router.push(getSafeReturnTo(searchParams?.get('returnTo')));
                 } else {
                     toast.error('Unable to sign in after verification');
                 }
@@ -102,7 +107,7 @@ const Auth = () => {
     const loginHandler = async (provider?: 'google' | 'github' | 'credentials') => {
         try {
             if (provider && provider !== 'credentials') {
-                await signIn(provider, { callbackUrl: '/auth/redirect' });
+                await signIn(provider, { callbackUrl: getSafeReturnTo(searchParams?.get('returnTo')) });
                 return;
             }
 
@@ -128,7 +133,7 @@ const Auth = () => {
             }
 
             if ((res as any)?.ok) {
-                router.push('/auth/redirect');
+                router.push(getSafeReturnTo(searchParams?.get('returnTo')));
             } else {
                 toast.error('Unable to sign in. Please try again.');
             }

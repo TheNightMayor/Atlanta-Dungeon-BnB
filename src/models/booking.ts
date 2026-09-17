@@ -11,9 +11,16 @@ export type Booking = {
     numberOfDays: number;
     adults: number;
     totalPrice: number;
+    authorizedAmount?: number;
+    authorizedAt?: string;
+    priceBreakdown?: Record<string, unknown>;
     discount: number;
     discountCode?: string | null;
+    invoiceBooking?: boolean;
+    checkoutUrl?: string;
+    checkoutExpiresAt?: string;
     status?:
+      | 'pending payment'
       | 'pending approval'
       | 'approved'
       | 'rejected'

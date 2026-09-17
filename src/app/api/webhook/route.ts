@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-import { createBooking } from '@/libs/apis';
-import { sendBookingPendingEmail, sendPaymentConfirmationEmail, sendBookingApprovalRequestEmail } from '@/libs/email';
+import { createBooking, getBookingById } from '@/libs/apis';
+import { sendBookingPendingEmail, sendPaymentConfirmationEmail, sendBookingApprovalRequestEmail, sendBookingConfirmationEmail } from '@/libs/email';
+import sanityClient from '@/libs/sanity';
 
 const checkout_session_completed = "checkout.session.completed";
 
@@ -42,11 +43,63 @@ export async function POST(req: Request) {
         const totalPrice = metadata?.totalPrice ?? '0';
         const discountCode = metadata?.discountCode ?? null;
         const customerName = (metadata?.customerName ?? session.customer_details?.name) ?? undefined;
+        const authorizedAmount = metadata?.authorizedAmount ?? totalPrice;
+        const authorizedAt = metadata?.authorizedAt ?? new Date().toISOString();
 
         const stripePaymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
         const stripeSessionId = session.id;
         const customerEmail = session.customer_email ?? metadata?.userEmail ?? undefined;
         const roomName = metadata?.hotelRoomName;
+
+        if (metadata?.invoiceBooking === 'true' && metadata.bookingId) {
+          const existingBooking = await getBookingById(metadata.bookingId);
+          if (!existingBooking) {
+            return new NextResponse('Invoice booking not found', { status: 404 });
+          }
+
+          if (existingBooking.status !== 'approved') {
+            let amountPaid = Number(totalPrice);
+            if (stripePaymentIntentId) {
+              const paymentIntent = await stripe.paymentIntents.retrieve(stripePaymentIntentId);
+              if (paymentIntent.status === 'requires_capture') {
+                await stripe.paymentIntents.capture(stripePaymentIntentId);
+              }
+              const capturedPaymentIntent = await stripe.paymentIntents.retrieve(stripePaymentIntentId);
+              amountPaid = (capturedPaymentIntent.amount_received || Number(totalPrice) * 100) / 100;
+            }
+
+            await sanityClient.patch(metadata.bookingId).set({
+              status: 'approved',
+              stripePaymentIntentId,
+              stripeSessionId,
+              authorizedAmount: Number(authorizedAmount),
+              authorizedAt,
+              amountPaid,
+              paymentReceivedAt: new Date().toISOString(),
+            }).commit();
+          }
+
+          if (customerEmail && roomName && existingBooking.status !== 'approved') {
+            await sendPaymentConfirmationEmail(
+              customerEmail,
+              roomName,
+              checkinDate,
+              checkoutDate,
+              Number(totalPrice),
+              customerName
+            );
+            await sendBookingConfirmationEmail(
+              customerEmail,
+              roomName,
+              checkinDate,
+              checkoutDate,
+              Number(totalPrice),
+              customerName
+            );
+          }
+
+          return NextResponse.json('Invoice booking approved', { status: 200 });
+        }
 
         await createBooking({
           adults: Number(adults),

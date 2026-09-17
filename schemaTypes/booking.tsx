@@ -102,6 +102,7 @@ const booking = {
             hidden: true,
             options: {
                 list: [
+                    { title: "Pending payment", value: "pending payment" },
                     { title: "Pending approval", value: "pending approval" },
                     { title: "Approved", value: "approved" },
                         { title: "Rejected", value: "rejected" },
@@ -109,6 +110,30 @@ const booking = {
                 ],
             },
             validation: Rule => Rule.required(),
+        }),
+        defineField({
+            name: "invoiceBooking",
+            title: "Invoice booking",
+            type: "boolean",
+            readOnly: true,
+            hidden: true,
+            description: "Indicates that this booking was created by an admin invoice workflow.",
+        }),
+        defineField({
+            name: "checkoutUrl",
+            title: "Checkout URL",
+            type: "url",
+            readOnly: true,
+            hidden: true,
+            description: "Hosted Stripe Checkout link for an invoice booking.",
+        }),
+        defineField({
+            name: "checkoutExpiresAt",
+            title: "Checkout Expires At",
+            type: "datetime",
+            readOnly: true,
+            hidden: true,
+            description: "When the hosted Stripe Checkout link expires.",
         }),
         defineField({
             name: 'studioApprove',

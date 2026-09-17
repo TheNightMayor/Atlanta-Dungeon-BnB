@@ -22,6 +22,13 @@ type Slug = {
   current: string;
 };
 
+export type ListingDiscount = {
+  title?: string;
+  type?: string;
+  value?: number | string;
+  active?: boolean;
+};
+
 export type PortableTextBlock = {
   _key: string;
   _type: 'block';
@@ -36,6 +43,7 @@ export type Room = {
   coverImage: CoverImage;
   description: PortableTextBlock[];
   discount: number;
+  discounts?: ListingDiscount[];
   images: Image[];
   flatFee?: number;
   overnight?: boolean;
@@ -44,6 +52,8 @@ export type Room = {
   
   offeredAmenities: Amenity[];
   price: number;
+  includedGuests?: number;
+  extraGuestFee?: number;
   slug: Slug;
   specialNote: string;
   type: string;
@@ -57,9 +67,16 @@ export type CreateBookingDto = {
   numberOfDays: number;
   adults: number;
   totalPrice: number;
+  authorizedAmount?: number;
+  authorizedAt?: string;
+  priceBreakdown?: Record<string, unknown>;
   discount: number;
   discountCode?: string | null;
+  invoiceBooking?: boolean;
+  checkoutUrl?: string;
+  checkoutExpiresAt?: string;
   status?:
+    | 'pending payment'
     | 'pending approval'
     | 'approved'
     | 'rejected'

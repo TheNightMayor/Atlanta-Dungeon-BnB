@@ -1,11 +1,9 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/libs/auth';
 import { getBookingById, updateBookingStatus } from '@/libs/apis';
-import { getUserData } from '@/libs/apis';
 import { sendBookingApprovedEmail, sendBookingConfirmationEmail, sendBookingRejectionEmail, sendBookingCancellationEmail, sendBookingRefundEmail } from '@/libs/email';
+import { hasSanityStudioSession } from '@/libs/studioAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',
@@ -15,15 +13,8 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  if (!await hasSanityStudioSession(req)) {
     return new NextResponse('Authentication required', { status: 401 });
-  }
-
-  const userId = (session.user as any).id ?? session.user.name;
-  const userData = await getUserData(userId);
-  if (!userData?.isAdmin) {
-    return new NextResponse('Admin access required', { status: 403 });
   }
 
   const { id: bookingId } = await params;
@@ -205,15 +196,8 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  if (!await hasSanityStudioSession(req)) {
     return new NextResponse('Authentication required', { status: 401 });
-  }
-
-  const userId = (session.user as any).id ?? session.user.name;
-  const userData = await getUserData(userId);
-  if (!userData?.isAdmin) {
-    return new NextResponse('Admin access required', { status: 403 });
   }
 
   const { id: bookingId } = await params;
@@ -221,7 +205,7 @@ export async function DELETE(
   try {
     // call Sanity soft-delete
     const { deleteBooking } = await import('@/libs/apis');
-    await deleteBooking(bookingId, userId);
+    await deleteBooking(bookingId);
     return NextResponse.json({ deleted: true }, { status: 200 });
   } catch (error) {
     console.error('Failed to delete booking', error);

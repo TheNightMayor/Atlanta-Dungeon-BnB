@@ -40,6 +40,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
   const [selectedIdImage, setSelectedIdImage] = useState<File | null>(null);
   const [selectedIdImagePreview, setSelectedIdImagePreview] = useState<string | null>(null);
   const [isUploadingId, setIsUploadingId] = useState(false);
+  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
   const profileInputRef = useRef<HTMLInputElement | null>(null);
   const idInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -108,6 +109,21 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
     const file = event.target.files?.[0] ?? null;
     setSelectedIdImage(file);
     setSelectedIdImagePreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  const payInvoice = async (bookingId: string) => {
+    setPayingBookingId(bookingId);
+    try {
+      const response = await fetch(`/api/userbooking/${encodeURIComponent(bookingId)}/checkout`);
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.checkoutUrl) {
+        throw new Error(result.error || await response.text() || 'Checkout is unavailable');
+      }
+      window.location.assign(result.checkoutUrl);
+    } catch (payError) {
+      toast.error(payError instanceof Error ? payError.message : 'Checkout is unavailable');
+      setPayingBookingId(null);
+    }
   };
 
   useEffect(() => {
@@ -397,7 +413,7 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                     <div key={booking._id} className='rounded-2xl border-2 border-tertiary-dark p-4 bg-gray-50 dark:bg-slate-950'>
                       <div className='flex items-start justify-between gap-4'>
                         <div>
-                          <p className='text-sm text-gray-500 dark:text-gray-400'>Room</p>
+                          <p className='text-sm text-gray-500 dark:text-gray-400'>Stay</p>
                           <p className='text-base font-semibold text-gray-900 dark:text-white'>
                             {booking.hotelRoom.name}
                           </p>
@@ -410,6 +426,16 @@ const UserDetails = (props: { params: Promise<{ id: string }> }) => {
                         <p className='mt-3 text-sm text-tertiary-dark dark:text-tertiary-light'>
                           Payment pending booking approval, can take up to 24 hours.
                         </p>
+                      ) : null}
+                      {status === 'pending payment' && booking.invoiceBooking ? (
+                        <button
+                          type='button'
+                          onClick={() => payInvoice(booking._id)}
+                          disabled={payingBookingId === booking._id}
+                          className='btn-tertiary-action mt-3'
+                        >
+                          {payingBookingId === booking._id ? 'Opening checkout...' : 'Pay invoice'}
+                        </button>
                       ) : null}
                       <div className='mt-3 grid gap-2 sm:grid-cols-2'>
                         <div>
