@@ -24,9 +24,10 @@ async function hasSanityStudioSession(req: Request) {
     }
   }
 
-  // Check Sanity Studio session cookie (e.g. sanitySession) passed by the browser when logged into Sanity Studio
+  // Validate the Studio's current auth cookie. Sanity may change the cookie name,
+  // so inspect the complete cookie header rather than checking one name.
   const cookieHeader = req.headers.get('cookie');
-  if (cookieHeader && cookieHeader.includes('sanitySession')) {
+  if (cookieHeader) {
     try {
       const response = await fetch('https://api.sanity.io/v2021-06-07/users/me', {
         headers: {

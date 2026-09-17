@@ -50,6 +50,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const targetId = id?.toString().replace(/^drafts\./, '') || '';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
       });
@@ -76,6 +77,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const actionToSend = status === 'approved' ? 'cancel' : 'reject';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: actionToSend }),
       });
@@ -98,6 +100,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const targetId = id?.toString().replace(/^drafts\./, '') || '';
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -250,6 +253,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
                 const targetId = id?.toString().replace(/^drafts\./, '') || '';
                 const res = await fetch(`/api/bookings/${targetId}`, {
                   method: 'PATCH',
+                  credentials: 'include',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ action: 'refund', amount: amt }),
                 });
