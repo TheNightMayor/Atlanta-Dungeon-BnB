@@ -149,7 +149,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       const s = new Date(ev.start).toISOString().split('T')[0];
       const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
       if (!ev.end) return dateStr === s;
-      return ev.blocked ? dateStr >= s && dateStr <= e : dateStr >= s && dateStr < e;
+      return dateStr >= s && dateStr <= e;
     });
   };
 
@@ -363,13 +363,16 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
         if (!event.start) continue;
         const start = new Date(event.start).toISOString().split('T')[0];
         const end = event.end ? new Date(event.end).toISOString().split('T')[0] : start;
-        const eventOccupiesDate = !event.end
+        const eventVisibleOnDate = !event.end
+          ? dateStr === start
+          : dateStr >= start && dateStr <= end;
+        const eventBlocksDate = !event.end
           ? dateStr === start
           : event.blocked
             ? dateStr >= start && dateStr <= end
             : dateStr >= start && dateStr < end;
-        if (eventOccupiesDate) icsForDay.push(event);
-        if ((event.reserved || event.blocked) && eventOccupiesDate) icsReserved = true;
+        if (eventVisibleOnDate) icsForDay.push(event);
+        if ((event.reserved || event.blocked) && eventBlocksDate) icsReserved = true;
       }
 
       const hasCheckin = dayBookings.some(booking => booking?.checkinDate === dateStr);
