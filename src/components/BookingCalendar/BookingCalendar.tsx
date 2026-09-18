@@ -85,7 +85,8 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
           numberOfDays,
           adults,
           status,
-          customerName
+          customerName,
+          hotelRoom->{_id, name, slug, price}
         }`;
     const bookingParams = { windowStart, windowEnd };
 
@@ -352,7 +353,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       let icsReserved = false;
 
       for (const booking of bookings || []) {
-        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr <= booking.checkoutDate) {
+        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr < booking.checkoutDate) {
           dayBookings.push(booking);
         }
       }
@@ -524,11 +525,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                 }
 
                 const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                // For display, include bookings that end on this date (checkout) so the label is visible.
                 const dateStr = date.toISOString().split('T')[0];
                 const dayData = monthDayData[dateStr];
                 const dayBookings = dayData?.dayBookings || [];
-                const dayIcsEvents = dayData?.icsForDay || [];
+                const dayIcsEvents = dayBookings.length > 0 ? [] : (dayData?.icsForDay || []);
                 const dayBlocked = dayData?.blocked || false;
                 const isToday = new Date().toDateString() === date.toDateString();
                 const isSelected = selectedDate === dateStr;
@@ -731,11 +731,6 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
               {selectedDate && (() => {
                 const localBd = blockedMap[selectedDate];
                 const icsEv = getIcsReservedForDate(new Date(selectedDate));
-                const bookingsForSelectedInclusive = (selectedDate && bookings && bookings.length > 0) ? bookings.filter((b: any) => {
-                  if (!b?.checkinDate || !b?.checkoutDate) return false;
-                  // inclusive: include bookings where selected date is between checkin and checkout (checkout included for display)
-                  return selectedDate >= b.checkinDate && selectedDate <= b.checkoutDate;
-                }) : [];
                 const bookingsBlockingSelected = (selectedDate && bookings && bookings.length > 0) ? bookings.filter((b: any) => {
                   if (!b?.checkinDate || !b?.checkoutDate) return false;
                   // exclusive checkout: booking actually blocks the day if selectedDate < checkout
@@ -786,29 +781,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                           )}
                         </div>
                       </div>
-                    ) : bookingBlocking ? (
-                      <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3b2f1a' : '#fff8e6', color: isDarkMode ? '#ffe7b3' : '#6b4a00' }}>
-                        <div style={{ fontWeight: 700 }}>Booked</div>
-                        <div style={{ fontSize: 13, marginTop: 6 }}>{bookingBlocking.hotelRoom?.name || 'Booking'}</div>
-                        <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{bookingBlocking.checkinDate} → {bookingBlocking.checkoutDate}</div>
-                        <div style={{ marginTop: 8 }}>
-                          <button onClick={() => openBookingEditor(bookingBlocking._id)} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', border: 'none', cursor: 'pointer' }}>Open booking</button>
-                        </div>
-                      </div>
-                    ) : icsEv ? (
-                      <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3a2540' : '#fff7f0', color: isDarkMode ? '#ffdede' : '#7a1f1f' }}>
-                        <div style={{ fontWeight: 700 }}>{icsEv.blocked ? 'Blocked' : 'Reserved (iCal)'}</div>
-                        <div style={{ fontSize: 13, marginTop: 6 }}>{icsEv.summary || `Reserved via ${icsEv.source || 'iCal'}`}</div>
-                        {icsEv.start && (
-                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{formatIcsDateRange(icsEv.start, icsEv.end, icsEv.allDay)}</div>
-                        )}
-                        {icsEv.url && (
-                          <div style={{ marginTop: 8 }}>
-                            <a href={icsEv.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ padding: '6px 8px', borderRadius: 4, background: '#254a57', color: 'white', textDecoration: 'none' }}>Open source</a>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
+                    ) : bookingBlocking || icsEv ? null : (
                       <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#14332b' : '#f0fff4', color: isDarkMode ? '#bfffdc' : '#0f5132' }}>
                         <div style={{ fontWeight: 700 }}>Available</div>
                         <div style={{ marginTop: 8 }}>
@@ -889,13 +862,12 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                 {selectedDate ? (
                   (() => {
                         const dateObj = new Date(selectedDate);
-                        const ics = getIcsEventsForDate(dateObj);
-                        // include bookings where selected date is between checkin and checkout inclusive
                         const dateKey = selectedDate;
                         const bks = (bookings || []).filter((b: any) => {
                           if (!b?.checkinDate || !b?.checkoutDate) return false;
-                          return dateKey >= b.checkinDate && dateKey <= b.checkoutDate;
+                          return dateKey >= b.checkinDate && dateKey < b.checkoutDate;
                         });
+                        const ics = bks.length > 0 ? [] : getIcsEventsForDate(dateObj);
                     if (ics.length === 0 && bks.length === 0) return <p style={{ fontSize: '14px', color: colors.textSecondary }}>No events or bookings</p>;
 
                     return (
