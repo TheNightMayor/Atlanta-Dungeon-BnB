@@ -4,6 +4,7 @@ import { type Booking } from '../../models/booking';
 type IcsEvent = {
   id: string;
   summary?: string;
+  guestName?: string | null;
   description?: string;
   location?: string | null;
   start?: string | null;
@@ -66,6 +67,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [focusBookingId, setFocusBookingId] = useState<string | null>(null);
+  const hasLoadedData = React.useRef(false);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('bookingCalendarDarkMode') === 'true';
@@ -80,7 +82,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     if (!client) return;
 
     let mounted = true;
-    setLoading(true);
+    if (!hasLoadedData.current) setLoading(true);
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
     const windowStart = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 3, 1));
@@ -120,7 +122,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
         if (mounted) console.error('Failed to load booking calendar data:', error);
       })
       .finally(() => {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          hasLoadedData.current = true;
+          setLoading(false);
+        }
         if (mounted) setRefreshing(false);
       });
 
@@ -321,8 +326,11 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     todayBg: '#1e3a3a',
     selectedBg: '#1a3a52',
     hoverBg: '#3d3d3d',
-    bookingBg: '#4a3d2a',
-    bookingText: '#ffd700',
+    blockedDayBg: '#4a0b0b',
+    bookingDayBg: '#183a5a',
+    icalDayBg: '#102a43',
+    bookingBg: '#285b87',
+    bookingText: '#dbeafe',
   } : {
     bg: '#f8f9fa',
     surface: 'white',
@@ -339,8 +347,11 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     todayBg: '#d1ecf1',
     selectedBg: '#cfe2ff',
     hoverBg: '#f0f0f0',
-    bookingBg: '#fff3cd',
-    bookingText: '#856404',
+    blockedDayBg: '#fff0f0',
+    bookingDayBg: '#e7f1fb',
+    icalDayBg: '#dbeafe',
+    bookingBg: '#cfe2ff',
+    bookingText: '#123a5a',
   };
 
   const calendarDays = generateCalendarDays();
@@ -540,8 +551,26 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                 const dateStr = date.toISOString().split('T')[0];
                 const dayData = monthDayData[dateStr];
                 const dayBookings = dayData?.dayBookings || [];
-                const dayIcsEvents = dayBookings.length > 0 ? [] : (dayData?.icsForDay || []);
+                const dayIcsEvents = dayBookings.length > 0 ? [] : (dayData?.icsForDay || []).filter(event => !event.blocked);
                 const dayBlocked = dayData?.blocked || false;
+                const dayStatus = blockedMap[dateStr]
+                  ? 'blocked'
+                  : dayBookings.length > 0
+                    ? 'booking'
+                    : (dayData?.icsForDay || []).some(event => event.blocked)
+                      ? 'blocked'
+                      : dayIcsEvents.length > 0
+                        ? 'ical'
+                      : dayBlocked
+                        ? 'blocked'
+                        : 'available';
+                const dayStatusBackground = dayStatus === 'blocked'
+                  ? colors.blockedDayBg
+                  : dayStatus === 'booking'
+                    ? colors.bookingDayBg
+                    : dayStatus === 'ical'
+                      ? colors.icalDayBg
+                      : colors.surface;
                 const isToday = new Date().toDateString() === date.toDateString();
                 const isSelected = selectedDate === dateStr;
                 const isMultiSelected = selectedDates.includes(dateStr);
@@ -589,7 +618,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       height: '100px',
                       width: '100%',
                       padding: '8px',
-                      background: isMultiSelected ? '#274c4c' : (isSelected ? colors.selectedBg : isToday ? colors.todayBg : (dayBlocked ? '#4a0b0b' : colors.surface)),
+                      background: isMultiSelected ? '#274c4c' : (isSelected ? colors.selectedBg : isToday && dayStatus === 'available' ? colors.todayBg : dayStatusBackground),
                       border: `1px solid ${colors.border}`,
                       boxShadow: isToday ? `inset 0 0 0 1px ${colors.todayBorder}` : 'none',
                       cursor: 'pointer',
@@ -603,12 +632,12 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                     }}
                     onMouseOver={(e) => {
                       if (!isSelected && !isMultiSelected) {
-                        e.currentTarget.style.background = dayBlocked ? '#4a0b0b' : colors.hoverBg;
+                        e.currentTarget.style.background = dayStatus === 'available' ? colors.hoverBg : dayStatusBackground;
                       }
                     }}
                     onMouseOut={(e) => {
                       if (!isSelected && !isMultiSelected) {
-                        e.currentTarget.style.background = dayBlocked ? '#4a0b0b' : (isToday ? colors.todayBg : colors.surface);
+                        e.currentTarget.style.background = dayStatus === 'available' && isToday ? colors.todayBg : dayStatusBackground;
                       } else if (isMultiSelected) {
                         e.currentTarget.style.background = '#274c4c';
                       } else if (isSelected) {
@@ -616,7 +645,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       }
                     }}
                   >
-                    <div style={{ fontWeight: '600', color: dayBlocked ? 'rgba(255,255,255,0.6)' : colors.text, marginBottom: '4px', fontSize: '14px' }}>
+                    <div style={{ fontWeight: '600', color: dayStatus === 'available' ? colors.text : colors.textSecondary, marginBottom: '4px', fontSize: '14px' }}>
                       {day}
                     </div>
                     {(dayBookings.length > 0 || dayIcsEvents.length > 0 || dayBlocked) && (
@@ -671,9 +700,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                     width: '100%',
                                     boxSizing: 'border-box',
                                   }}
-                                  title={ev.summary}
+                                  title={ev.guestName || ev.summary}
                                 >
-                                  {ev.summary}
+                                  {ev.guestName || ev.summary}
                                 </div>
                             </a>
                           ) : (
@@ -691,9 +720,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                 width: '100%',
                                 boxSizing: 'border-box',
                               }}
-                              title={ev.summary}
+                              title={ev.guestName || ev.summary}
                             >
-                              {ev.summary}
+                              {ev.guestName || ev.summary}
                             </div>
                           )
                         ))}
@@ -759,6 +788,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         ) : (
                           <textarea value={reasonInputValue} onChange={(e) => setReasonInputValue(e.target.value)} placeholder="Reason (optional)" style={{ width: '100%', minHeight: 64, padding: 8, borderRadius: 6, border: `1px solid ${colors.border}`, boxSizing: 'border-box', marginTop: 6 }} />
                         )}
+                        {!editingReason && <div style={{ fontSize: 13, marginTop: 6, color: colors.textSecondary }}>Source: Sanity</div>}
                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                           {!editingReason ? (
                             <>
@@ -887,7 +917,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         {ics.map(ev => (
                           <div key={ev.id} style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#0b2540' : '#eef6ff', border: `1px solid ${colors.border}` }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                              <div style={{ fontWeight: 700, color: isDarkMode ? '#cfe8ff' : '#0b3a66' }}>{ev.summary || 'Event'}</div>
+                              <div style={{ fontWeight: 700, color: isDarkMode ? '#cfe8ff' : '#0b3a66' }}>{ev.guestName || ev.summary || 'Event'}</div>
                               {ev.url && (
                                 <a href={ev.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: isDarkMode ? '#bfe0ff' : '#0b3a66', textDecoration: 'underline', fontSize: 13 }}>Open</a>
                               )}
@@ -907,6 +937,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
 
                             {ev.location && (
                               <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>📍 {ev.location}</div>
+                            )}
+
+                            {ev.source && (
+                              <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>Source: {ev.source.toUpperCase()}</div>
                             )}
 
                             {ev.description && <div style={{ marginTop: 8, color: colors.textSecondary, fontSize: 13 }}>{ev.description}</div>}

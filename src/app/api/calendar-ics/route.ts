@@ -89,10 +89,12 @@ export async function GET(request: Request) {
       const reservedKeywords = /reserved|booked|booking|occupied|confirmed|unavailable|blocked|reservation/i;
       const isBlocked = /blocked/i.test(item.summary || '') || /blocked/i.test(item.description || '');
       const isReserved = reservedKeywords.test(item.summary || '') || reservedKeywords.test(item.description || '') || /vrbo|airbnb|booking\.com/.test(sourceHint);
+      const guestNameMatch = (item.summary || '').match(/^\s*reserved\s*[-:]\s*(.+?)\s*$/i);
 
       events.push({
         id: item.uid || `${start}-${Math.random()}`,
         summary: item.summary || '',
+        guestName: guestNameMatch?.[1] || null,
         description: item.description || '',
         start,
         end,
