@@ -14,6 +14,15 @@ type IcsEvent = {
   source?: string | null;
 };
 
+const formatIcsDate = (value: string, allDay?: boolean) => {
+  if (allDay) {
+    const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString();
+  }
+
+  return new Date(value).toLocaleDateString();
+};
+
 interface BookingCalendarProps {
   client?: any;
 }
@@ -772,7 +781,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         <div style={{ fontWeight: 700 }}>Reserved (iCal)</div>
                         <div style={{ fontSize: 13, marginTop: 6 }}>{icsEv.summary || `Reserved via ${icsEv.source || 'iCal'}`}</div>
                         {icsEv.start && (
-                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{new Date(icsEv.start).toLocaleString()}</div>
+                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{formatIcsDate(icsEv.start, icsEv.allDay)}</div>
                         )}
                         {icsEv.url && (
                           <div style={{ marginTop: 8 }}>
@@ -888,7 +897,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                     const s = new Date(ev.start as string);
                                     const e = ev.end ? new Date(ev.end as string) : null;
                                     const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
-                                    return (`${s.toLocaleDateString()}${e ? ` • ${s.toLocaleTimeString([], opts)} - ${e.toLocaleTimeString([], opts)}` : ''}`);
+                                    return (`${formatIcsDate(ev.start as string, ev.allDay)}${e && !ev.allDay ? ` • ${s.toLocaleTimeString([], opts)} - ${e.toLocaleTimeString([], opts)}` : ''}`);
                                   } catch (_) { return ev.start; }
                                 })()}
                               </div>
