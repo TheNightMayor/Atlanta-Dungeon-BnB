@@ -23,6 +23,8 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
   const [icsEvents, setIcsEvents] = useState<IcsEvent[]>([]);
   const [blockedMap, setBlockedMap] = useState<Record<string, { id: string; reason?: string }>>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [manualRefresh, setManualRefresh] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -49,32 +51,27 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     if (!client) return;
 
     let mounted = true;
+    setLoading(true);
 
-    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted"] | order(checkinDate asc) [0...500] {
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    const windowStart = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 3, 1));
+    const windowEnd = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 4, 0));
+
+    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted" && checkinDate <= $windowEnd && checkoutDate >= $windowStart] | order(checkinDate asc) [0...150] {
           _id,
           checkinDate,
           checkoutDate,
           numberOfDays,
           adults,
-          totalPrice,
-          discount,
-          hotelRoom->{
-            _id,
-            name,
-            type,
-            price
-          },
-          user->{
-            _id,
-            name,
-            email
-          }
+          status,
+          customerName
         }`;
+    const bookingParams = { windowStart, windowEnd };
 
     Promise.all([
-      client.fetch(bookingsQuery),
+      client.fetch(bookingsQuery, bookingParams),
       client.fetch(`*[_type == "blockedDate"]{_id, date, reason}`),
-      fetch('/api/calendar-ics').then(async (res) => {
+      fetch(manualRefresh ? `/api/calendar-ics?refresh=${manualRefresh}` : '/api/calendar-ics').then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json() as Promise<IcsEvent[]>;
       }),
@@ -94,10 +91,16 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       })
       .finally(() => {
         if (mounted) setLoading(false);
+        if (mounted) setRefreshing(false);
       });
 
     return () => { mounted = false; };
-  }, [client]);
+  }, [client, currentMonth, manualRefresh]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setManualRefresh(value => value + 1);
+  };
 
   useEffect(() => {
     // reset reason edit state when changing selected date
@@ -321,30 +324,26 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const dateStr = date.toISOString().split('T')[0];
 
-      const dayBookings = (bookings || []).filter(b => {
-        if (!b?.checkinDate || !b?.checkoutDate) return false;
-        return dateStr >= b.checkinDate && dateStr <= b.checkoutDate;
-      });
+      const dayBookings: Booking[] = [];
+      const icsForDay: IcsEvent[] = [];
+      let icsReserved = false;
 
-      const icsForDay = icsEvents.filter(ev => {
-        if (!ev.start) return false;
-        const s = new Date(ev.start).toISOString().split('T')[0];
-        const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
-        return dateStr >= s && dateStr <= e;
-      });
+      for (const booking of bookings || []) {
+        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr <= booking.checkoutDate) {
+          dayBookings.push(booking);
+        }
+      }
 
-      const icsReserved = icsEvents.some(ev => {
-        if (!ev.reserved || !ev.start) return false;
-        const s = new Date(ev.start).toISOString().split('T')[0];
-        const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
-        return dateStr >= s && dateStr < e;
-      });
+      for (const event of icsEvents) {
+        if (!event.start) continue;
+        const start = new Date(event.start).toISOString().split('T')[0];
+        const end = event.end ? new Date(event.end).toISOString().split('T')[0] : start;
+        if (dateStr >= start && dateStr <= end) icsForDay.push(event);
+        if (event.reserved && dateStr >= start && dateStr < end) icsReserved = true;
+      }
 
-      const hasCheckin = (bookings || []).some(b => b?.checkinDate === dateStr);
-      const inRange = (bookings || []).some(b => {
-        if (!b?.checkinDate || !b?.checkoutDate) return false;
-        return dateStr >= b.checkinDate && dateStr < b.checkoutDate;
-      });
+      const hasCheckin = dayBookings.some(booking => booking?.checkinDate === dateStr);
+      const inRange = dayBookings.some(booking => dateStr < booking.checkoutDate);
 
       map[dateStr] = {
         dayBookings,
@@ -368,24 +367,42 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       <div style={{ maxWidth: '1200px', margin: '0 auto', flex: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.text }}>Booking Calendar</h1>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            style={{
-              padding: '8px 14px',
-              background: colors.buttonBg,
-              color: colors.text,
-              border: `1px solid ${colors.border}`,
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '500',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = colors.buttonHover)}
-            onMouseOut={(e) => (e.currentTarget.style.background = colors.buttonBg)}
-          >
-            {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              style={{
+                padding: '8px 14px',
+                background: colors.buttonBg,
+                color: colors.text,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '4px',
+                cursor: refreshing ? 'wait' : 'pointer',
+                fontSize: '13px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease',
+                opacity: refreshing ? 0.7 : 1,
+              }}
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh data'}
+            </button>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              style={{
+                padding: '8px 14px',
+                background: colors.buttonBg,
+                color: colors.text,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+            </button>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'stretch', height: '100%' }} >

@@ -1,6 +1,5 @@
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
-import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 import BookingCalendarView from './src/studio/views/BookingCalendarView'
 import { FaCalendarAlt } from 'react-icons/fa'
@@ -97,7 +96,6 @@ export default defineConfig({
     structureTool({
       structure,
     }),
-    visionTool(),
   ],
 
   schema: {

@@ -36,47 +36,44 @@ const OfferedAmenitiesPicker: React.FC<any> = ({ value = [], onChange }: any) =>
     return () => { mounted = false };
   }, [client]);
 
-  const removeOption = async (amenityIdOrTitle: string) => {
-    // remove reference from this document
-    const next = refs.filter(r => String(r && r._ref ? r._ref : r) !== amenityIdOrTitle);
-    emit(next);
+  const removeOption = async (amenityId: string) => {
+    const found = remoteOptions.find(option => option._id === amenityId);
+    if (!found) return;
 
-    // find remote doc by id or title
+    const confirmed = window.confirm(
+      `Delete "${found.title}" from the shared amenity list? It will be removed from every accommodation.`
+    );
+    if (!confirmed) return;
+
     try {
-      const found = remoteOptions.find(r => r._id === amenityIdOrTitle || r.title === amenityIdOrTitle) || null;
-      if (found && found._id) {
-        // delete the amenity document (and its draft if present) and remove references from all hotelRoom docs
-        try {
-          await client.delete(found._id);
-        } catch (err) {
-          // ignore
+      const docs: any[] = await client.fetch(
+        '*[_type == "hotelRoom" && references($id)]{_id, offeredAmenities}',
+        { id: found._id }
+      );
+      const transaction = client.transaction();
+      const patchedIds = new Set<string>();
+
+      for (const doc of docs || []) {
+        const documentId = String(doc._id);
+        const current = Array.isArray(doc.offeredAmenities) ? doc.offeredAmenities : [];
+        const next = current.filter((item: any) => String(item?._ref || item) !== found._id);
+
+        if (next.length !== current.length && !patchedIds.has(documentId)) {
+          transaction.patch(documentId, { set: { offeredAmenities: next } });
+          patchedIds.add(documentId);
         }
-        try {
-          await client.delete(`drafts.${found._id}`);
-        } catch (err) {
-          // ignore
+
+        if (!documentId.startsWith('drafts.')) {
+          transaction.patch(`drafts.${documentId}`, { set: { offeredAmenities: next } });
         }
-        // remove references from all hotelRoom docs
-        try {
-          const docs = await client.fetch('*[_type == "hotelRoom" && defined(offeredAmenities) && $id in offeredAmenities[]->_ref]{_id, offeredAmenities}', { id: found._id });
-          if (Array.isArray(docs)) {
-            for (const d of docs) {
-              const before = Array.isArray(d.offeredAmenities) ? d.offeredAmenities : [];
-              const after = before.filter((it: any) => String(it && (it._ref || it)) !== found._id);
-              if (after.length !== before.length) {
-                try { await client.patch(d._id).set({ offeredAmenities: after }).commit({ autoGenerateArrayKeys: true }); } catch (err) { }
-                try { const draftId = d._id.startsWith('drafts.') ? d._id : `drafts.${d._id}`; await client.patch(draftId).set({ offeredAmenities: after }).commit({ autoGenerateArrayKeys: true }); } catch (err) { }
-              }
-            }
-          }
-        } catch (err) {
-          // ignore
-        }
-        // refresh local options
-        setRemoteOptions(prev => prev.filter(r => r._id !== found._id));
       }
+
+      transaction.delete(found._id).delete(`drafts.${found._id}`);
+      await transaction.commit({ autoGenerateArrayKeys: true });
+      invalidateAmenityOptions(client);
+      setRemoteOptions(prev => prev.filter(option => option._id !== found._id));
     } catch (err) {
-      // ignore
+      console.error('Failed to delete shared amenity', err);
     }
   };
 

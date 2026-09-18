@@ -4,6 +4,7 @@ import AMENITY_ICON_MAP from './amenityIconMap';
 import IconGridPicker from './IconGridPicker';
 import ICONS from './iconList';
 import { FaPlus } from 'react-icons/fa';
+import { getAmenityOptions, invalidateAmenityOptions } from './amenityOptions';
 
 type Props = {
   value?: string | null;
@@ -33,6 +34,7 @@ const AmenityGridPicker: React.FC<Props> = ({ value, onChange }) => {
     (async () => {
       try {
         const doc = await client.create({ _type: 'amenity', title: newTitle, icon: newIcon });
+        invalidateAmenityOptions(client);
         setRemoteOptions(prev => [{ _id: doc._id, title: doc.title, icon: doc.icon ?? undefined }, ...prev]);
         onChange(PatchEvent.from([set(doc.title), set(doc.icon || '', ['icon'])]));
       } catch (err) {
@@ -48,7 +50,7 @@ const AmenityGridPicker: React.FC<Props> = ({ value, onChange }) => {
     let mounted = true;
     (async () => {
       try {
-        const docs: any[] = await client.fetch('*[_type == "amenity"]{_id, title, icon}');
+        const docs = await getAmenityOptions(client);
         if (!mounted) return;
         setRemoteOptions((docs || []).map(d => ({ _id: d._id, title: d.title, icon: d.icon ?? undefined })));
       } catch (err) {

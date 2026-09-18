@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@sanity/vision": "^4.22.0",
     "@stripe/stripe-js": "^4.10.0",
     "@types/bcryptjs": "^2.4.6",
     "axios": "^1.7.7",

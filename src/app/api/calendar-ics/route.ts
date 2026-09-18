@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const revalidate = 300;
+
 function unfoldLines(ics: string) {
   return ics.replace(/\r?\n[ \t]/g, '');
 }
@@ -29,14 +31,20 @@ function parseIcsDate(value: string): string | null {
   return null;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const url = process.env.GOOGLE_ICAL_URL || process.env.VRBO_ICAL_URL || process.env.VRBO_ICAL;
     if (!url) {
       return NextResponse.json({ error: 'Missing iCal URL (set GOOGLE_ICAL_URL or VRBO_ICAL_URL)' }, { status: 500 });
     }
 
-    const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const forceRefresh = new URL(request.url).searchParams.has('refresh');
+    const resp = await fetch(
+      url,
+      forceRefresh
+        ? { cache: 'no-store', signal: AbortSignal.timeout(10000) }
+        : { next: { revalidate: 300 }, signal: AbortSignal.timeout(10000) }
+    );
     if (!resp.ok) {
       const text = await resp.text();
       return NextResponse.json({ error: 'Failed to fetch ics', detail: text }, { status: resp.status });
