@@ -46,9 +46,10 @@ const formatIcsDateTimeRange = (start: string, end?: string | null) => {
 
 interface BookingCalendarProps {
   client?: any;
+  onOpenBooking?: (bookingId: string) => void;
 }
 
-export function BookingCalendar({ client }: BookingCalendarProps) {
+export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [icsEvents, setIcsEvents] = useState<IcsEvent[]>([]);
   const [blockedMap, setBlockedMap] = useState<Record<string, { id: string; reason?: string }>>({});
@@ -284,6 +285,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
     const bookingDate = new Date(booking.checkinDate);
     setSelectedDate(booking.checkinDate);
     setCurrentMonth(new Date(bookingDate.getFullYear(), bookingDate.getMonth()));
+    onOpenBooking?.(booking._id);
     // focus the booking card in the detailed list
     setFocusBookingId(booking._id);
     setTimeout(() => {
@@ -295,19 +297,6 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
         }
       } catch (e) { /* ignore */ }
     }, 150);
-  };
-
-  const openBookingEditor = (bookingId: string) => {
-    try {
-      const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
-      // Prefer direct document URL—some Studio setups resolve desk intents differently.
-      const docUrl = `${origin}/studio/desk/document/booking;${encodeURIComponent(bookingId)}`;
-      // Open the exact Studio structure path the user requested
-      const exactUrl = `${origin}/studio/structure/scheduling;booking;${encodeURIComponent(bookingId)}`;
-      window.open(exactUrl, '_blank');
-    } catch (e) {
-      console.error('Failed to open booking editor', e);
-    }
   };
 
   // Theme colors
