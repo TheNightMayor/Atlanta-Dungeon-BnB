@@ -87,6 +87,7 @@ export async function GET(request: Request) {
       // Heuristic: treat events as reservations/unavailable if summary/description contains booking keywords
       const sourceHint = (item.url || item.description || item.summary || '').toLowerCase();
       const reservedKeywords = /reserved|booked|booking|occupied|confirmed|unavailable|blocked|reservation/i;
+      const isBlocked = /blocked/i.test(item.summary || '') || /blocked/i.test(item.description || '');
       const isReserved = reservedKeywords.test(item.summary || '') || reservedKeywords.test(item.description || '') || /vrbo|airbnb|booking\.com/.test(sourceHint);
 
       events.push({
@@ -98,6 +99,7 @@ export async function GET(request: Request) {
         url: foundUrl || null,
         location: item.location || null,
         allDay: !!(item.dtstart && /^\d{8}$/.test(item.dtstart)),
+        blocked: !!isBlocked,
         reserved: !!isReserved,
         source: (/vrbo/.test(sourceHint) ? 'vrbo' : (/airbnb/.test(sourceHint) ? 'airbnb' : null))
       });

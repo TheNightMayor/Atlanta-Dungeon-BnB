@@ -9,6 +9,7 @@ type IcsEvent = {
   start?: string | null;
   end?: string | null;
   allDay?: boolean;
+  blocked?: boolean;
   url?: string;
   reserved?: boolean;
   source?: string | null;
@@ -21,6 +22,17 @@ const formatIcsDate = (value: string, allDay?: boolean) => {
   }
 
   return new Date(value).toLocaleDateString();
+};
+
+const formatIcsDateRange = (start: string, end?: string | null, allDay?: boolean, endInclusive = false) => {
+  const startLabel = formatIcsDate(start, allDay);
+  if (!allDay || !end) return startLabel;
+
+  const endKey = new Date(end).toISOString().split('T')[0];
+  const [year, month, day] = endKey.split('-').map(Number);
+  const lastOccupiedDate = new Date(year, month - 1, endInclusive ? day : day - 1);
+  const endLabel = lastOccupiedDate.toLocaleDateString();
+  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
 interface BookingCalendarProps {
@@ -135,17 +147,19 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       if (!ev.start) return false;
       const s = new Date(ev.start).toISOString().split('T')[0];
       const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
-      return dateStr >= s && dateStr <= e;
+      if (!ev.end) return dateStr === s;
+      return ev.blocked ? dateStr >= s && dateStr <= e : dateStr >= s && dateStr < e;
     });
   };
 
   const getIcsReservedForDate = (date: Date): IcsEvent | null => {
     const dateStr = date.toISOString().split('T')[0];
     return icsEvents.find(ev => {
-      if (!ev.reserved || !ev.start) return false;
+      if ((!ev.reserved && !ev.blocked) || !ev.start) return false;
       const s = new Date(ev.start).toISOString().split('T')[0];
-      const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
-      return dateStr >= s && dateStr < e;
+      if (!ev.end) return dateStr === s;
+      const e = new Date(ev.end).toISOString().split('T')[0];
+      return ev.blocked ? dateStr >= s && dateStr <= e : dateStr >= s && dateStr < e;
     }) || null;
   };
 
@@ -347,8 +361,13 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
         if (!event.start) continue;
         const start = new Date(event.start).toISOString().split('T')[0];
         const end = event.end ? new Date(event.end).toISOString().split('T')[0] : start;
-        if (dateStr >= start && dateStr <= end) icsForDay.push(event);
-        if (event.reserved && dateStr >= start && dateStr < end) icsReserved = true;
+        const eventOccupiesDate = !event.end
+          ? dateStr === start
+          : event.blocked
+            ? dateStr >= start && dateStr <= end
+            : dateStr >= start && dateStr < end;
+        if (eventOccupiesDate) icsForDay.push(event);
+        if ((event.reserved || event.blocked) && eventOccupiesDate) icsReserved = true;
       }
 
       const hasCheckin = dayBookings.some(booking => booking?.checkinDate === dateStr);
@@ -778,10 +797,10 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                       </div>
                     ) : icsEv ? (
                       <div style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#3a2540' : '#fff7f0', color: isDarkMode ? '#ffdede' : '#7a1f1f' }}>
-                        <div style={{ fontWeight: 700 }}>Reserved (iCal)</div>
+                        <div style={{ fontWeight: 700 }}>{icsEv.blocked ? 'Blocked' : 'Reserved (iCal)'}</div>
                         <div style={{ fontSize: 13, marginTop: 6 }}>{icsEv.summary || `Reserved via ${icsEv.source || 'iCal'}`}</div>
                         {icsEv.start && (
-                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{formatIcsDate(icsEv.start, icsEv.allDay)}</div>
+                          <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>{formatIcsDateRange(icsEv.start, icsEv.end, icsEv.allDay)}</div>
                         )}
                         {icsEv.url && (
                           <div style={{ marginTop: 8 }}>
@@ -897,7 +916,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                                     const s = new Date(ev.start as string);
                                     const e = ev.end ? new Date(ev.end as string) : null;
                                     const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
-                                    return (`${formatIcsDate(ev.start as string, ev.allDay)}${e && !ev.allDay ? ` • ${s.toLocaleTimeString([], opts)} - ${e.toLocaleTimeString([], opts)}` : ''}`);
+                                    return (`${ev.allDay ? formatIcsDateRange(ev.start as string, ev.end, true, ev.blocked) : formatIcsDate(ev.start as string)}${e && !ev.allDay ? ` • ${s.toLocaleTimeString([], opts)} - ${e.toLocaleTimeString([], opts)}` : ''}`);
                                   } catch (_) { return ev.start; }
                                 })()}
                               </div>
