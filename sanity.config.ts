@@ -26,7 +26,15 @@ const structure = (S: any) =>
               S.listItem()
                 .title('Booking Calendar')
                 .icon(FaCalendarAlt)
-                .child(S.component(BookingCalendarView).title('Booking Calendar')),
+                .child(
+                  S.component(BookingCalendarView)
+                    .title('Booking Calendar')
+                    .child((bookingId: string) =>
+                      S.document()
+                        .schemaType('booking')
+                        .documentId(bookingId)
+                    )
+                ),
               S.documentTypeListItem('blockedDate').title('Blocked Dates'),
               S.documentTypeListItem('booking').title('Bookings'),
             ])
