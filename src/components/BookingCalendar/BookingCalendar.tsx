@@ -340,7 +340,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
     blockedDayBg: '#fff0f0',
     bookingDayBg: '#e7f1fb',
     icalDayBg: '#dbeafe',
-    bookingBg: '#cfe2ff',
+    bookingBg: '#78a9d1',
     bookingText: '#123a5a',
   };
 
