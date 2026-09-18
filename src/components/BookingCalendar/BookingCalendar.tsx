@@ -35,6 +35,14 @@ const formatIcsDateRange = (start: string, end?: string | null, allDay?: boolean
   return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
+const formatIcsDateTimeRange = (start: string, end?: string | null) => {
+  const startDate = new Date(start);
+  const startLabel = startDate.toLocaleString();
+  if (!end) return startLabel;
+
+  return `${startLabel} - ${new Date(end).toLocaleString()}`;
+};
+
 interface BookingCalendarProps {
   client?: any;
 }
@@ -889,10 +897,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                               <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>
                                 {(() => {
                                   try {
-                                    const s = new Date(ev.start as string);
-                                    const e = ev.end ? new Date(ev.end as string) : null;
-                                    const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
-                                    return (`${ev.allDay ? formatIcsDateRange(ev.start as string, ev.end, true, ev.blocked) : formatIcsDate(ev.start as string)}${e && !ev.allDay ? ` • ${s.toLocaleTimeString([], opts)} - ${e.toLocaleTimeString([], opts)}` : ''}`);
+                                    return ev.allDay
+                                      ? formatIcsDateRange(ev.start as string, ev.end, true, ev.blocked)
+                                      : formatIcsDateTimeRange(ev.start as string, ev.end);
                                   } catch (_) { return ev.start; }
                                 })()}
                               </div>
