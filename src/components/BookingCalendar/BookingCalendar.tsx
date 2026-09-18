@@ -353,7 +353,8 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
       let icsReserved = false;
 
       for (const booking of bookings || []) {
-        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr < booking.checkoutDate) {
+        // Keep checkout visible as a reservation label, while occupancy below remains exclusive.
+        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr <= booking.checkoutDate) {
           dayBookings.push(booking);
         }
       }
@@ -865,7 +866,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         const dateKey = selectedDate;
                         const bks = (bookings || []).filter((b: any) => {
                           if (!b?.checkinDate || !b?.checkoutDate) return false;
-                          return dateKey >= b.checkinDate && dateKey < b.checkoutDate;
+                          return dateKey >= b.checkinDate && dateKey <= b.checkoutDate;
                         });
                         const ics = bks.length > 0 ? [] : getIcsEventsForDate(dateObj);
                     if (ics.length === 0 && bks.length === 0) return <p style={{ fontSize: '14px', color: colors.textSecondary }}>No events or bookings</p>;
