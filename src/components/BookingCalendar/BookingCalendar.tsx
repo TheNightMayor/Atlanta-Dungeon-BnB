@@ -666,9 +666,9 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                               maxWidth: '100%',
                               boxSizing: 'border-box',
                             }}
-                            title={booking.hotelRoom?.name}
+                            title={`${booking.customerName || 'Guest'}${booking.hotelRoom?.name ? ` - ${booking.hotelRoom.name}` : ''}`}
                           >
-                            {booking.hotelRoom?.name || 'Room'}
+                            {booking.customerName || booking.hotelRoom?.name || 'Booking'}
                           </div>
                         ))}
                         {dayBookings.length > 2 && (
@@ -972,7 +972,13 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                             }}
                           >
                             <div style={{ fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
-                              {booking.hotelRoom?.name}
+                              {booking.customerName || 'Guest'}
+                            </div>
+                            <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
+                              {booking.hotelRoom?.name || 'Listing unavailable'}
+                            </div>
+                            <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
+                              Source: Sanity
                             </div>
                             <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
                               {booking.checkinDate} → {booking.checkoutDate}
@@ -1016,7 +1022,13 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
                         }}
                       >
                         <div style={{ fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
-                          {booking.hotelRoom?.name}
+                          {booking.customerName || 'Guest'}
+                        </div>
+                        <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
+                          {booking.hotelRoom?.name || 'Listing unavailable'}
+                        </div>
+                        <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
+                          Source: Sanity
                         </div>
                         <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
                           {booking.checkinDate} → {booking.checkoutDate}
