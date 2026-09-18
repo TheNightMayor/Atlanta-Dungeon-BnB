@@ -96,6 +96,7 @@ export function BookingCalendar({ client }: BookingCalendarProps) {
           adults,
           status,
           customerName,
+          totalPrice,
           hotelRoom->{_id, name, slug, price}
         }`;
     const bookingParams = { windowStart, windowEnd };
