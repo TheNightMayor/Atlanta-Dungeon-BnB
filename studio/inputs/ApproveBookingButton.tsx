@@ -8,6 +8,11 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
   const [loading, setLoading] = useState(false);
   const studioClient = useClient({ apiVersion: '2021-10-21' });
 
+  const authHeaders = (): Record<string, string> => {
+    const token = studioClient.config().token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const idValue = useFormValue(['_id']);
   const statusValue = useFormValue(['status']);
 
@@ -51,7 +56,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ action: 'approve' }),
       });
       if (!res.ok) {
@@ -78,7 +83,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
       const res = await fetch(`/api/bookings/${targetId}`, {
         method: 'PATCH',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ action: actionToSend }),
       });
       if (!res.ok) {
@@ -254,7 +259,7 @@ const ApproveBookingButton: React.FC<Props> = (props) => {
                 const res = await fetch(`/api/bookings/${targetId}`, {
                   method: 'PATCH',
                   credentials: 'include',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...authHeaders() },
                   body: JSON.stringify({ action: 'refund', amount: amt }),
                 });
                 if (!res.ok) {
