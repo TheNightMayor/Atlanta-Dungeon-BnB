@@ -13,8 +13,8 @@ const booking = {
     icon: FaCalendarCheck,
     type: "document",
     fields: [
-        // Checkout snapshot — captured at booking time; editing here does not
-        // re-authorize payment, re-check availability, or resend emails.
+        // Identity and payment snapshots remain protected; stay details may be
+        // corrected by an administrator when an external reservation is wrong.
         defineField({
             name: "user",
             title: "User",
@@ -29,24 +29,24 @@ const booking = {
             title: "Hotel Room",
             type: "reference",
             to: [{ type: "hotelRoom" }],
-            readOnly: true,
             fieldset: 'stay',
+            description: "Correcting this changes the reservation record only; it does not move or re-authorize payment.",
             validation: Rule =>Rule.required(),
         }),
         defineField({
             name: "checkinDate",
             title: "Check-in Date",
             type: "date",
-            readOnly: true,
             fieldset: 'stay',
+            description: "Administrative correction only. Verify this date against the external calendar before saving.",
             validation: Rule =>Rule.required(),
         }),
         defineField({
             name: "checkoutDate",
             title: "Check-out Date",
             type: "date",
-            readOnly: true,
             fieldset: 'stay',
+            description: "Administrative correction only. Verify this date against the external calendar before saving.",
             validation: Rule =>Rule.required(),
         }),
         defineField({
@@ -54,7 +54,6 @@ const booking = {
             title: "Number of Days",
             type: "number",
             initialValue: 1,
-            readOnly: true,
             fieldset: 'stay',
             validation: Rule =>Rule.required().min(1),
         }),
@@ -81,7 +80,6 @@ const booking = {
             title: "Adults",
             type: "number",
             initialValue: 1,
-            readOnly: true,
             fieldset: 'stay',
             validation: Rule =>Rule.required().min(1),
         }),
