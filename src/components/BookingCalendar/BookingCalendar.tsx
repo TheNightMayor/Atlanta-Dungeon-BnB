@@ -697,7 +697,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                               <div
                                   style={{
                                     fontSize: '11px',
-                                    background: dayBookings.length > 0 && ev.reserved ? '#b42318' : (isDarkMode ? '#1f6feb' : '#cfe2ff'),
+                                    background: isDarkMode ? '#1f6feb' : '#cfe2ff',
                                     color: dayBlocked ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
                                     padding: '3px 5px',
                                     borderRadius: '3px',
@@ -717,8 +717,8 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                               key={ev.id}
                               style={{
                                 fontSize: '11px',
-                                background: dayBookings.length > 0 && ev.reserved ? '#b42318' : (isDarkMode ? '#1f6feb' : '#cfe2ff'),
-                                color: dayBookings.length > 0 && ev.reserved ? '#fff' : (isDarkMode ? '#dbeafe' : '#042c5c'),
+                                background: isDarkMode ? '#1f6feb' : '#cfe2ff',
+                                color: isDarkMode ? '#dbeafe' : '#042c5c',
                                 padding: '3px 5px',
                                 borderRadius: '3px',
                                 whiteSpace: 'nowrap',
@@ -914,7 +914,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                         const dateKey = selectedDate;
                         const bks = (bookings || []).filter((b: any) => {
                           if (!b?.checkinDate || !b?.checkoutDate) return false;
-                          return dateKey >= b.checkinDate && dateKey < b.checkoutDate;
+                          return dateKey >= b.checkinDate && dateKey <= b.checkoutDate;
                         });
                         const ics = getIcsEventsForDate(dateObj);
                     if (ics.length === 0 && bks.length === 0) return <p style={{ fontSize: '14px', color: colors.textSecondary }}>No events or bookings</p>;
