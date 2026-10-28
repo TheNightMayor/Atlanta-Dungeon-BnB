@@ -89,7 +89,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
     const windowStart = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 3, 1));
     const windowEnd = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 4, 0));
 
-    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted" && checkinDate <= $windowEnd && checkoutDate >= $windowStart] | order(checkinDate asc) [0...150] {
+    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted" && checkinDate < $windowEnd && checkoutDate > $windowStart] | order(checkinDate asc) [0...150] {
           _id,
           checkinDate,
           checkoutDate,
@@ -179,7 +179,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
       const s = new Date(ev.start).toISOString().split('T')[0];
       const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
       if (!ev.end) return dateStr === s;
-      return dateStr >= s && dateStr <= e;
+      return dateStr >= s && dateStr < e;
     });
   };
 
@@ -377,8 +377,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
       let icsReserved = false;
 
       for (const booking of bookings || []) {
-        // Keep checkout visible as a reservation label, while occupancy below remains exclusive.
-        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr <= booking.checkoutDate) {
+        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr < booking.checkoutDate) {
           dayBookings.push(booking);
         }
       }
@@ -389,11 +388,11 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
         const end = event.end ? new Date(event.end).toISOString().split('T')[0] : start;
         const eventVisibleOnDate = !event.end
           ? dateStr === start
-          : dateStr >= start && dateStr <= end;
+          : dateStr >= start && dateStr < end;
         const eventBlocksDate = !event.end
           ? dateStr === start
           : event.blocked
-            ? dateStr >= start && dateStr <= end
+            ? dateStr >= start && dateStr < end
             : dateStr >= start && dateStr < end;
         if (eventVisibleOnDate && !isMirroredBlockedEvent(event)) icsForDay.push(event);
         if ((event.reserved || event.blocked) && eventBlocksDate) icsReserved = true;
