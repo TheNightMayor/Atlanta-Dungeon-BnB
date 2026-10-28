@@ -179,7 +179,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
       const s = new Date(ev.start).toISOString().split('T')[0];
       const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
       if (!ev.end) return dateStr === s;
-      return dateStr >= s && dateStr < e;
+      return dateStr >= s && dateStr <= e;
     });
   };
 
@@ -377,7 +377,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
       let icsReserved = false;
 
       for (const booking of bookings || []) {
-        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr < booking.checkoutDate) {
+        if (booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr <= booking.checkoutDate) {
           dayBookings.push(booking);
         }
       }
@@ -388,7 +388,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
         const end = event.end ? new Date(event.end).toISOString().split('T')[0] : start;
         const eventVisibleOnDate = !event.end
           ? dateStr === start
-          : dateStr >= start && dateStr < end;
+          : dateStr >= start && dateStr <= end;
         const eventBlocksDate = !event.end
           ? dateStr === start
           : event.blocked
@@ -557,9 +557,12 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                 const dayBookings = dayData?.dayBookings || [];
                 const dayIcsEvents = (dayData?.icsForDay || []).filter(event => !event.blocked);
                 const dayBlocked = dayData?.blocked || false;
+                const hasActiveBooking = dayBookings.some(booking =>
+                  booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr < booking.checkoutDate
+                );
                 const dayStatus = blockedMap[dateStr]
                   ? 'blocked'
-                  : dayBookings.length > 0
+                  : hasActiveBooking
                     ? 'booking'
                     : (dayData?.icsForDay || []).some(event => event.blocked)
                       ? 'blocked'
