@@ -25,23 +25,8 @@ const formatIcsDate = (value: string, allDay?: boolean) => {
   return new Date(value).toLocaleDateString();
 };
 
-const formatIcsDateRange = (start: string, end?: string | null, allDay?: boolean, endInclusive = false) => {
-  const startLabel = formatIcsDate(start, allDay);
-  if (!allDay || !end) return startLabel;
-
-  const endKey = new Date(end).toISOString().split('T')[0];
-  const [year, month, day] = endKey.split('-').map(Number);
-  const lastOccupiedDate = new Date(year, month - 1, endInclusive ? day : day - 1);
-  const endLabel = lastOccupiedDate.toLocaleDateString();
-  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
-};
-
-const formatIcsDateTimeRange = (start: string, end?: string | null) => {
-  const startDate = new Date(start);
-  const startLabel = startDate.toLocaleString();
-  if (!end) return startLabel;
-
-  return `${startLabel} - ${new Date(end).toLocaleString()}`;
+const formatIcsDateTime = (value: string) => {
+  return new Date(value).toLocaleString();
 };
 
 interface BookingCalendarProps {
@@ -931,14 +916,9 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                             </div>
 
                             {ev.start && (
-                              <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13 }}>
-                                {(() => {
-                                  try {
-                                    return ev.allDay
-                                      ? formatIcsDateRange(ev.start as string, ev.end, true, ev.blocked)
-                                      : formatIcsDateTimeRange(ev.start as string, ev.end);
-                                  } catch (_) { return ev.start; }
-                                })()}
+                              <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13, display: 'grid', gap: 3 }}>
+                                <div>Start: {ev.allDay ? formatIcsDate(ev.start, true) : formatIcsDateTime(ev.start)}</div>
+                                <div>End: {ev.end ? (ev.allDay ? formatIcsDate(ev.end, true) : formatIcsDateTime(ev.end)) : 'Not provided'}</div>
                               </div>
                             )}
 
