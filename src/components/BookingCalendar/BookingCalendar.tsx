@@ -16,6 +16,25 @@ type IcsEvent = {
   source?: string | null;
 };
 
+type ReservationRange = {
+  id: string;
+  type: 'booking' | 'ics';
+  start: string;
+  end: string;
+  roomId?: string;
+};
+
+const getDateKey = (value: string) => value.slice(0, 10);
+
+const getNextDateKey = (value: string) => {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+};
+
+const rangesOverlap = (first: ReservationRange, second: ReservationRange) =>
+  first.start < second.end && second.start < first.end;
+
 const formatIcsDate = (value: string, allDay?: boolean) => {
   if (allDay) {
     const [year, month, day] = value.slice(0, 10).split('-').map(Number);
@@ -74,7 +93,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
     const windowStart = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 3, 1));
     const windowEnd = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 4, 0));
 
-    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted" && checkinDate < $windowEnd && checkoutDate > $windowStart] | order(checkinDate asc) [0...150] {
+    const bookingsQuery = `*[_type == "booking" && status != "rejected" && status != "deleted" && status != "cancelled" && status != "refunded" && checkinDate < $windowEnd && checkoutDate > $windowStart] | order(checkinDate asc) [0...150] {
           _id,
           checkinDate,
           checkoutDate,
@@ -151,8 +170,8 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
     return bookings.some(booking =>
       booking?.checkinDate &&
       booking?.checkoutDate &&
-      start >= booking.checkinDate &&
-      end <= booking.checkoutDate
+      start === getDateKey(booking.checkinDate) &&
+      end === getDateKey(booking.checkoutDate)
     );
   };
 
@@ -175,7 +194,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
       const s = new Date(ev.start).toISOString().split('T')[0];
       if (!ev.end) return dateStr === s;
       const e = new Date(ev.end).toISOString().split('T')[0];
-      return ev.blocked ? dateStr >= s && dateStr <= e : dateStr >= s && dateStr < e;
+      return dateStr >= s && dateStr < e;
     }) || null;
   };
 
@@ -346,6 +365,58 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
 
   const calendarDays = generateCalendarDays();
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  const reservationConflicts = React.useMemo(() => {
+    const reservations: ReservationRange[] = [];
+    const inactiveStatuses = ['rejected', 'deleted', 'cancelled', 'refunded'];
+
+    bookings.forEach(booking => {
+      if (!booking?.checkinDate || !booking?.checkoutDate || inactiveStatuses.includes(booking.status || '')) return;
+      const start = getDateKey(booking.checkinDate);
+      const end = getDateKey(booking.checkoutDate);
+      if (start >= end) return;
+      reservations.push({
+        id: booking._id,
+        type: 'booking',
+        start,
+        end,
+        roomId: booking.hotelRoom?._id,
+      });
+    });
+
+    icsEvents.forEach(event => {
+      if (!event.reserved || !event.start || isMirroredBlockedEvent(event)) return;
+      const start = new Date(event.start).toISOString().slice(0, 10);
+      const end = event.end ? new Date(event.end).toISOString().slice(0, 10) : getNextDateKey(start);
+      if (start >= end) return;
+      reservations.push({ id: event.id, type: 'ics', start, end });
+    });
+
+    const bookingIds = new Set<string>();
+    const icsEventIds = new Set<string>();
+
+    for (let firstIndex = 0; firstIndex < reservations.length; firstIndex++) {
+      for (let secondIndex = firstIndex + 1; secondIndex < reservations.length; secondIndex++) {
+        const first = reservations[firstIndex];
+        const second = reservations[secondIndex];
+        if (
+          first.type === 'booking' &&
+          second.type === 'booking' &&
+          first.roomId &&
+          second.roomId &&
+          first.roomId !== second.roomId
+        ) continue;
+        if (!rangesOverlap(first, second)) continue;
+
+        if (first.type === 'booking') bookingIds.add(first.id);
+        else icsEventIds.add(first.id);
+        if (second.type === 'booking') bookingIds.add(second.id);
+        else icsEventIds.add(second.id);
+      }
+    }
+
+    return { bookingIds, icsEventIds };
+  }, [bookings, icsEvents]);
 
   // Precompute per-day booking/ICS/blocked state once per render instead of
   // re-scanning the full bookings/icsEvents arrays 3-4x for every one of the ~42 grid cells.
@@ -540,7 +611,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                 const dateStr = date.toISOString().split('T')[0];
                 const dayData = monthDayData[dateStr];
                 const dayBookings = dayData?.dayBookings || [];
-                const dayIcsEvents = (dayData?.icsForDay || []).filter(event => !event.blocked);
+                const dayIcsEvents = (dayData?.icsForDay || []).filter(event => !event.blocked || event.reserved);
                 const dayBlocked = dayData?.blocked || false;
                 const hasActiveBooking = dayBookings.some(booking =>
                   booking?.checkinDate && booking?.checkoutDate && dateStr >= booking.checkinDate && dateStr < booking.checkoutDate
@@ -549,7 +620,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                   ? 'blocked'
                   : hasActiveBooking
                     ? 'booking'
-                    : (dayData?.icsForDay || []).some(event => event.blocked)
+                    : (dayData?.icsForDay || []).some(event => event.blocked && !event.reserved)
                       ? 'blocked'
                       : dayIcsEvents.length > 0
                         ? 'ical'
@@ -648,7 +719,9 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                             style={{
                               fontSize: '11px',
                               background: colors.bookingBg,
-                              color: dayBlocked ? 'rgba(255,255,255,0.6)' : colors.bookingText,
+                              color: reservationConflicts.bookingIds.has(booking._id)
+                                ? (isDarkMode ? '#f87171' : '#b42318')
+                                : dayBlocked ? 'rgba(255,255,255,0.6)' : colors.bookingText,
                               padding: '3px 5px',
                               borderRadius: '3px',
                               whiteSpace: 'nowrap',
@@ -658,7 +731,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                               maxWidth: '100%',
                               boxSizing: 'border-box',
                             }}
-                            title={`${booking.customerName || 'Guest'}${booking.hotelRoom?.name ? ` - ${booking.hotelRoom.name}` : ''}`}
+                            title={`${booking.customerName || 'Guest'}${booking.hotelRoom?.name ? ` - ${booking.hotelRoom.name}` : ''}${reservationConflicts.bookingIds.has(booking._id) ? ' - DOUBLE-BOOKING CONFLICT' : ''}`}
                           >
                             {booking.customerName || booking.hotelRoom?.name || 'Booking'}
                           </div>
@@ -683,7 +756,9 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                                   style={{
                                     fontSize: '11px',
                                     background: isDarkMode ? '#1f6feb' : '#cfe2ff',
-                                    color: dayBlocked ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
+                                    color: reservationConflicts.icsEventIds.has(ev.id)
+                                      ? (isDarkMode ? '#f87171' : '#b42318')
+                                      : dayBlocked ? 'rgba(255,255,255,0.6)' : (isDarkMode ? '#dbeafe' : '#042c5c'),
                                     padding: '3px 5px',
                                     borderRadius: '3px',
                                     whiteSpace: 'nowrap',
@@ -692,7 +767,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                                     width: '100%',
                                     boxSizing: 'border-box',
                                   }}
-                                  title={ev.guestName || ev.summary}
+                                  title={`${ev.guestName || ev.summary}${reservationConflicts.icsEventIds.has(ev.id) ? ' - DOUBLE-BOOKING CONFLICT' : ''}`}
                                 >
                                   {ev.guestName || ev.summary}
                                 </div>
@@ -703,7 +778,9 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                               style={{
                                 fontSize: '11px',
                                 background: isDarkMode ? '#1f6feb' : '#cfe2ff',
-                                color: isDarkMode ? '#dbeafe' : '#042c5c',
+                                color: reservationConflicts.icsEventIds.has(ev.id)
+                                  ? (isDarkMode ? '#f87171' : '#b42318')
+                                  : (isDarkMode ? '#dbeafe' : '#042c5c'),
                                 padding: '3px 5px',
                                 borderRadius: '3px',
                                 whiteSpace: 'nowrap',
@@ -712,7 +789,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                                 width: '100%',
                                 boxSizing: 'border-box',
                               }}
-                              title={ev.guestName || ev.summary}
+                              title={`${ev.guestName || ev.summary}${reservationConflicts.icsEventIds.has(ev.id) ? ' - DOUBLE-BOOKING CONFLICT' : ''}`}
                             >
                               {ev.guestName || ev.summary}
                             </div>
@@ -909,11 +986,17 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                         {ics.map(ev => (
                           <div key={ev.id} style={{ padding: '8px', borderRadius: 6, background: isDarkMode ? '#0b2540' : '#eef6ff', border: `1px solid ${colors.border}` }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                              <div style={{ fontWeight: 700, color: isDarkMode ? '#cfe8ff' : '#0b3a66' }}>{ev.guestName || ev.summary || 'Event'}</div>
+                              <div style={{ fontWeight: 700, color: reservationConflicts.icsEventIds.has(ev.id) ? (isDarkMode ? '#f87171' : '#b42318') : (isDarkMode ? '#cfe8ff' : '#0b3a66') }}>{ev.guestName || ev.summary || 'Event'}</div>
                               {ev.url && (
                                 <a href={ev.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: isDarkMode ? '#bfe0ff' : '#0b3a66', textDecoration: 'underline', fontSize: 13 }}>Open</a>
                               )}
                             </div>
+
+                            {reservationConflicts.icsEventIds.has(ev.id) && (
+                              <div style={{ marginTop: 6, color: isDarkMode ? '#f87171' : '#b42318', fontSize: 12, fontWeight: 700 }}>
+                                Double-booking conflict
+                              </div>
+                            )}
 
                             {ev.start && (
                               <div style={{ marginTop: 6, color: colors.textSecondary, fontSize: 13, display: 'grid', gap: 3 }}>
@@ -958,9 +1041,14 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
                               e.currentTarget.style.transform = 'translateY(0)';
                             }}
                           >
-                            <div style={{ fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
+                            <div style={{ fontWeight: '600', color: reservationConflicts.bookingIds.has(booking._id) ? (isDarkMode ? '#f87171' : '#b42318') : colors.text, marginBottom: '4px' }}>
                               {booking.customerName || 'Guest'}
                             </div>
+                            {reservationConflicts.bookingIds.has(booking._id) && (
+                              <div style={{ color: isDarkMode ? '#f87171' : '#b42318', fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+                                Double-booking conflict
+                              </div>
+                            )}
                             <div style={{ color: colors.textSecondary, fontSize: '11px', marginBottom: '3px' }}>
                               {booking.hotelRoom?.name || 'Listing unavailable'}
                             </div>
