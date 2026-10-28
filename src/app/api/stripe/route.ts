@@ -8,6 +8,7 @@ import sanityClient from '@/libs/sanity';
 import getImageUrl from '@/libs/imageUrl';
 import { getSessionUserId } from '@/libs/session';
 import { calculateListingDiscountsSavings } from '@/libs/discount';
+import { getAvailability, rangeIsAvailable } from '@/libs/availability';
 
 let stripe: Stripe | null = null;
 
@@ -93,6 +94,18 @@ export async function POST(req: Request) {
     const room = await getRoom(hotelRoomSlug);
     if (!room) {
       return new NextResponse('Room not found', { status: 400 });
+    }
+
+    let availability;
+    try {
+      availability = await getAvailability();
+    } catch (error) {
+      console.error('Unable to verify booking availability:', error);
+      return NextResponse.json({ error: 'Availability could not be verified. Please try again.' }, { status: 503 });
+    }
+
+    if (!rangeIsAvailable(availability, formattedCheckinDate, formattedCheckoutDate)) {
+      return NextResponse.json({ error: 'One or more selected dates are no longer available.' }, { status: 409 });
     }
 
     // Build safe image list: convert Sanity refs to CDN URLs and remove falsy/empty values

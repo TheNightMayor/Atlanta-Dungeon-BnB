@@ -69,7 +69,7 @@ const BookRoomCta: FC<Props> = props => {
     const [hasReadStatement, setHasReadStatement] = useState(false);
     const [isOver18, setIsOver18] = useState(false);
     const [isLiabilityLoading, setIsLiabilityLoading] = useState(true);
-    const { blockedDates: blockedKeys, isBlocked, loading: availabilityLoading } = useRoomAvailability(roomId);
+    const { blockedDates: blockedKeys, error: availabilityError, loading: availabilityLoading } = useRoomAvailability(roomId);
 
     const getDateRange = (startDate: Date, endDate: Date) => {
         const dates: Date[] = [];
@@ -145,7 +145,7 @@ const BookRoomCta: FC<Props> = props => {
     const { data: session } = useSession();
     const isAuthenticated = !!session?.user?.name;
 
-    const isBookNowDisabled = !instantBook || !checkinDate || (overnight && !checkoutDate) || adults < 1;
+    const isBookNowDisabled = !instantBook || availabilityLoading || !!availabilityError || !checkinDate || (overnight && !checkoutDate) || adults < 1;
 
     return (
         <div className="px-7 py-4 bg-white dark:bg-slate-900 rounded-lg md:rounded-2xl shadow-[0_12px_30px_-16px_rgba(0,0,0,0.18)]">
