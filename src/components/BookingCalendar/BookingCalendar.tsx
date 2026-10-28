@@ -157,9 +157,24 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
     });
   };
 
+  const isMirroredBlockedEvent = (event: IcsEvent) => {
+    if (!event.blocked || !event.start) return false;
+    const start = new Date(event.start).toISOString().split('T')[0];
+    const end = event.end
+      ? new Date(event.end).toISOString().split('T')[0]
+      : new Date(new Date(`${start}T00:00:00Z`).getTime() + 86400000).toISOString().split('T')[0];
+    return bookings.some(booking =>
+      booking?.checkinDate &&
+      booking?.checkoutDate &&
+      start >= booking.checkinDate &&
+      end <= booking.checkoutDate
+    );
+  };
+
   const getIcsEventsForDate = (date: Date): IcsEvent[] => {
     const dateStr = date.toISOString().split('T')[0];
     return icsEvents.filter(ev => {
+      if (isMirroredBlockedEvent(ev)) return false;
       if (!ev.start) return false;
       const s = new Date(ev.start).toISOString().split('T')[0];
       const e = ev.end ? new Date(ev.end).toISOString().split('T')[0] : s;
@@ -380,7 +395,7 @@ export function BookingCalendar({ client, onOpenBooking }: BookingCalendarProps)
           : event.blocked
             ? dateStr >= start && dateStr <= end
             : dateStr >= start && dateStr < end;
-        if (eventVisibleOnDate) icsForDay.push(event);
+        if (eventVisibleOnDate && !isMirroredBlockedEvent(event)) icsForDay.push(event);
         if ((event.reserved || event.blocked) && eventBlocksDate) icsReserved = true;
       }
 
